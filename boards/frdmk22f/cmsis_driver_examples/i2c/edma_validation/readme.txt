@@ -1,0 +1,77 @@
+Overview
+========
+The cmsis_i2c_edma_validation example tests cmsis i2c edma driver using CMSIS Driver Validation Suite 
+which is provided by ARM to do some general validation, for more details of CMSIS Driver Validation pack 
+you could refer to https://www.keil.com/pack/doc/CMSIS/Driver/html/_driver_validation.html
+
+In this example , we use one I2C as test instance.we test the following functions:
+1: I2C_GetCapabilities            
+2: I2C_Initialization              
+3: I2C_PowerControl                 
+4: I2C_SetBusSpeed                  
+5: I2C_SetOwnAddress                
+6: I2C_AbortTransfer              
+
+Toolchain supported
+===================
+- Keil MDK 5.20
+
+Hardware requirements
+=====================
+- Mini/Micro USB cable
+- FRDM-K22F board
+- Personal Computer
+
+Board settings
+==============
+The example is configured 2 instances I2C , one as I2C master , another as I2C slave.
+The connection should be set as following:
+- J24-12 , J1-13 connected
+- J24-10 , J2-07 connected
+
+Prepare the Demo
+================
+1.  Connect a mini USB cable between the PC host and the OpenSDA USB port on the board.
+2.  Open a serial terminal on PC for OpenSDA serial device with these settings:
+    - 115200 baud rate
+    - 8 data bits
+    - No parity
+    - One stop bit
+    - No flow control
+3.  Download the program to the target board.
+4.  Either press the reset button on your board or launch the debugger in your IDE to begin running the demo.
+
+Running the demo
+================
+When the example runs successfully, you can see the similar information from the terminal as below.
+
+I2C example -- MasterDMA_SlaveInterrupt.
+Master will send data :
+0x 0  0x 1  0x 2  0x 3  0x 4  0x 5  0x 6  0x 7
+0x 8  0x 9  0x a  0x b  0x c  0x d  0x e  0x f
+0x10  0x11  0x12  0x13  0x14  0x15  0x16  0x17
+0x18  0x19  0x1a  0x1b  0x1c  0x1d  0x1e  0x1f
+
+Slave received data :
+0x 0  0x 1  0x 2  0x 3  0x 4  0x 5  0x 6  0x 7
+0x 8  0x 9  0x a  0x b  0x c  0x d  0x e  0x f
+0x10  0x11  0x12  0x13  0x14  0x15  0x16  0x17
+0x18  0x19  0x1a  0x1b  0x1c  0x1d  0x1e  0x1f
+
+This time , slave will send data: :
+0xff  0xfe  0xfd  0xfc  0xfb  0xfa  0xf9  0xf8
+0xf7  0xf6  0xf5  0xf4  0xf3  0xf2  0xf1  0xf0
+0xef  0xee  0xed  0xec  0xeb  0xea  0xe9  0xe8
+0xe7  0xe6  0xe5  0xe4  0xe3  0xe2  0xe1  0xe0
+
+Master received data :
+0xff  0xfe  0xfd  0xfc  0xfb  0xfa  0xf9  0xf8
+0xf7  0xf6  0xf5  0xf4  0xf3  0xf2  0xf1  0xf0
+0xef  0xee  0xed  0xec  0xeb  0xea  0xe9  0xe8
+0xe7  0xe6  0xe5  0xe4  0xe3  0xe2  0xe1  0xe0
+
+
+End of I2C example .
+Customization options
+=====================
+

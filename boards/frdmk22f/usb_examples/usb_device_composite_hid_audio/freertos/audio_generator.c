@@ -63,13 +63,16 @@
 #if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0U)
 #define AUDIO_ENDPOINT_MAX_PACKET_SIZE (FS_ISO_IN_ENDP_PACKET_SIZE)
 #endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+#define AUDIO_ENDPOINT_MAX_PACKET_SIZE (FS_ISO_IN_ENDP_PACKET_SIZE)
+#endif
 
 uint32_t audioPosition = 0U;
 
 extern const unsigned char wavData[];
 extern const uint16_t wavSize;
 
-static uint8_t s_wavBuff[AUDIO_ENDPOINT_MAX_PACKET_SIZE];
+USB_DATA_ALIGNMENT static uint8_t s_wavBuff[AUDIO_ENDPOINT_MAX_PACKET_SIZE];
 
 static usb_device_composite_struct_t *g_deviceComposite;
 

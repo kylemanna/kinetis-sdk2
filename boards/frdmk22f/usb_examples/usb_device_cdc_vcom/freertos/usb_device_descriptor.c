@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
+* Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification,
@@ -110,9 +110,9 @@ uint8_t g_UsbDeviceDescriptor[USB_DESCRIPTOR_LENGTH_DEVICE] = {
     /* Maximum packet size for endpoint zero (only 8, 16, 32, or 64 are valid) */
     USB_CONTROL_MAX_PACKET_SIZE,
     /* Vendor ID (assigned by the USB-IF) */
-    0xA2, 0x15,
+    0xC9U, 0x1FU,
     /* Product ID (assigned by the manufacturer) */
-    0x00, 0x03,
+    0x94, 0x00,
     /* Device release number in binary-coded decimal */
     USB_SHORT_GET_LOW(USB_DEVICE_DEMO_BCD_VERSION), USB_SHORT_GET_HIGH(USB_DEVICE_DEMO_BCD_VERSION),
     /* Index of string descriptor describing manufacturer */
@@ -204,64 +204,46 @@ uint8_t g_UsbDeviceConfigurationDescriptor[USB_DESCRIPTOR_LENGTH_CONFIGURATION_A
 uint8_t g_UsbDeviceString0[USB_DESCRIPTOR_LENGTH_STRING0] = {sizeof(g_UsbDeviceString0), USB_DESCRIPTOR_TYPE_STRING,
                                                              0x09, 0x04};
 
-uint8_t g_UsbDeviceString1[USB_DESCRIPTOR_LENGTH_STRING1] = {sizeof(g_UsbDeviceString1),
-                                                             USB_DESCRIPTOR_TYPE_STRING,
-                                                             'F',
-                                                             0,
-                                                             'R',
-                                                             0,
-                                                             'E',
-                                                             0,
-                                                             'E',
-                                                             0,
-                                                             'S',
-                                                             0,
-                                                             'C',
-                                                             0,
-                                                             'A',
-                                                             0,
-                                                             'L',
-                                                             0,
-                                                             'E',
-                                                             0,
-                                                             ' ',
-                                                             0,
-                                                             'S',
-                                                             0,
-                                                             'E',
-                                                             0,
-                                                             'M',
-                                                             0,
-                                                             'I',
-                                                             0,
-                                                             'C',
-                                                             0,
-                                                             'O',
-                                                             0,
-                                                             'N',
-                                                             0,
-                                                             'D',
-                                                             0,
-                                                             'U',
-                                                             0,
-                                                             'C',
-                                                             0,
-                                                             'T',
-                                                             0,
-                                                             'O',
-                                                             0,
-                                                             'R',
-                                                             0,
-                                                             ' ',
-                                                             0,
-                                                             'I',
-                                                             0,
-                                                             'N',
-                                                             0,
-                                                             'C',
-                                                             0,
-                                                             '.',
-                                                             0};
+uint8_t g_UsbDeviceString1[USB_DESCRIPTOR_LENGTH_STRING1] = {
+    sizeof(g_UsbDeviceString1),
+    USB_DESCRIPTOR_TYPE_STRING,
+    'N',
+    0x00U,
+    'X',
+    0x00U,
+    'P',
+    0x00U,
+    ' ',
+    0x00U,
+    'S',
+    0x00U,
+    'E',
+    0x00U,
+    'M',
+    0x00U,
+    'I',
+    0x00U,
+    'C',
+    0x00U,
+    'O',
+    0x00U,
+    'N',
+    0x00U,
+    'D',
+    0x00U,
+    'U',
+    0x00U,
+    'C',
+    0x00U,
+    'T',
+    0x00U,
+    'O',
+    0x00U,
+    'R',
+    0x00U,
+    'S',
+    0x00U,
+};
 
 uint8_t g_UsbDeviceString2[USB_DESCRIPTOR_LENGTH_STRING2] = {sizeof(g_UsbDeviceString2),
                                                              USB_DESCRIPTOR_TYPE_STRING,
@@ -326,7 +308,7 @@ usb_language_list_t g_UsbDeviceLanguageList = {
 /*!
  * @brief USB device get device descriptor function.
  *
- * This function gets the device descriptor of the USB devcie.
+ * This function gets the device descriptor of the USB device.
  *
  * @param handle The USB device handle.
  * @param deviceDescriptor The pointer to the device descriptor structure.
@@ -344,7 +326,7 @@ usb_status_t USB_DeviceGetDeviceDescriptor(usb_device_handle handle,
 /*!
  * @brief USB device get configuration descriptor function.
  *
- * This function gets the configuration descriptor of the USB devcie.
+ * This function gets the configuration descriptor of the USB device.
  *
  * @param handle The USB device handle.
  * @param configurationDescriptor The pointer to the configuration descriptor structure.
@@ -364,9 +346,54 @@ usb_status_t USB_DeviceGetConfigurationDescriptor(
 }
 
 /*!
+ * @brief USB device get string descriptor function.
+ *
+ * This function gets the string descriptor of the USB device.
+ *
+ * @param handle The USB device handle.
+ * @param stringDescriptor Pointer to the string descriptor structure.
+ *
+ * @return A USB error code or kStatus_USB_Success.
+ */
+usb_status_t USB_DeviceGetStringDescriptor(usb_device_handle handle,
+                                           usb_device_get_string_descriptor_struct_t *stringDescriptor)
+{
+    if (stringDescriptor->stringIndex == 0U)
+    {
+        stringDescriptor->buffer = (uint8_t *)g_UsbDeviceLanguageList.languageString;
+        stringDescriptor->length = g_UsbDeviceLanguageList.stringLength;
+    }
+    else
+    {
+        uint8_t languageId = 0U;
+        uint8_t languageIndex = USB_DEVICE_STRING_COUNT;
+
+        for (; languageId < USB_DEVICE_LANGUAGE_COUNT; languageId++)
+        {
+            if (stringDescriptor->languageId == g_UsbDeviceLanguageList.languageList[languageId].languageId)
+            {
+                if (stringDescriptor->stringIndex < USB_DEVICE_STRING_COUNT)
+                {
+                    languageIndex = stringDescriptor->stringIndex;
+                }
+                break;
+            }
+        }
+
+        if (USB_DEVICE_STRING_COUNT == languageIndex)
+        {
+            return kStatus_USB_InvalidRequest;
+        }
+        stringDescriptor->buffer = (uint8_t *)g_UsbDeviceLanguageList.languageList[languageId].string[languageIndex];
+        stringDescriptor->length = g_UsbDeviceLanguageList.languageList[languageId].length[languageIndex];
+    }
+    return kStatus_USB_Success;
+}
+
+/*!
  * @brief USB device set speed function.
  *
- * This function sets the speed of the USB devcie.
+ * This function sets the speed of the USB device.
  *
  * Due to the difference of HS and FS descriptors, the device descriptors and configurations need to be updated to match
  * current speed.

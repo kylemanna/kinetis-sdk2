@@ -8,11 +8,11 @@ so that user can see just a general counter is working with interrupt.
 
 Toolchain supported
 ===================
-- IAR embedded Workbench 7.50.1
-- Keil MDK 5.17
+- IAR embedded Workbench 7.70.1
+- Keil MDK 5.20
 - GCC ARM Embedded 2015-4.9-q3
-- Kinetis Development Studio IDE 3.0.0
-- Atollic TrueSTUDIO 5.4.0
+- Kinetis Development Studio IDE 3.2.0
+- Atollic TrueSTUDIO 5.5.2
 
 Hardware requirements
 =====================
@@ -39,15 +39,18 @@ Prepare the Demo
 Running the demo
 ================
 When the demo runs successfully, the log would be seen on the OpenSDA terminal like:
+
 PDB Delay Interrupt Example.
+
 Type any key into terminal to trigger the PDB counter ...
 PDB Delay Interrupt Counter: 1
+
 Type any key into terminal to trigger the PDB counter ...
 PDB Delay Interrupt Counter: 2
+
 Type any key into terminal to trigger the PDB counter ...
 PDB Delay Interrupt Counter: 3
 
 Customization options
 =====================
-
 

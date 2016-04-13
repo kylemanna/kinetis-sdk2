@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 - 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2014 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -36,8 +36,8 @@
  *
  * The CPU macro should be declared in the project or makefile.
  */
-#if (defined(CPU_MK22FN512CAP12) || defined(CPU_MK22FN512VDC12) || defined(CPU_MK22FN512VLH12) || \
-    defined(CPU_MK22FN512VLL12) || defined(CPU_MK22FN512VMP12))
+#if (defined(CPU_MK22FN512CAP12) || defined(CPU_MK22FN512VDC12) || defined(CPU_MK22FN512VFX12) || \
+    defined(CPU_MK22FN512VLH12) || defined(CPU_MK22FN512VLL12) || defined(CPU_MK22FN512VMP12))
 
 #define K22F51212_SERIES
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
+* Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification,
@@ -43,6 +43,11 @@
 #define DATA_BUFF_SIZE FS_CDC_VCOM_BULK_OUT_PACKET_SIZE
 
 #endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+#define CONTROLLER_ID kUSB_ControllerLpcIp3511Fs0
+#define DATA_BUFF_SIZE FS_CDC_VCOM_BULK_OUT_PACKET_SIZE
+
+#endif
 
 #define USB_DEVICE_INTERRUPT_PRIORITY (3U)
 
@@ -74,6 +79,7 @@ typedef struct _usb_cdc_vcom_struct
     uint8_t currentConfiguration; /* Current configuration value. */
     uint8_t currentInterfaceAlternateSetting
         [USB_CDC_VCOM_INTERFACE_COUNT]; /* Current alternate setting value for each interface. */
+    uint8_t hasSentState; /*!< 1: The device has primed the state in interrupt pipe, 0: Not primed the state. */
 } usb_cdc_vcom_struct_t;
 
 /* Define the infomation relates to abstract control model */

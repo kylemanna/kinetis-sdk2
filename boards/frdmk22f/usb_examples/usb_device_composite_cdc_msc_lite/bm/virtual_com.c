@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
+* Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification,
@@ -71,11 +71,10 @@ static uint8_t s_countryCode[COMM_FEATURE_DATA_SIZE] = {(COUNTRY_SETTING >> 0U) 
                                                         (COUNTRY_SETTING >> 8U) & 0x00FFU};
 
 /* CDC ACM information */
-static usb_cdc_acm_info_t s_usbCdcAcmInfo = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0};
-
+USB_DATA_ALIGNMENT static usb_cdc_acm_info_t s_usbCdcAcmInfo = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0};
 /* Data buffer for receiving and sending*/
-static uint8_t s_currRecvBuf[DATA_BUFF_SIZE];
-static uint8_t s_currSendBuf[DATA_BUFF_SIZE];
+USB_DATA_ALIGNMENT static uint8_t s_currRecvBuf[DATA_BUFF_SIZE];
+USB_DATA_ALIGNMENT static uint8_t s_currSendBuf[DATA_BUFF_SIZE];
 volatile static uint32_t s_recvSize = 0;
 volatile static uint32_t s_sendSize = 0;
 static uint32_t s_usbBulkMaxPacketSize = FS_CDC_VCOM_BULK_OUT_PACKET_SIZE;
@@ -100,7 +99,7 @@ usb_status_t USB_DeviceCdcAcmInterruptIn(usb_device_handle handle,
                                          void *callbackParam)
 {
     usb_status_t error = kStatus_USB_Error;
-
+    g_deviceComposite->cdcVcom.hasSentState = 0;
     return error;
 }
 
@@ -338,12 +337,16 @@ usb_status_t USB_DeviceCdcVcomClassRequest(usb_device_handle handle,
             uartBitmap = (uint16_t *)&acmInfo->serialStateBuf[NOTIF_PACKET_SIZE + UART_BITMAP_SIZE - 2];
             *uartBitmap = acmInfo->uartState;
             len = (uint32_t)(NOTIF_PACKET_SIZE + UART_BITMAP_SIZE);
-            error = USB_DeviceSendRequest(handle, USB_CDC_VCOM_CIC_INTERRUPT_IN_ENDPOINT, acmInfo->serialStateBuf, len);
-            if (kStatus_USB_Success != error)
+            if (0 == g_deviceComposite->cdcVcom.hasSentState)
             {
-                usb_echo("kUSB_DeviceCdcEventSetControlLineState error!");
+                error =
+                    USB_DeviceSendRequest(handle, USB_CDC_VCOM_CIC_INTERRUPT_IN_ENDPOINT, acmInfo->serialStateBuf, len);
+                if (kStatus_USB_Success != error)
+                {
+                    usb_echo("kUSB_DeviceCdcEventSetControlLineState error!");
+                }
+                g_deviceComposite->cdcVcom.hasSentState = 1;
             }
-
             /* Update status */
             if (acmInfo->dteStatus & USB_DEVICE_CDC_CONTROL_SIG_BITMAP_CARRIER_ACTIVATION)
             {
@@ -419,9 +422,6 @@ void USB_DeviceCdcVcomTask(void)
             }
         }
     }
-#if USB_DEVICE_CONFIG_USE_TASK
-    USB_DeviceKhciTaskFunction(g_deviceComposite->cdcVcom.deviceHandle);
-#endif
 }
 
 /*!

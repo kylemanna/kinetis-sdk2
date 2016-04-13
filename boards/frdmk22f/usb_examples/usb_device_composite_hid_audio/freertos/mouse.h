@@ -39,7 +39,7 @@ typedef struct _usb_hid_mouse_struct
 {
     usb_device_handle deviceHandle;
     class_handle_t hidHandle;
-    uint8_t buffer[USB_HID_MOUSE_REPORT_LENGTH];
+    uint8_t *buffer;
     uint8_t currentConfiguration;
     uint8_t currentInterfaceAlternateSetting[USB_HID_MOUSE_INTERFACE_COUNT];
     uint8_t speed;

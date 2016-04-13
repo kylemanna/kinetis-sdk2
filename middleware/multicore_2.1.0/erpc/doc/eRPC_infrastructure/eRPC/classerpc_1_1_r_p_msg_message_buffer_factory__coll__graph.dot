@@ -1,0 +1,24 @@
+digraph "erpc::RPMsgMessageBufferFactory"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node1 [label="erpc::RPMsgMessageBuffer\lFactory",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node2 -> Node1 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="erpc::MessageBufferFactory",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_message_buffer_factory.html",tooltip="Abstract interface for message buffer factory. "];
+  Node2 -> Node1 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 -> Node1 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 -> Node1 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_transport" ,fontname="Helvetica"];
+  Node3 [label="erpc::RPMsgTransport",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_r_p_msg_transport.html",tooltip="Transport that uses RPMsg for interprocessor messaging. "];
+  Node4 -> Node3 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node4 [label="erpc::Transport",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_transport.html",tooltip="Abstract interface for transport layer. "];
+  Node4 -> Node3 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node5 -> Node3 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" messageQueue\nfreeMessageQueue" ,fontname="Helvetica"];
+  Node5 [label="erpc::StaticQueue\<\l erpc::MessageBuffer * \>",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_static_queue.html"];
+  Node6 -> Node5 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node6 [label="erpc::BaseStaticQueue",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_base_static_queue.html",tooltip="Base class which implements static queue as ring buffer that operates on m_data type void*..."];
+  Node7 -> Node3 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_freeMessageQueue\nm_messageQueue" ,fontname="Helvetica"];
+  Node7 [label="erpc::StaticQueue\<\l erpc::MessageBuffer,\l kInitCountMessageBuffers \>",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_static_queue.html"];
+  Node6 -> Node7 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+}

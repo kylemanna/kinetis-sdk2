@@ -1,0 +1,12 @@
+digraph "erpc::RequestContext"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="erpc::RequestContext",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node2 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_out\nm_in" ,fontname="Helvetica"];
+  Node2 [label="erpc::Codec",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_codec.html",tooltip="Abstract serialization encoder/decoder interface. "];
+  Node3 -> Node2 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_cursor" ,fontname="Helvetica"];
+  Node3 [label="erpc::MessageBuffer\l::Cursor",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_message_buffer_1_1_cursor.html",tooltip="Cursor within a MessageBuffer. "];
+  Node4 -> Node2 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_buffer" ,fontname="Helvetica"];
+  Node4 [label="erpc::MessageBuffer",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_message_buffer.html",tooltip="Represents a memory buffer containing a message. "];
+}

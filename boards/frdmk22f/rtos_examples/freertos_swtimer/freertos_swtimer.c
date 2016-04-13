@@ -72,6 +72,7 @@ int main(void)
     BOARD_InitPins();
     BOARD_BootClockRUN();
     BOARD_InitDebugConsole();
+    SystemCoreClockUpdate();
     /* Create the software timer. */
     SwTimerHandle = xTimerCreate("SwTimer",          /* Text name. */
                                  SW_TIMER_PERIOD_MS, /* Timer period. */

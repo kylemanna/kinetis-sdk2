@@ -41,6 +41,10 @@
 #include "fsl_dspi_freertos.h"
 #include "board.h"
 
+#if ((defined FSL_FEATURE_SOC_INTMUX_COUNT) && (FSL_FEATURE_SOC_INTMUX_COUNT))
+#include "fsl_intmux.h"
+#endif
+
 #include "pin_mux.h"
 #include "clock_config.h"
 /*******************************************************************************
@@ -48,6 +52,9 @@
 ******************************************************************************/
 #define EXAMPLE_DSPI_MASTER_BASE (SPI0_BASE)
 #define EXAMPLE_DSPI_SLAVE_BASE (SPI1_BASE)
+
+#define EXAMPLE_DSPI_MASTER_IRQN (SPI0_IRQn)
+#define EXAMPLE_DSPI_SLAVE_IRQN (SPI1_IRQn)
 
 #define SINGLE_BOARD 0
 #define BOARD_TO_BOARD 1
@@ -94,6 +101,12 @@ SemaphoreHandle_t dspi_sem;
 /* Task priorities. */
 #define slave_task_PRIORITY (configMAX_PRIORITIES - 2)
 #define master_task_PRIORITY (configMAX_PRIORITIES - 1)
+/* Interrupt priorities. */
+#if (__CORTEX_M >= 0x03)
+#define DSPI_NVIC_PRIO 5
+#else
+#define DSPI_NVIC_PRIO 2
+#endif
 /*******************************************************************************
  * Prototypes
  ******************************************************************************/
@@ -115,6 +128,11 @@ int main(void)
     BOARD_InitPins();
     BOARD_BootClockRUN();
     BOARD_InitDebugConsole();
+
+#if ((defined FSL_FEATURE_SOC_INTMUX_COUNT) && (FSL_FEATURE_SOC_INTMUX_COUNT))
+    INTMUX_Init(INTMUX0);
+    INTMUX_SetChannelMode(INTMUX0, EXAMPLE_DSPI_INTMUX_CHANNEL, kINTMUX_ChannelLogicOR);
+#endif
 
     PRINTF("FreeRTOS DSPI example start.\r\n");
 #if (EXAMPLE_CONNECT_DSPI == SINGLE_BOARD)
@@ -203,17 +221,19 @@ static void slave_task(void *pvParameters)
     slaveConfig.enableModifiedTimingFormat = false;
     slaveConfig.samplePoint = kDSPI_SckToSin0Clock;
 
-/*  Set dspi slave interrupt priority higher. */
-#if (EXAMPLE_DSPI_SLAVE_BASE == SPI0_BASE)
-    NVIC_SetPriority(SPI0_IRQn, 5);
-#elif(EXAMPLE_DSPI_SLAVE_BASE == SPI1_BASE)
-    NVIC_SetPriority(SPI1_IRQn, 5);
-#elif(EXAMPLE_DSPI_SLAVE_BASE == SPI2_BASE)
-    NVIC_SetPriority(SPI2_IRQn, 5);
-#elif(EXAMPLE_DSPI_SLAVE_BASE == SPI3_BASE)
-    NVIC_SetPriority(SPI3_IRQn, 5);
-#elif(EXAMPLE_DSPI_SLAVE_BASE == SPI4_BASE)
-    NVIC_SetPriority(SPI4_IRQn, 5);
+#if ((defined FSL_FEATURE_SOC_INTMUX_COUNT) && (FSL_FEATURE_SOC_INTMUX_COUNT))
+    if (EXAMPLE_DSPI_SLAVE_IRQN > FSL_FEATURE_INTERRUPT_IRQ_MAX)
+    {
+        INTMUX_EnableInterrupt(INTMUX0, EXAMPLE_DSPI_INTMUX_CHANNEL, EXAMPLE_DSPI_SLAVE_IRQN);
+        NVIC_SetPriority(INTMUX0_0_IRQn, DSPI_NVIC_PRIO);
+    }
+    else
+    {
+        NVIC_SetPriority(EXAMPLE_DSPI_SLAVE_IRQN, DSPI_NVIC_PRIO);
+    }
+#else
+    /*  Set dspi slave interrupt priority higher. */
+    NVIC_SetPriority(EXAMPLE_DSPI_SLAVE_IRQN, DSPI_NVIC_PRIO);
 #endif
 
     DSPI_SlaveInit(EXAMPLE_DSPI_SLAVE_BASEADDR, &slaveConfig);
@@ -321,16 +341,18 @@ static void master_task(void *pvParameters)
     masterConfig.enableModifiedTimingFormat = false;
     masterConfig.samplePoint = kDSPI_SckToSin0Clock;
 
-#if (EXAMPLE_DSPI_MASTER_BASE == SPI0_BASE)
-    NVIC_SetPriority(SPI0_IRQn, 6);
-#elif(EXAMPLE_DSPI_MASTER_BASE == SPI1_BASE)
-    NVIC_SetPriority(SPI1_IRQn, 6);
-#elif(EXAMPLE_DSPI_MASTER_BASE == SPI2_BASE)
-    NVIC_SetPriority(SPI2_IRQn, 6);
-#elif(EXAMPLE_DSPI_MASTER_BASE == SPI3_BASE)
-    NVIC_SetPriority(SPI3_IRQn, 6);
-#elif(EXAMPLE_DSPI_MASTER_BASE == SPI4_BASE)
-    NVIC_SetPriority(SPI4_IRQn, 6);
+#if ((defined FSL_FEATURE_SOC_INTMUX_COUNT) && (FSL_FEATURE_SOC_INTMUX_COUNT))
+    if (EXAMPLE_DSPI_MASTER_IRQN > FSL_FEATURE_INTERRUPT_IRQ_MAX)
+    {
+        INTMUX_EnableInterrupt(INTMUX0, EXAMPLE_DSPI_INTMUX_CHANNEL, EXAMPLE_DSPI_MASTER_IRQN);
+        NVIC_SetPriority(INTMUX0_0_IRQn, DSPI_NVIC_PRIO + 1);
+    }
+    else
+    {
+        NVIC_SetPriority(EXAMPLE_DSPI_MASTER_IRQN, DSPI_NVIC_PRIO + 1);
+    }
+#else
+    NVIC_SetPriority(EXAMPLE_DSPI_MASTER_IRQN, DSPI_NVIC_PRIO + 1);
 #endif
 
     sourceClock = CLOCK_GetFreq(DSPI_MASTER_CLK_SRC);

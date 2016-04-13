@@ -53,15 +53,6 @@
 #define BOARD_DEBUG_UART_BAUDRATE 115200
 #endif /* BOARD_DEBUG_UART_BAUDRATE */
 
-/*! @brief The Flextimer instance/channel used for board */
-#define BOARD_FTM_BASEADDR FTM0
-#define BOARD_FTM_CHANNEL 5U
-#define BOARD_FTM_X_CHANNEL 0U
-#define BOARD_FTM_Y_CHANNEL 1U
-#define BOARD_FTM_PERIOD_HZ 100U
-#define BOARD_FTM_IRQ_HANDLER FTM0_IRQHandler
-#define BOARD_FTM_IRQ_VECTOR FTM0_IRQn
-
 /*! @brief The bubble level demo information */
 #define BOARD_FXOS8700_ADDR 0x1C
 #define BOARD_ACCEL_ADDR BOARD_FXOS8700_ADDR
@@ -107,8 +98,8 @@
 #define BOARD_LED_BLUE_GPIO_PIN 5U
 
 #define LED_RED_INIT(output)                                 \
-    GPIO_PinInit(BOARD_LED_RED_GPIO, BOARD_LED_RED_GPIO_PIN, \
-                 &(gpio_pin_config_t){kGPIO_DigitalOutput, (output)}) /*!< Enable target LED_RED */
+    GPIO_WritePinOutput(BOARD_LED_RED_GPIO, BOARD_LED_RED_GPIO_PIN, output);\
+    BOARD_LED_RED_GPIO->PDDR |= (1U << BOARD_LED_RED_GPIO_PIN)  /*!< Enable target LED_RED */
 #define LED_RED_ON() \
     GPIO_ClearPinsOutput(BOARD_LED_RED_GPIO, 1U << BOARD_LED_RED_GPIO_PIN) /*!< Turn on target LED_RED */
 #define LED_RED_OFF() \
@@ -117,8 +108,8 @@
     GPIO_TogglePinsOutput(BOARD_LED_RED_GPIO, 1U << BOARD_LED_RED_GPIO_PIN) /*!< Toggle on target LED_RED */
 
 #define LED_GREEN_INIT(output)                                   \
-    GPIO_PinInit(BOARD_LED_GREEN_GPIO, BOARD_LED_GREEN_GPIO_PIN, \
-                 &(gpio_pin_config_t){kGPIO_DigitalOutput, (output)}) /*!< Enable target LED_GREEN */
+    GPIO_WritePinOutput(BOARD_LED_GREEN_GPIO, BOARD_LED_GREEN_GPIO_PIN, output);\
+    BOARD_LED_GREEN_GPIO->PDDR |= (1U << BOARD_LED_GREEN_GPIO_PIN)  /*!< Enable target LED_GREEN */
 #define LED_GREEN_ON() \
     GPIO_ClearPinsOutput(BOARD_LED_GREEN_GPIO, 1U << BOARD_LED_GREEN_GPIO_PIN) /*!< Turn on target LED_GREEN */
 #define LED_GREEN_OFF() \
@@ -127,8 +118,8 @@
     GPIO_TogglePinsOutput(BOARD_LED_GREEN_GPIO, 1U << BOARD_LED_GREEN_GPIO_PIN) /*!< Toggle on target LED_GREEN */
 
 #define LED_BLUE_INIT(output)                                  \
-    GPIO_PinInit(BOARD_LED_BLUE_GPIO, BOARD_LED_BLUE_GPIO_PIN, \
-                 &(gpio_pin_config_t){kGPIO_DigitalOutput, (output)}) /*!< Enable target LED_BLUE */
+    GPIO_WritePinOutput(BOARD_LED_BLUE_GPIO, BOARD_LED_BLUE_GPIO_PIN, output);\
+    BOARD_LED_BLUE_GPIO->PDDR |= (1U << BOARD_LED_BLUE_GPIO_PIN)  /*!< Enable target LED_BLUE */
 #define LED_BLUE_ON() \
     GPIO_ClearPinsOutput(BOARD_LED_BLUE_GPIO, 1U << BOARD_LED_BLUE_GPIO_PIN) /*!< Turn on target LED_BLUE */
 #define LED_BLUE_OFF() \
@@ -136,10 +127,24 @@
 #define LED_BLUE_TOGGLE() \
     GPIO_TogglePinsOutput(BOARD_LED_BLUE_GPIO, 1U << BOARD_LED_BLUE_GPIO_PIN) /*!< Toggle on target LED_BLUE */
 
-/* @brief FreeRTOS tickless timer configuration. */
-#define vPortLptmrIsr LPTMR0_IRQHandler /*!< Timer IRQ handler. */
-#define TICKLESS_LPTMR_BASE_PTR LPTMR0  /*!< Tickless timer base address. */
-#define TICKLESS_LPTMR_IRQn LPTMR0_IRQn /*!< Tickless timer IRQ number. */
+/* ERPC DSPI configuration */
+#define ERPC_BOARD_DSPI_BASEADDR SPI0
+#define ERPC_BOARD_DSPI_BAUDRATE 500000U
+#define ERPC_BOARD_DSPI_CLKSRC DSPI0_CLK_SRC
+#define ERPC_BOARD_DSPI_INT_GPIO GPIOB
+#define ERPC_BOARD_DSPI_INT_PORT PORTB
+#define ERPC_BOARD_DSPI_INT_PIN 2U
+#define ERPC_BOARD_DSPI_INT_PIN_IRQ PORTB_IRQn
+#define ERPC_BOARD_DSPI_INT_PIN_IRQ_HANDLER PORTB_IRQHandler
+
+/* @brief The SDSPI disk PHY configuration. */
+#define BOARD_SDSPI_SPI_BASE SPI0_BASE /*!< SPI base address for SDSPI */
+#define BOARD_SDSPI_CD_GPIO_BASE GPIOB /*!< Port related to card detect pin for SDSPI */
+#define BOARD_SDSPI_CD_PIN 16U         /*!< Card detect pin for SDSPI */
+#define BOARD_SDSPI_CD_LOGIC_RISING    /*!< Logic of card detect pin for SDSPI */
+
+/* DAC base address */
+#define BOARD_DAC_BASEADDR DAC0
 
 #if defined(__cplusplus)
 extern "C" {

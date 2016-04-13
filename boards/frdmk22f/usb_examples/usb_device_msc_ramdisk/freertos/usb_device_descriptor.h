@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -59,12 +59,11 @@
 #define FS_MSC_BULK_IN_PACKET_SIZE (64U)
 #define FS_MSC_BULK_OUT_PACKET_SIZE (64U)
 
-#define USB_STRING_DESCRIPTOR_HEADER_LENGTH (0x02U)
-#define USB_STRING_DESCRIPTOR_0_LENGTH (0x02U)
-#define USB_STRING_DESCRIPTOR_1_LENGTH (56U)
-#define USB_STRING_DESCRIPTOR_2_LENGTH (32U)
-#define USB_STRING_DESCRIPTOR_3_LENGTH (32U)
-#define USB_STRING_DESCRIPTOR_ERROR_LENGTH (32U)
+#define USB_DESCRIPTOR_LENGTH_STRING0 (0x04U)
+#define USB_DESCRIPTOR_LENGTH_STRING1 (38U)
+#define USB_DESCRIPTOR_LENGTH_STRING2 (34U)
+#define USB_DESCRIPTOR_LENGTH_STRING3 (34U)
+#define USB_STRING_DESCRIPTOR_ERROR_LENGTH (34U)
 
 #define USB_MSC_INTERFACE_INDEX (0U)
 #define USB_MSC_INTERFACE_COUNT (1U)

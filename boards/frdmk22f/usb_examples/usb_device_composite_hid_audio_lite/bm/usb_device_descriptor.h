@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -93,7 +93,7 @@
 
 /* String descriptor length. */
 #define USB_DESCRIPTOR_LENGTH_STRING0 (4)
-#define USB_DESCRIPTOR_LENGTH_STRING1 (58)
+#define USB_DESCRIPTOR_LENGTH_STRING1 (38)
 #define USB_DESCRIPTOR_LENGTH_STRING2 (38)
 
 /* Class code. */

@@ -1,0 +1,43 @@
+digraph "Client"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir=LR;
+  Node8 [label="DSPI Slave",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__dspi__slave__transport.html",tooltip="Kinetis SDK DSPI slave driver transport. "];
+  Node6 [label="Threads",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__port__threads.html",tooltip="Threading model. "];
+  Node17 [label="TCP/IP",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__tcp__transport.html",tooltip="Simple TCP/IP transport. "];
+  Node13 [label="RPMsg",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__rpmsg__transport.html",tooltip="OpenAMP RPMsg transport. "];
+  Node1 [label="Infrastructure",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__infra.html",tooltip="C++ core. "];
+  Node0 [label="Client",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node3 [label="Transports",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__infra__transport.html",tooltip="Superclasses for building transports. "];
+  Node14 [label="Serial port",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__serial__transport.html",tooltip="POSIX and Win32 serial port transport. "];
+  Node4 [label="Utilities",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__infra__utility.html",tooltip="Utility code used by the infrastructure. "];
+  Node16 [label="SPI Slave",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__spi__slave__transport.html",tooltip="Kinetis SDK SPI slave driver transport. "];
+  Node18 [label="CMSIS UART",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__uart__transport.html",tooltip="CMSIS UART driver transport. "];
+  Node15 [label="SPI Master",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__spi__master__transport.html",tooltip="Kinetis SDK SPI master driver transport. "];
+  Node5 [label="Server",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__infra__server.html",tooltip="Server classes. "];
+  Node9 [label="Inter-thread",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__itbp__transport.html",tooltip="Simple inter-thread communications transport. "];
+  Node7 [label="DSPI Master",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__dspi__master__transport.html",tooltip="Kinetis SDK DSPI master driver transport. "];
+  Node12 [label="RPMsg RTOS",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__rpmsg__rtos__transport.html",tooltip="OpenAMP RPMsg RTOS layer transport. "];
+  Node2 [label="Serialization",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__infra__codec.html",tooltip="Classes used for message serialization. "];
+  Node10 [label="RPMsg-Lite RTOS",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__rpmsg__lite__rtos__transport.html",tooltip="RPMsg-Lite transport using RTOS API. "];
+  Node11 [label="RPMsg-Lite",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__rpmsg__lite__transport.html",tooltip="RPMsg-Lite transport. "];
+  Node1->Node0 [shape=plaintext, dir="back", style="solid"];
+  Node0->Node2 [shape=plaintext, label="erpc", color="blueviolet", dir="none", style="dashed"];
+  Node0->Node3 [shape=plaintext, label="erpc", color="blueviolet", dir="none", style="dashed"];
+  Node0->Node4 [shape=plaintext, label="erpc", color="blueviolet", dir="none", style="dashed"];
+  Node0->Node5 [shape=plaintext, label="erpc", color="blueviolet", dir="none", style="dashed"];
+  Node0->Node6 [shape=plaintext, label="erpc", color="blueviolet", dir="none", style="dashed"];
+  Node0->Node7 [shape=plaintext, label="erpc", color="blueviolet", dir="none", style="dashed"];
+  Node0->Node8 [shape=plaintext, label="erpc", color="blueviolet", dir="none", style="dashed"];
+  Node0->Node9 [shape=plaintext, label="erpc", color="blueviolet", dir="none", style="dashed"];
+  Node0->Node10 [shape=plaintext, label="erpc", color="blueviolet", dir="none", style="dashed"];
+  Node0->Node11 [shape=plaintext, label="erpc", color="blueviolet", dir="none", style="dashed"];
+  Node0->Node12 [shape=plaintext, label="erpc", color="blueviolet", dir="none", style="dashed"];
+  Node0->Node13 [shape=plaintext, label="erpc", color="blueviolet", dir="none", style="dashed"];
+  Node0->Node14 [shape=plaintext, label="erpc", color="blueviolet", dir="none", style="dashed"];
+  Node0->Node15 [shape=plaintext, label="erpc", color="blueviolet", dir="none", style="dashed"];
+  Node0->Node16 [shape=plaintext, label="erpc", color="blueviolet", dir="none", style="dashed"];
+  Node0->Node17 [shape=plaintext, label="erpc", color="blueviolet", dir="none", style="dashed"];
+  Node0->Node18 [shape=plaintext, label="erpc", color="blueviolet", dir="none", style="dashed"];
+}

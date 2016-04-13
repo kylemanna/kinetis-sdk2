@@ -1,0 +1,31 @@
+digraph "Transport Layers"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir=LR;
+  Node0 [label="Transport Layers",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node2 [label="DSPI Slave",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__dspi__slave__transport.html",tooltip="Kinetis SDK DSPI slave driver transport. "];
+  Node12 [label="TCP/IP",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__tcp__transport.html",tooltip="Simple TCP/IP transport. "];
+  Node11 [label="RPMsg",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__rpmsg__transport.html",tooltip="OpenAMP RPMsg transport. "];
+  Node7 [label="Serial port",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__serial__transport.html",tooltip="POSIX and Win32 serial port transport. "];
+  Node4 [label="SPI Slave",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__spi__slave__transport.html",tooltip="Kinetis SDK SPI slave driver transport. "];
+  Node6 [label="CMSIS UART",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__uart__transport.html",tooltip="CMSIS UART driver transport. "];
+  Node3 [label="SPI Master",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__spi__master__transport.html",tooltip="Kinetis SDK SPI master driver transport. "];
+  Node5 [label="Inter-thread",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__itbp__transport.html",tooltip="Simple inter-thread communications transport. "];
+  Node1 [label="DSPI Master",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__dspi__master__transport.html",tooltip="Kinetis SDK DSPI master driver transport. "];
+  Node10 [label="RPMsg RTOS",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__rpmsg__rtos__transport.html",tooltip="OpenAMP RPMsg RTOS layer transport. "];
+  Node8 [label="RPMsg-Lite RTOS",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__rpmsg__lite__rtos__transport.html",tooltip="RPMsg-Lite transport using RTOS API. "];
+  Node9 [label="RPMsg-Lite",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__rpmsg__lite__transport.html",tooltip="RPMsg-Lite transport. "];
+  Node0->Node1 [shape=plaintext, dir="back", style="solid"];
+  Node0->Node2 [shape=plaintext, dir="back", style="solid"];
+  Node0->Node3 [shape=plaintext, dir="back", style="solid"];
+  Node0->Node4 [shape=plaintext, dir="back", style="solid"];
+  Node0->Node5 [shape=plaintext, dir="back", style="solid"];
+  Node0->Node6 [shape=plaintext, dir="back", style="solid"];
+  Node0->Node7 [shape=plaintext, dir="back", style="solid"];
+  Node0->Node8 [shape=plaintext, dir="back", style="solid"];
+  Node0->Node9 [shape=plaintext, dir="back", style="solid"];
+  Node0->Node10 [shape=plaintext, dir="back", style="solid"];
+  Node0->Node11 [shape=plaintext, dir="back", style="solid"];
+  Node0->Node12 [shape=plaintext, dir="back", style="solid"];
+}

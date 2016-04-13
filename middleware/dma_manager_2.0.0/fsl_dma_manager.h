@@ -49,7 +49,7 @@
  * Definitions
  ******************************************************************************/
 
-/*!< @brief Dynamic channel allocate mechanism. */
+/*! @brief Dynamic channel allocation mechanism. */
 #define DMAMGR_DYNAMIC_ALLOCATE 0xFFU
 
 /*! @brief DMA manager status. */
@@ -57,8 +57,8 @@ enum _dma_manager_status
 {
     kStatus_DMAMGR_ChannelOccupied = MAKE_STATUS(kStatusGroup_DMAMGR, 0),       /*!< Channel has been occupied */
     kStatus_DMAMGR_ChannelNotUsed = MAKE_STATUS(kStatusGroup_DMAMGR, 1),        /*!< Channel has not been used */
-    kStatus_DMAMGR_NoFreeChannel = MAKE_STATUS(kStatusGroup_DMAMGR, 2),         /*!< All channel has been occupied */
-    kStatus_DMAMGR_ChannelNotMatchSource = MAKE_STATUS(kStatusGroup_DMAMGR, 3), /*!< Channel do not match the
+    kStatus_DMAMGR_NoFreeChannel = MAKE_STATUS(kStatusGroup_DMAMGR, 2),         /*!< All channels have been occupied */
+    kStatus_DMAMGR_ChannelNotMatchSource = MAKE_STATUS(kStatusGroup_DMAMGR, 3), /*!< Channels do not match the
                                                                                      request source */
 };
 
@@ -70,23 +70,23 @@ extern "C" {
 #endif /* __cplusplus */
 
 /*!
- * @name DMAMGR Initialize and De-initialize
+ * @name DMAMGR Initialization and De-initialization
  * @{
  */
 
 /*!
- * @brief Initializes the DAM manager.
+ * @brief Initializes the DMA manager.
  *
  * This function initializes the DMA manager, ungates all DMAMUX clocks, and
- * initializes the eDMA or DMA peripheral.
+ * initializes the eDMA or DMA peripherals.
  */
 void DMAMGR_Init(void);
 
 /*!
  * @brief Deinitializes the DMA manager.
  *
- * This function deinitializes the DMA manager, disables all DMAMUX channel,
- * gates all DMAMUX clock, and deinitializes the eDMA or DMA peripheral.
+ * This function deinitializes the DMA manager, disables all DMAMUX channels,
+ * gates all DMAMUX clocks, and deinitializes the eDMA or DMA peripherals.
  */
 void DMAMGR_Deinit(void);
 
@@ -99,20 +99,20 @@ void DMAMGR_Deinit(void);
 /*!
  * @brief Requests a DMA channel.
  *
- * This function request a DMA channel which is not occupied. There are two channels to allocate the mechanism dynamic
- * and static. For the dynamic allocation mechanism (virtualChannel = DMAMGR_DYNAMIC_ALLOCATE), DMAMGR  allocates a DMA
- * channel according to the given request source and then configure it. For static allocation mechanism, DMAMGR
+ * This function requests a DMA channel which is not occupied. The two channels to allocate the mechanism are dynamic
+ * and static channels. For the dynamic allocation mechanism (virtualChannel = DMAMGR_DYNAMIC_ALLOCATE), DMAMGR  allocates a DMA
+ * channel according to the given request source and then configures it. For static allocation mechanism, DMAMGR
  * configures the given channel according to the given request source and channel number.
  *
  * @param requestSource DMA channel request source number. See the soc.h.
- * @param virtualChannel The channel number user wants to occupy. If using the dynamic channel allocate mechanism, set the
+ * @param virtualChannel The channel number users want to occupy. If using the dynamic channel allocate mechanism, set the
  *                       virtualChannel equal to DMAMGR_DYNAMIC_ALLOCATE.
- * @param handle DMA or EDMA handle pointer.
- * @retval kStatus_Success In dynamic/static channel allocate mechanism, allocate DMAMUX channel successfully.
- * @retval kStatus_DMAMGR_NoFreeChannel In dynamic channel allocate mechanism, all DMAMUX channels has been occupied.
- * @retval kStatus_DMAMGR_ChannelNotMatchSource In static channel allocate mechanism, the given channel do not match
+ * @param handle DMA or eDMA handle pointer.
+ * @retval kStatus_Success In a dynamic/static channel allocation mechanism, allocate the DMAMUX channel successfully.
+ * @retval kStatus_DMAMGR_NoFreeChannel In a dynamic channel allocation mechanism, all DMAMUX channels are occupied.
+ * @retval kStatus_DMAMGR_ChannelNotMatchSource In a static channel allocation mechanism, the given channel does not match
                                                 the given request.
- * @retval kStatus_DMAMGR_ChannelOccupied In static channel allocate mechanism, the given channel has been occupied.
+ * @retval kStatus_DMAMGR_ChannelOccupied In a static channel allocation mechanism, the given channel is occupied.
  */
 status_t DMAMGR_RequestChannel(dma_request_source_t requestSource, uint8_t virtualChannel, void *handle);
 
@@ -122,8 +122,8 @@ status_t DMAMGR_RequestChannel(dma_request_source_t requestSource, uint8_t virtu
  * This function releases an occupied DMA channel.
  *
  * @param handle DMA or eDMA handle pointer.
- * @retval kStatus_Success Release the given channel successfully.
- * @retval kStatus_DMAMGR_ChannelNotUsed The given channel which to be released is not been used before.
+ * @retval kStatus_Success Releases the given channel successfully.
+ * @retval kStatus_DMAMGR_ChannelNotUsed The given channel to be released had not been used before.
  */
 status_t DMAMGR_ReleaseChannel(void *handle);
 

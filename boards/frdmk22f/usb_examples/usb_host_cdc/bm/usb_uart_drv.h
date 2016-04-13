@@ -151,7 +151,7 @@ typedef LPUART_Type USB_UartType;
 typedef lpuart_config_t usb_uartConfiguration;
 typedef void (*usb_uart_rx_callback_t)(USB_UartType *base, usb_uart_handle_t *handle, status_t status, void *userData);
 #elif(BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_LPSCI)
-typedef LPSCI_Type USB_UartType;
+typedef UART0_Type USB_UartType;
 typedef lpsci_config_t usb_uartConfiguration;
 typedef void (*usb_uart_rx_callback_t)(USB_UartType *base, usb_uart_handle_t *handle, status_t status, void *userData);
 #endif

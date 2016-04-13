@@ -1,0 +1,81 @@
+{# Variebles #}
+{% if generateInfraErrorChecks %}
+{%   set infraErrIndents = "    " %}
+{%   set infraErrVar = "err = " %}
+{% else %}
+{%   set infraErrIndents = "" %}
+{%   set infraErrVar = "" %}
+{% endif %}
+{% if generateAllocErrorChecks %}
+{%   set allocErrIndents = "    " %}
+{%   set allocErrVar = "err = " %}
+{% else %}
+{%   set allocErrIndents = "" %}
+{%   set allocErrVar = "" %}
+{% endif %}
+{% if generateInfraErrorChecks or generateAllocErrorChecks %}
+{%   set errVar = "err = " %}
+{% else %}
+{%   set errVar = "" %}
+{% endif %}
+
+{# Code #}
+{%   set s_performRequest = infraErrVar & "g_client->performRequest(request);" %}
+{%   set s_endWriteMessage = infraErrVar & "out->endWriteMessage();" %}
+{%   set s_startReadStruct = infraErrVar & "in->startReadStruct();" %}
+{%   set s_endReadStruct = infraErrVar & "in->endReadStruct();" %}
+{%   set s_endReadMessage = infraErrVar & "in->endReadMessage();" %}
+
+{% def f_clientStartWriteMessage(isReturnValue, interfaceName, functionName) %}
+{$infraErrVar}out->startWriteMessage({% if not isReturnValue %}kOnewayMessage{%else%}kInvocationMessage{%endif%}, k{$interfaceName}_service_id, k{$interfaceName}_{$functionName}_id, request.getSequence());
+{% enddef %}
+
+{% def f_serverStartWriteMessage(interfaceName, functionName) %}
+{$infraErrVar}out->startWriteMessage(kReplyMessage, k{$interfaceName}_service_id, k{$interfaceName}_{$functionName}_id, sequence);
+{% enddef %}
+
+{% def f_paramIsNullableEncode(coderCall) %}
+if ({$coderCall.name} == NULL)
+{
+    {$infraErrVar}out->writeNullFlag(true);
+}
+else
+{
+    {$infraErrVar}out->writeNullFlag(false);
+{$addInfraErrorChecks("    ", coderCall.encode(coderCall))}
+}
+{% enddef %}
+
+{% def f_paramIsNullableDecode(param, isServer) %}
+{$infraErrVar}in->readNullFlag(&isNull);
+if (!isNull)
+{
+{% if isServer == "" %}
+{$> addIndent("    ", param.mallocClient)}
+{% else %}
+{%  if param.allocateToServer %}
+{$> addIndent("    ", param.mallocServer)}
+{%  endif -- allocateToServer %}
+{% endif %}
+{$addInfraErrorChecks("    ",param.coderCall.decode(param.coderCall))}
+}
+else
+{
+{$param.coderCall.name} = NULL;
+}
+{% enddef %}
+
+{%def f_checkInCodec()%}
+in = request.getInCodec();
+{% if generateAllocErrorChecks %}
+if (in == NULL)
+{
+    {$allocErrVar}kErpcStatus_MemoryError;
+}
+{% endif %}
+{% enddef %}
+
+{% def f_startReadStruct()%}
+// Decode reply. startReadMessage has already been called for us by performRequest.
+{$infraErrVar}in->startReadStruct();
+{% enddef %}

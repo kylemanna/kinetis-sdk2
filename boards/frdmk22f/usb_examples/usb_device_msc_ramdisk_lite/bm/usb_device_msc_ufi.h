@@ -31,7 +31,7 @@
 #ifndef _USB_MSC_UFI_H
 #define _USB_MSC_UFI_H 1
 
-/*Sense Key of REQUEST SENSE command, refer to ufi sepc chapter 5*/
+/*Sense Key of REQUEST SENSE command, refer to ufi spec chapter 5*/
 /*! @brief Indicates that there is no specific sense key information to be reported*/
 #define USB_DEVICE_MSC_UFI_NO_SENSE 0x00U
 /*! @brief Indicates that the last command completed successfully with some recovery action performed by the UFI
@@ -66,10 +66,10 @@ The host may be able to recover by trying the command again*/
 /*! @brief Indicates that a buffered peripheral device has reached the
 end-of-partition and data may remain in the buffer that has not been written to the medium*/
 #define USB_DEVICE_MSC_UFI_VOLUME_OVERFLOW 0x0DU
-/*! @brief Indicates that the source data did not match the data read from themedium*/
+/*! @brief Indicates that the source data did not match the data read from the medium*/
 #define USB_DEVICE_MSC_UFI_MISCOMPARE 0x0EU
 
-/*! @brief invalid command operatin code*/
+/*! @brief invalid command operation code*/
 #define USB_DEVICE_MSC_UFI_INVALID_COMMAND_OPCODE 0x20U
 /*! @brief write fault*/
 #define USB_DEVICE_MSC_UFI_WRITE_FAULT 0x03U
@@ -77,7 +77,7 @@ end-of-partition and data may remain in the buffer that has not been written to 
 #define USB_DEVICE_MSC_UFI_UNRECOVERED_READ_ERROR 0x11U
 /*! @brief unknown error*/
 #define USB_DEVICE_MSC_UFI_UNKNOWN_ERROR 0xFFU
-/*! @brief invalid field in commnad packet*/
+/*! @brief invalid field in command packet*/
 #define USB_DEVICE_MSC_UFI_INVALID_FIELD_IN_COMMAND_PKT 0x24U
 /*! @brief invalid logical block address out of range*/
 #define USB_DEVICE_MSC_UFI_LBA_OUT_OF_RANGE 0x21U
@@ -100,13 +100,13 @@ end-of-partition and data may remain in the buffer that has not been written to 
 /*! @brief No Cartridge in Drive - Maximum formattable capacity for any cartridge*/
 #define USB_DEVICE_MSC_UFI_NO_CARTRIDGE_IN_DRIVE 0x03U
 
-/*! @brief INQUIRY Data lenght of INQUIRY Command*/
+/*! @brief INQUIRY Data length of INQUIRY Command*/
 #define USB_DEVICE_MSC_UFI_INQUIRY_ALLOCATION_LENGTH 0x24U
-/*! @brief Request Sense Data lenght of REQUEST SENSE Command*/
+/*! @brief Request Sense Data length of REQUEST SENSE Command*/
 #define USB_DEVICE_MSC_UFI_REQ_SENSE_DATA_LENGTH 18U
-/*! @brief READ CAPACITY Data lenght of READ CAPACITY Command*/
+/*! @brief READ CAPACITY Data length of READ CAPACITY Command*/
 #define USB_DEVICE_MSC_UFI_READ_CAPACITY_DATA_LENGTH 0x08U
-/*! @brief READ CAPACITY Data lenght of READ CAPACITY Command*/
+/*! @brief READ CAPACITY Data length of READ CAPACITY Command*/
 #define USB_DEVICE_MSC_UFI_READ_CAPACITY16_DATA_LENGTH 0x0CU
 
 /*! @brief reserved*/
@@ -146,7 +146,7 @@ typedef struct _usb_device_request_sense_command_struct
     uint8_t reserved1[7];      /*!< reserved*/
 } usb_device_request_sense_command_struct_t;
 
-/*! @brief  ufi read format capatities command structure*/
+/*! @brief  ufi read format capacities command structure*/
 typedef struct _usb_device_read_format_capatities_command_struct
 {
     uint8_t operationCode;     /*!< Operation Code*/
@@ -156,7 +156,7 @@ typedef struct _usb_device_read_format_capatities_command_struct
     uint8_t reserved1[3];      /*!< reserved*/
 } usb_device_read_format_capatities_command_struct_t;
 
-/*! @brief  ufi read capatities command structure*/
+/*! @brief  ufi read capacities command structure*/
 typedef struct _usb_device_read_capatities_command_struct
 {
     uint8_t operationCode;     /*!< Operation Code*/
@@ -179,7 +179,7 @@ typedef struct _usb_device_read_write_10_command_struct
     uint8_t reserved1[3];      /*!< reserved*/
 } usb_device_read_write_10_command_struct_t;
 
-/*! @brief  ufi inquiry data fromat structure*/
+/*! @brief  ufi inquiry data format structure*/
 typedef struct _usb_device_inquiry_data_fromat_struct
 {
     uint8_t peripheralDeviceType; /*!< Peripheral Device Type*/

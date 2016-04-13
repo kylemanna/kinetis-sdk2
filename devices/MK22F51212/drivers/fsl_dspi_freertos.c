@@ -56,13 +56,20 @@ status_t DSPI_RTOS_Init(dspi_rtos_handle_t *handle,
 
     memset(handle, 0, sizeof(dspi_rtos_handle_t));
 
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
+    handle->mutex = xSemaphoreCreateMutexStatic(&handle->mutexBuffer);
+#else
     handle->mutex = xSemaphoreCreateMutex();
+#endif
     if (handle->mutex == NULL)
     {
         return kStatus_Fail;
     }
-
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
+    handle->event = xSemaphoreCreateBinaryStatic(&handle->semaphoreBuffer);
+#else
     handle->event = xSemaphoreCreateBinary();
+#endif
     if (handle->event == NULL)
     {
         vSemaphoreDelete(handle->mutex);

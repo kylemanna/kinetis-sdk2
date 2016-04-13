@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -142,12 +142,12 @@ typedef struct _usb_device_msc_thirteen_case_struct
     uint8_t deviceExpectedDirection;                      /*!< deivce excepted data direction*/
 } usb_device_msc_thirteen_case_struct_t;
 /*! @brief stall flag */
-typedef enum _usb_devcie_msc_stall_type_t
+typedef enum _usb_device_msc_stall_type_t
 {
     USB_DEVICE_MSC_STALL_IN_CBW = 1U, /*!< Stall in cbw*/
     USB_DEVICE_MSC_STALL_IN_DATA,     /*!< Stall in data transfer*/
     USB_DEVICE_MSC_STALL_IN_CSW,      /*!< Stall in csw*/
-} usb_devcie_msc_stall_type_t;
+} usb_device_msc_stall_type_t;
 /*! @brief Available common EVENT types in msc class callback */
 typedef enum _usb_device_msc_event
 {
@@ -185,11 +185,14 @@ typedef struct _usb_device_msc_struct
     uint32_t implementingDiskDrive;   /*!< Disk drive*/
     uint32_t bulkInBufferSize;        /*!< Bulk in buffer size*/
     uint32_t bulkOutBufferSize;       /*!< Bulk out buffer size*/
+#if ((defined(USB_DEVICE_CONFIG_LPCIP3511FS)) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U))
+    uint8_t *ufiAlignBuffer;
+#endif
 
-    usb_device_msc_cbw_t g_mscCbw; /*!< CBW structure */
-    usb_device_msc_csw_t g_mscCsw; /*!< CSW structure */
+    usb_device_msc_cbw_t *g_mscCbw; /*!< CBW structure */
+    usb_device_msc_csw_t *g_mscCsw; /*!< CSW structure */
 
-    usb_device_msc_ufi_struct_t g_mscUfi;
+    usb_device_msc_ufi_struct_t g_mscUfi; /*!< UFI command information structure*/
 
     uint8_t dataOutFlag;          /*!< CBW incidating bulk out transfer, clear this flag when data transfer done*/
     uint8_t dataInFlag;           /*!< CBW incidating bulk in transfer, clear this flag when data transfer done*/

@@ -2,19 +2,20 @@
 ** ###################################################################
 **     Processors:          MK22FN512CAP12
 **                          MK22FN512VDC12
+**                          MK22FN512VFX12
 **                          MK22FN512VLH12
 **                          MK22FN512VLL12
 **                          MK22FN512VMP12
 **
 **     Compiler:            GNU C Compiler
 **     Reference manual:    K22P121M120SF7RM, Rev. 1, March 24, 2014
-**     Version:             rev. 2.8, 2015-02-19
-**     Build:               b151217
+**     Version:             rev. 2.9, 2016-03-21
+**     Build:               b160613
 **
 **     Abstract:
 **         Linker file for the GNU C Compiler
 **
-**     Copyright (c) 2015 Freescale Semiconductor, Inc.
+**     Copyright (c) 2016 Freescale Semiconductor, Inc.
 **     All rights reserved.
 **
 **     Redistribution and use in source and binary forms, with or without modification,
@@ -52,7 +53,7 @@
 ENTRY(Reset_Handler)
 
 HEAP_SIZE  = DEFINED(__heap_size__)  ? __heap_size__  : 0x100;
-STACK_SIZE = DEFINED(__stack_size__) ? __stack_size__ : 0x0400;
+STACK_SIZE = DEFINED(__stack_size__) ? __stack_size__ : 0x2000;
 M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? 0x0400 : 0x0;
 
 /* Specify the memory areas */
@@ -203,7 +204,7 @@ SECTIONS
   text_end = ORIGIN(m_text) + LENGTH(m_text);
   ASSERT(__DATA_END <= text_end, "region m_text overflowed with text and data")
 
-  USB_RAM_GAP = DEFINED(__usb_ram_size__) ? __usb_ram_size__ : 0x800;
+  USB_RAM_GAP = DEFINED(__usb_ram_size__) ? __usb_ram_size__ : 0x00;
   /* Uninitialized data section */
   .bss :
   {

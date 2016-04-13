@@ -41,6 +41,9 @@
 #if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0U)
 #define CONTROLLER_ID kUSB_ControllerKhci0
 #endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+#define CONTROLLER_ID kUSB_ControllerLpcIp3511Fs0
+#endif
 
 #define USB_DEVICE_INTERRUPT_PRIORITY (3U)
 
@@ -48,7 +51,7 @@
 typedef struct _usb_hid_mouse_struct
 {
     usb_device_handle deviceHandle;
-    uint8_t buffer[USB_HID_MOUSE_REPORT_LENGTH];
+    uint8_t *buffer;
     uint8_t speed;
     uint8_t attach;
 } usb_hid_mouse_struct_t;

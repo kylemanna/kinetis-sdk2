@@ -110,6 +110,90 @@ static app_wakeup_source_t s_wakeupSource; /* Wakeup source.                 */
 /*******************************************************************************
  * Code
  ******************************************************************************/
+
+void APP_SetClockVlpr(void)
+{
+    const sim_clock_config_t simConfig = {
+        .pllFllSel = 3U,        /* PLLFLLSEL select IRC48MCLK. */
+        .er32kSrc = 2U,         /* ERCLK32K selection, use RTC. */
+        .clkdiv1 = 0x00040000U, /* SIM_CLKDIV1. */
+    };
+
+    CLOCK_SetSimSafeDivs();
+    CLOCK_SetInternalRefClkConfig(kMCG_IrclkEnable, kMCG_IrcFast, 0U);
+
+    /* MCG works in PEE mode now, will switch to BLPI mode. */
+
+    CLOCK_ExternalModeToFbeModeQuick();  /* Enter FBE. */
+    CLOCK_SetFbiMode(kMCG_Dmx32Default, kMCG_DrsLow, NULL); /* Enter FBI. */
+    CLOCK_SetLowPowerEnable(true);       /* Enter BLPI. */
+
+    CLOCK_SetSimConfig(&simConfig);
+}
+
+void APP_SetClockRunFromVlpr(void)
+{
+    const sim_clock_config_t simConfig = {
+        .pllFllSel = 1U,        /* PLLFLLSEL select PLL. */
+        .er32kSrc = 2U,         /* ERCLK32K selection, use RTC. */
+        .clkdiv1 = 0x01230000U, /* SIM_CLKDIV1. */
+    };
+
+    const mcg_pll_config_t pll0Config = {
+        .enableMode = 0U, .prdiv = 0x3U, .vdiv = 0x10U,
+    };
+
+    CLOCK_SetSimSafeDivs();
+
+    /* Currently in BLPI mode, will switch to PEE mode. */
+    /* Enter FBI. */
+    CLOCK_SetLowPowerEnable(false);
+    /* Enter FBE. */
+    CLOCK_SetFbeMode(3U, kMCG_Dmx32Default, kMCG_DrsLow, NULL);
+    /* Enter PBE. */
+    CLOCK_SetPbeMode(kMCG_PllClkSelPll0, &pll0Config);
+    /* Enter PEE. */
+    CLOCK_SetPeeMode();
+
+    CLOCK_SetSimConfig(&simConfig);
+}
+
+void APP_SetClockHsrun(void)
+{
+    const sim_clock_config_t simConfig = {
+        .pllFllSel = 1U,        /* PLLFLLSEL select PLL. */
+        .er32kSrc = 2U,         /* ERCLK32K selection, use RTC. */
+        .clkdiv1 = 0x01340000U, /* SIM_CLKDIV1. */
+    };
+
+    const mcg_pll_config_t pll0Config = {
+        .enableMode = 0U, .prdiv = 0x1U, .vdiv = 0x6U,
+    };
+
+    CLOCK_SetPbeMode(kMCG_PllClkSelPll0, &pll0Config);
+    CLOCK_SetPeeMode();
+
+    CLOCK_SetSimConfig(&simConfig);
+}
+
+void APP_SetClockRunFromHsrun(void)
+{
+    const sim_clock_config_t simConfig = {
+        .pllFllSel = 1U,        /* PLLFLLSEL select PLL. */
+        .er32kSrc = 2U,         /* ERCLK32K selection, use RTC. */
+        .clkdiv1 = 0x01230000U, /* SIM_CLKDIV1. */
+    };
+
+    const mcg_pll_config_t pll0Config = {
+        .enableMode = 0U, .prdiv = 0x3U, .vdiv = 0x10U,
+    };
+
+    CLOCK_SetPbeMode(kMCG_PllClkSelPll0, &pll0Config);
+    CLOCK_SetPeeMode();
+
+    CLOCK_SetSimConfig(&simConfig);
+}
+
 static void APP_InitDebugConsole(void)
 {
     uint32_t uartClkSrcFreq;
@@ -417,7 +501,7 @@ bool APP_CheckPowerMode(smc_power_state_t currentPowerState, app_power_mode_t ta
         case kSMC_PowerStateHsrun:
             if (kAPP_PowerModeRun != targetPowerMode)
             {
-                PRINTF("Could only enter HSRUN mode from RUN mode.\r\n");
+                PRINTF("Current mode is HSRUN, please choose RUN mode as the target mode.\r\n");
                 modeValid = false;
             }
             break;
@@ -434,7 +518,7 @@ bool APP_CheckPowerMode(smc_power_state_t currentPowerState, app_power_mode_t ta
             if ((kAPP_PowerModeWait == targetPowerMode) || (kAPP_PowerModeHsrun == targetPowerMode) ||
                 (kAPP_PowerModeStop == targetPowerMode))
             {
-                PRINTF("Could not enter VLPW mode from RUN mode.\r\n");
+                PRINTF("Could not enter HSRUN/STOP/WAIT modes from VLPR mode.\r\n");
                 modeValid = false;
             }
             break;
@@ -519,24 +603,34 @@ status_t APP_PowerModeSwitch(notifier_user_config_t *targetConfig, void *userDat
 
         /* For wait modes. */
         case kAPP_PowerModeWait:
+            SMC_PreEnterWaitModes();
             SMC_SetPowerModeWait(SMC);
+            SMC_PostExitWaitModes();
             break;
         case kAPP_PowerModeVlpw:
+            SMC_PreEnterWaitModes();
             SMC_SetPowerModeVlpw(SMC);
+            SMC_PostExitWaitModes();
             break;
 
         /* For stop modes. */
         case kAPP_PowerModeStop:
+            SMC_PreEnterStopModes();
             SMC_SetPowerModeStop(SMC, kSMC_PartialStop);
+            SMC_PostExitStopModes();
             break;
 
         case kAPP_PowerModeVlps:
+            SMC_PreEnterStopModes();
             SMC_SetPowerModeVlps(SMC);
+            SMC_PostExitStopModes();
             break;
 
         case kAPP_PowerModeLls:
             lls_config.subMode = kSMC_StopSub3;
+            SMC_PreEnterStopModes();
             SMC_SetPowerModeLls(SMC, &lls_config);
+            SMC_PostExitStopModes();
             break;
 
         case kAPP_PowerModeVlls0:
@@ -560,7 +654,9 @@ status_t APP_PowerModeSwitch(notifier_user_config_t *targetConfig, void *userDat
                 vlls_config.subMode = kSMC_StopSub1;
             }
             vlls_config.enablePorDetectInVlls0 = targetPowerModeConfig->enablePorDetectInVlls0;
+            SMC_PreEnterStopModes();
             SMC_SetPowerModeVlls(SMC, &vlls_config);
+            SMC_PostExitStopModes();
             break;
         default:
             PRINTF("Wrong value");

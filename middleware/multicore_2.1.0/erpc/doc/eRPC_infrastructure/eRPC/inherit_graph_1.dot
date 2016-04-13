@@ -1,0 +1,9 @@
+digraph "Graphical Class Hierarchy"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node1 [label="erpc::ClientManager",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_client_manager.html",tooltip="Base client implementation. "];
+  Node1 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="erpc::ArbitratedClientManager",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_arbitrated_client_manager.html",tooltip="Client that can share a transport with a server. "];
+}

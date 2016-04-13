@@ -138,7 +138,7 @@ void APP_ChangePeeToBlpiExample(void)
     * It's transitional mode, don't need to wait for FLL stable
     * so NULL is passed as variable here.
     */
-    CLOCK_SetFbiMode(kMCG_DrsLow, NULL);
+    CLOCK_SetFbiMode(kMCG_Dmx32Default, kMCG_DrsLow, NULL);
     assert(kMCG_ModeFBI == CLOCK_GetMode());
 
     /* Change FBI -> BLPI */

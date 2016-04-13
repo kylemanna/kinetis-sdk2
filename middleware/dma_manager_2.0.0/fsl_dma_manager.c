@@ -118,10 +118,10 @@ status_t DMAMGR_RequestChannel(dma_request_source_t requestSource, uint8_t virtu
     {
 #if defined(FSL_FEATURE_EDMA_CHANNEL_GROUP_COUNT) && FSL_FEATURE_EDMA_CHANNEL_GROUP_COUNT > 0U
         /*
-            For some chip like MK70F15/MK70F12, it has only 1 DMAMUX(32 channels), but 2 source groups(16 channels per
+            For chip like MKV56/MKV58, it has only 1 DMAMUX(32 channels), but 2 source groups(16 channels per
            group).
         */
-        uint32_t dmamux_module_channel = FSL_FEATURE_DMAMUX_MODULE_CHANNEL / FSL_FEATURE_EDMA_CHANNEL_GROUP_COUNT;
+        uint32_t dmamux_module_channel = FSL_FEATURE_DMAMUX_DMAMUX_CHANNELS / FSL_FEATURE_EDMA_CHANNEL_GROUP_COUNT;
 #else
         uint32_t dmamux_module_channel = FSL_FEATURE_DMAMUX_MODULE_CHANNEL;
 #endif /* FSL_FEATURE_EDMA_CHANNEL_GROUP_COUNT */

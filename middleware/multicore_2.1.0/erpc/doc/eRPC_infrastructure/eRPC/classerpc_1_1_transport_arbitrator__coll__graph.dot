@@ -1,0 +1,26 @@
+digraph "erpc::TransportArbitrator"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node1 [label="erpc::TransportArbitrator",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node2 -> Node1 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="erpc::Transport",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_transport.html",tooltip="Abstract interface for transport layer. "];
+  Node3 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_clientListMutex" ,fontname="Helvetica"];
+  Node3 [label="erpc::Mutex",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_mutex.html",tooltip="Simple mutex class. "];
+  Node4 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_codec" ,fontname="Helvetica"];
+  Node4 [label="erpc::Codec",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_codec.html",tooltip="Abstract serialization encoder/decoder interface. "];
+  Node5 -> Node4 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_cursor" ,fontname="Helvetica"];
+  Node5 [label="erpc::MessageBuffer\l::Cursor",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_message_buffer_1_1_cursor.html",tooltip="Cursor within a MessageBuffer. "];
+  Node6 -> Node4 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_buffer" ,fontname="Helvetica"];
+  Node6 [label="erpc::MessageBuffer",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_message_buffer.html",tooltip="Represents a memory buffer containing a message. "];
+  Node2 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_sharedTransport" ,fontname="Helvetica"];
+  Node7 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_clientFreeList\nm_clientList" ,fontname="Helvetica"];
+  Node7 [label="erpc::TransportArbitrator\l::PendingClientInfo",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structerpc_1_1_transport_arbitrator_1_1_pending_client_info.html",tooltip="Request info for a client trying to receive a response. "];
+  Node8 -> Node7 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_sem" ,fontname="Helvetica"];
+  Node8 [label="erpc::Semaphore",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_semaphore.html",tooltip="Simple semaphore class. "];
+  Node7 -> Node7 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_next" ,fontname="Helvetica"];
+  Node9 -> Node7 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_request" ,fontname="Helvetica"];
+  Node9 [label="erpc::RequestContext",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_request_context.html",tooltip="Encapsulates all information about a request. "];
+  Node4 -> Node9 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_out\nm_in" ,fontname="Helvetica"];
+}

@@ -168,6 +168,102 @@ SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -mapcs")
 
 SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -std=gnu99")
 
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG=1")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DCPU_MK22FN512VLH12")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DUSB_STACK_FREERTOS_HEAP_SIZE=32768")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DUSB_STACK_FREERTOS")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DFSL_RTOS_FREE_RTOS")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DFRDM_K22F")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DFREEDOM")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -mcpu=cortex-m4")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -mfloat-abi=hard")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -mfpu=fpv4-sp-d16")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -mthumb")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -MMD")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -MP")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-common")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ffunction-sections")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fdata-sections")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ffreestanding")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-builtin")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -mapcs")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-rtti")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-exceptions")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -D_DEBUG=0")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DCPU_MK22FN512VLH12")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DUSB_STACK_FREERTOS_HEAP_SIZE=32768")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DUSB_STACK_FREERTOS")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DFSL_RTOS_FREE_RTOS")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DFRDM_K22F")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DFREEDOM")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Os")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mcpu=cortex-m4")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mfloat-abi=hard")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mfpu=fpv4-sp-d16")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mthumb")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -MMD")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -MP")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-common")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ffunction-sections")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fdata-sections")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ffreestanding")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-builtin")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mapcs")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-rtti")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-exceptions")
+
 SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -mcpu=cortex-m4")
 
 SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -Wall")
@@ -207,6 +303,10 @@ SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -z")
 SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -Xlinker")
 
 SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} muldefs")
+
+SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -Xlinker")
+
+SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} --defsym=__usb_ram_size__=0x800")
 
 SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -g")
 
@@ -250,88 +350,150 @@ SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -Xlinker")
 
 SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} muldefs")
 
-include_directories(${ProjDirPath}/..)
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -Xlinker")
+
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} --defsym=__usb_ram_size__=0x800")
 
 include_directories(${ProjDirPath}/..)
 
-include_directories(${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/portable/GCC/ARM_CM4F)
+include_directories(${ProjDirPath}/..)
 
-include_directories(${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/include)
+include_directories(${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/portable/GCC/ARM_CM4F)
+
+include_directories(${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/include)
 
 include_directories(${ProjDirPath}/..)
 
-include_directories(${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source)
+include_directories(${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source)
 
 include_directories(${ProjDirPath}/../../../../../../devices/MK22F51212/utilities)
 
-include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.0.0)
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.4.0)
 
-include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.0.0/osa)
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.4.0/osa)
 
-include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.0.0/include)
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.4.0/include)
 
 include_directories(${ProjDirPath}/../../../../../../CMSIS/Include)
 
 include_directories(${ProjDirPath}/../../../..)
 
-include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host)
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host)
 
 include_directories(${ProjDirPath}/../../../../../../devices/MK22F51212/drivers)
 
-include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/class)
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host/class)
 
 include_directories(${ProjDirPath}/../../../../../../devices/MK22F51212)
 
-include_directories(${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/portable/GCC/ARM_CM4F)
+include_directories(${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/portable/GCC/ARM_CM4F)
 
-include_directories(${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/include)
+include_directories(${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/include)
 
 include_directories(${ProjDirPath}/..)
 
-include_directories(${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source)
+include_directories(${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source)
 
 include_directories(${ProjDirPath}/../../../../../../devices/MK22F51212/utilities)
 
-include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.0.0)
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.4.0)
 
-include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.0.0/osa)
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.4.0/osa)
 
-include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.0.0/include)
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.4.0/include)
 
 include_directories(${ProjDirPath}/../../../../../../CMSIS/Include)
 
 include_directories(${ProjDirPath}/../../../..)
 
-include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host)
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host)
 
 include_directories(${ProjDirPath}/../../../../../../devices/MK22F51212/drivers)
 
-include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/class)
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host/class)
+
+include_directories(${ProjDirPath}/../../../../../../devices/MK22F51212)
+
+include_directories(${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/portable/GCC/ARM_CM4F)
+
+include_directories(${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/include)
+
+include_directories(${ProjDirPath}/..)
+
+include_directories(${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source)
+
+include_directories(${ProjDirPath}/../../../../../../devices/MK22F51212/utilities)
+
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.4.0)
+
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.4.0/osa)
+
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.4.0/include)
+
+include_directories(${ProjDirPath}/../../../../../../CMSIS/Include)
+
+include_directories(${ProjDirPath}/../../../..)
+
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host)
+
+include_directories(${ProjDirPath}/../../../../../../devices/MK22F51212/drivers)
+
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host/class)
+
+include_directories(${ProjDirPath}/../../../../../../devices/MK22F51212)
+
+include_directories(${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/portable/GCC/ARM_CM4F)
+
+include_directories(${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/include)
+
+include_directories(${ProjDirPath}/..)
+
+include_directories(${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source)
+
+include_directories(${ProjDirPath}/../../../../../../devices/MK22F51212/utilities)
+
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.4.0)
+
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.4.0/osa)
+
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.4.0/include)
+
+include_directories(${ProjDirPath}/../../../../../../CMSIS/Include)
+
+include_directories(${ProjDirPath}/../../../..)
+
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host)
+
+include_directories(${ProjDirPath}/../../../../../../devices/MK22F51212/drivers)
+
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host/class)
 
 include_directories(${ProjDirPath}/../../../../../../devices/MK22F51212)
 
 add_executable(host_audio_speaker_freertos.elf 
-"${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/portable/GCC/ARM_CM4F/port.c"
-"${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/portable/GCC/ARM_CM4F/portmacro.h"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/portable/GCC/ARM_CM4F/port.c"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/portable/GCC/ARM_CM4F/fsl_tickless_systick.c"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/portable/GCC/ARM_CM4F/fsl_tickless_generic.h"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/portable/GCC/ARM_CM4F/portmacro.h"
 "${ProjDirPath}/../../../../../../devices/MK22F51212/utilities/fsl_sbrk.c"
 "${ProjDirPath}/../../../../../../devices/MK22F51212/gcc/startup_MK22F51212.S"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/usb_host_khci.c"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/usb_host_khci.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host/usb_host_khci.c"
+"${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host/usb_host_khci.h"
 "${ProjDirPath}/../../../../../../devices/MK22F51212/drivers/fsl_lpuart.h"
 "${ProjDirPath}/../../../../../../devices/MK22F51212/drivers/fsl_lpuart.c"
 "${ProjDirPath}/../../../../../../devices/MK22F51212/drivers/fsl_uart.h"
 "${ProjDirPath}/../../../../../../devices/MK22F51212/drivers/fsl_uart.c"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/osa/usb_osa.h"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/osa/usb_osa_freertos.h"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/osa/usb_osa_freertos.c"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/class/usb_host_audio.c"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/class/usb_host_audio.h"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/class/usb_host_hid.c"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/class/usb_host_hid.h"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/class/usb_host_hub.c"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/class/usb_host_hub.h"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/class/usb_host_hub_app.c"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/class/usb_host_hub_app.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.4.0/osa/usb_osa.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.4.0/osa/usb_osa_freertos.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.4.0/osa/usb_osa_freertos.c"
+"${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host/class/usb_host_audio.c"
+"${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host/class/usb_host_audio.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host/class/usb_host_hid.c"
+"${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host/class/usb_host_hid.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host/class/usb_host_hub.c"
+"${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host/class/usb_host_hub.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host/class/usb_host_hub_app.c"
+"${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host/class/usb_host_hub_app.h"
 "${ProjDirPath}/../app.c"
 "${ProjDirPath}/../audio_speaker.c"
 "${ProjDirPath}/../audio_speaker.h"
@@ -340,38 +502,42 @@ add_executable(host_audio_speaker_freertos.elf
 "${ProjDirPath}/../host_keypad.h"
 "${ProjDirPath}/../usb_host_config.h"
 "${ProjDirPath}/../FreeRTOSConfig.h"
-"${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/include/croutine.h"
-"${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/include/event_groups.h"
-"${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/include/FreeRTOS.h"
-"${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/include/list.h"
-"${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/include/mpu_wrappers.h"
-"${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/include/portable.h"
-"${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/include/projdefs.h"
-"${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/include/queue.h"
-"${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/include/semphr.h"
-"${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/include/StackMacros.h"
-"${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/include/task.h"
-"${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/include/timers.h"
-"${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/croutine.c"
-"${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/portable/MemMang/heap_4.c"
-"${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/list.c"
-"${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/queue.c"
-"${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/tasks.c"
-"${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/timers.c"
-"${ProjDirPath}/../../../../../../rtos/freertos_8.2.3/Source/event_groups.c"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/include/croutine.h"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/include/event_groups.h"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/include/FreeRTOS.h"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/include/list.h"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/include/mpu_wrappers.h"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/include/portable.h"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/include/projdefs.h"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/include/queue.h"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/include/semphr.h"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/include/StackMacros.h"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/include/task.h"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/include/timers.h"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/include/deprecated_definitions.h"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/croutine.c"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/portable/MemMang/heap_4.c"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/list.c"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/queue.c"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/tasks.c"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/timers.c"
+"${ProjDirPath}/../../../../../../rtos/freertos_9.0.0/Source/event_groups.c"
 "${ProjDirPath}/../../../../../../devices/MK22F51212/system_MK22F51212.c"
 "${ProjDirPath}/../../../../../../devices/MK22F51212/system_MK22F51212.h"
 "${ProjDirPath}/../../../../../../devices/MK22F51212/utilities/fsl_debug_console.c"
 "${ProjDirPath}/../../../../../../devices/MK22F51212/utilities/fsl_debug_console.h"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/include/usb.h"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/usb_host.h"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/usb_host_hci.c"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/usb_host_hci.h"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/usb_host_devices.c"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/usb_host_devices.h"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/usb_host_framework.h"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/usb_host_framework.c"
+"${ProjDirPath}/../../../../../../middleware/usb_1.4.0/include/usb.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.4.0/include/usb_misc.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.4.0/include/usb_spec.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host/usb_host.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host/usb_host_hci.c"
+"${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host/usb_host_hci.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host/usb_host_devices.c"
+"${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host/usb_host_devices.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host/usb_host_framework.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.4.0/host/usb_host_framework.c"
 "${ProjDirPath}/../../../../../../devices/MK22F51212/drivers/fsl_port.h"
+"${ProjDirPath}/../../../../../../devices/MK22F51212/drivers/fsl_sim.h"
 "${ProjDirPath}/../../../../../../devices/MK22F51212/drivers/fsl_sim.c"
 "${ProjDirPath}/../../../../../../devices/MK22F51212/drivers/fsl_clock.h"
 "${ProjDirPath}/../../../../../../devices/MK22F51212/drivers/fsl_clock.c"
@@ -387,6 +553,8 @@ add_executable(host_audio_speaker_freertos.elf
 "${ProjDirPath}/../pin_mux.h"
 "${ProjDirPath}/../../../../../../devices/MK22F51212/drivers/fsl_smc.h"
 "${ProjDirPath}/../../../../../../devices/MK22F51212/drivers/fsl_smc.c"
+"${ProjDirPath}/../../../../../../devices/MK22F51212/drivers/fsl_flash.c"
+"${ProjDirPath}/../../../../../../devices/MK22F51212/drivers/fsl_flash.h"
 )
 
 

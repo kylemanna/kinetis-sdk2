@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -72,7 +72,7 @@
 
 /*!
  * @brief the max endpoint for one interface.
- * the max endpointer descriptor number that one interface descriptor contain.
+ * the max endpoint descriptor number that one interface descriptor contain.
  */
 #define USB_HOST_CONFIG_INTERFACE_MAX_EP (4U)
 
@@ -111,6 +111,9 @@
 
 /*! @brief if 1, enable usb compliance test codes; if 0, disable usb compliance test codes. */
 #define USB_HOST_CONFIG_COMPLIANCE_TEST (0U)
+
+/*! @brief if 1, class driver clear stall automatically; if 0, class driver don't clear stall. */
+#define USB_HOST_CONFIG_CLASS_AUTO_CLEAR_STALL (0U)
 
 /* KHCI configuration */
 #if ((defined USB_HOST_CONFIG_KHCI) && (USB_HOST_CONFIG_KHCI))
@@ -194,5 +197,12 @@
  *        - if greater than 0, host PHDC class driver is enable.
  */
 #define USB_HOST_CONFIG_PHDC (1U)
+
+/*!
+ * @brief host printer class instance count, meantime it indicates printer class enable or disable.
+ *        - if 0, host printer class driver is disable.
+ *        - if greater than 0, host printer class driver is enable.
+ */
+#define USB_HOST_CONFIG_PRINTER (1U)
 
 #endif /* _USB_HOST_CONFIG_H_ */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -285,7 +285,8 @@ usb_status_t USB_DeviceAudioStreamEndpointsInit(usb_device_audio_struct_t *audio
     usb_device_interface_struct_t *interface = (usb_device_interface_struct_t *)NULL;
     usb_status_t error = kStatus_USB_Error;
 
-    if (!audioHandle)
+    /* Check the configuration is valid or not. */
+    if (!audioHandle->configuration)
     {
         return error;
     }
@@ -380,6 +381,7 @@ usb_status_t USB_DeviceAudioStreamEndpointsDeinit(usb_device_audio_struct_t *aud
         error = USB_DeviceDeinitEndpoint(
             audioHandle->handle, audioHandle->streamInterfaceHandle->endpointList.endpoint[count].endpointAddress);
     }
+    audioHandle->streamInterfaceHandle = NULL;
     return error;
 }
 
@@ -399,7 +401,8 @@ usb_status_t USB_DeviceAudioControlEndpointsInit(usb_device_audio_struct_t *audi
     usb_device_interface_struct_t *interface = (usb_device_interface_struct_t *)NULL;
     usb_status_t error = kStatus_USB_Error;
 
-    if (!audioHandle)
+    /* Check the configuration is valid or not. */
+    if (!audioHandle->configuration)
     {
         return error;
     }
@@ -494,6 +497,7 @@ usb_status_t USB_DeviceAudioControlEndpointsDeinit(usb_device_audio_struct_t *au
         error = USB_DeviceDeinitEndpoint(
             audioHandle->handle, audioHandle->controlInterfaceHandle->endpointList.endpoint[count].endpointAddress);
     }
+    audioHandle->controlInterfaceHandle = NULL;
     return error;
 }
 
@@ -1433,72 +1437,77 @@ usb_status_t USB_DeviceAudioEvent(void *handle, uint32_t event, void *param)
                 usb_device_audio_entities_struct_t *entity_list;
                 uint8_t entityId = (uint8_t)(controlRequest->setup->wIndex >> 0x08);
                 uint32_t audioCommand = 0;
-
-                entity_list = (usb_device_audio_entities_struct_t *)audioHandle->controlInterfaceHandle->classSpecific;
-                for (i = 0; i < entity_list->count; i++)
-                {
-                    if (entityId == entity_list->entity[i].entityId)
+                uint8_t interface_index = (uint8_t)controlRequest->setup->wIndex;
+                
+                if ((audioHandle->controlInterfaceNumber == interface_index) ||
+                    (audioHandle->streamInterfaceNumber == interface_index))
+                {                
+                    entity_list = (usb_device_audio_entities_struct_t *)audioHandle->controlInterfaceHandle->classSpecific;
+                    for (i = 0; i < entity_list->count; i++)
                     {
-                        switch (entity_list->entity[i].entityType)
+                        if (entityId == entity_list->entity[i].entityId)
                         {
-                            case USB_DESCRIPTOR_SUBTYPE_AUDIO_CONTROL_OUTPUT_TERMINAL:
-                                break;
-                            case USB_DESCRIPTOR_SUBTYPE_AUDIO_CONTROL_FEATURE_UNIT:
-                                break;
-                            case USB_DESCRIPTOR_SUBTYPE_AUDIO_CONTROL_CLOCK_SOURCE_UNIT:
-                                if (((controlRequest->setup->bmRequestType & USB_REQUSET_TYPE_DIR_MASK) ==
-                                     USB_REQUEST_TYPE_DIR_IN))
-                                {
-                                    switch (controlRequest->setup->wValue >> 8)
+                            switch (entity_list->entity[i].entityType)
+                            {
+                                case USB_DESCRIPTOR_SUBTYPE_AUDIO_CONTROL_OUTPUT_TERMINAL:
+                                    break;
+                                case USB_DESCRIPTOR_SUBTYPE_AUDIO_CONTROL_FEATURE_UNIT:
+                                    break;
+                                case USB_DESCRIPTOR_SUBTYPE_AUDIO_CONTROL_CLOCK_SOURCE_UNIT:
+                                    if (((controlRequest->setup->bmRequestType & USB_REQUEST_TYPE_DIR_MASK) ==
+                                         USB_REQUEST_TYPE_DIR_IN))
                                     {
-                                        case USB_DEVICE_AUDIO_CS_SAM_FREQ_CONTROL:
-                                            if (controlRequest->setup->bRequest == USB_DEVICE_AUDIO_REQUEST_CUR)
-                                            {
-                                                audioCommand = USB_DEVICE_AUDIO_GET_CUR_SAM_FREQ_CONTROL;
-                                            }
-                                            else if (controlRequest->setup->bRequest == USB_DEVICE_AUDIO_REQUEST_RANGE)
-                                            {
-                                                audioCommand = USB_DEVICE_AUDIO_GET_RANGE_SAM_FREQ_CONTROL;
-                                            }
-                                            else
-                                            {
-                                            }
-                                            break;
-                                        case USB_DEVICE_AUDIO_CS_CLOCK_VALID_CONTROL:
-                                            audioCommand = USB_DEVICE_AUDIO_GET_CUR_CLOCK_VALID_CONTROL;
-                                            break;
-                                        default:
-                                            break;
+                                        switch (controlRequest->setup->wValue >> 8)
+                                        {
+                                            case USB_DEVICE_AUDIO_CS_SAM_FREQ_CONTROL:
+                                                if (controlRequest->setup->bRequest == USB_DEVICE_AUDIO_REQUEST_CUR)
+                                                {
+                                                    audioCommand = USB_DEVICE_AUDIO_GET_CUR_SAM_FREQ_CONTROL;
+                                                }
+                                                else if (controlRequest->setup->bRequest == USB_DEVICE_AUDIO_REQUEST_RANGE)
+                                                {
+                                                    audioCommand = USB_DEVICE_AUDIO_GET_RANGE_SAM_FREQ_CONTROL;
+                                                }
+                                                else
+                                                {
+                                                }
+                                                break;
+                                            case USB_DEVICE_AUDIO_CS_CLOCK_VALID_CONTROL:
+                                                audioCommand = USB_DEVICE_AUDIO_GET_CUR_CLOCK_VALID_CONTROL;
+                                                break;
+                                            default:
+                                                break;
+                                        }
                                     }
-                                }
-                                else if (((controlRequest->setup->bmRequestType & USB_REQUSET_TYPE_DIR_MASK) ==
-                                          USB_REQUEST_TYPE_DIR_OUT))
-                                {
-                                    switch (controlRequest->setup->wValue >> 8)
+                                    else if (((controlRequest->setup->bmRequestType & USB_REQUEST_TYPE_DIR_MASK) ==
+                                              USB_REQUEST_TYPE_DIR_OUT))
                                     {
-                                        case USB_DEVICE_AUDIO_CS_SAM_FREQ_CONTROL:
-                                            audioCommand = USB_DEVICE_AUDIO_SET_CUR_SAM_FREQ_CONTROL;
-                                            break;
-                                        case USB_DEVICE_AUDIO_CS_CLOCK_VALID_CONTROL:
-                                            audioCommand = USB_DEVICE_AUDIO_SET_CUR_CLOCK_VALID_CONTROL;
-                                            break;
-                                        default:
-                                            break;
+                                        switch (controlRequest->setup->wValue >> 8)
+                                        {
+                                            case USB_DEVICE_AUDIO_CS_SAM_FREQ_CONTROL:
+                                                audioCommand = USB_DEVICE_AUDIO_SET_CUR_SAM_FREQ_CONTROL;
+                                                break;
+                                            case USB_DEVICE_AUDIO_CS_CLOCK_VALID_CONTROL:
+                                                audioCommand = USB_DEVICE_AUDIO_SET_CUR_CLOCK_VALID_CONTROL;
+                                                break;
+                                            default:
+                                                break;
+                                        }
                                     }
-                                }
-                                else
-                                {
-                                }
-                                break;
-                            default:
-                                break;
+                                    else
+                                    {
+                                    }
+                                    break;
+                                default:
+                                    break;
+                            }
                         }
                     }
-                }
-                if ((audioCommand) && (NULL != audioHandle->configStruct) && (audioHandle->configStruct->classCallback))
-                {
-                    error = audioHandle->configStruct->classCallback((class_handle_t)audioHandle, audioCommand,
-                                                                     controlRequest);
+                    if ((audioCommand) && (NULL != audioHandle->configStruct) && (audioHandle->configStruct->classCallback))
+                    {
+                        error = audioHandle->configStruct->classCallback((class_handle_t)audioHandle, audioCommand,
+                                                                         controlRequest);
+                    }
                 }
             }
             break;
@@ -1508,31 +1517,37 @@ usb_status_t USB_DeviceAudioEvent(void *handle, uint32_t event, void *param)
             {
                 /* Handle the audio class specific request. */
                 usb_device_control_request_struct_t *controlRequest = (usb_device_control_request_struct_t *)param;
+                uint8_t interface_index = (uint8_t)controlRequest->setup->wIndex;
 
-                if ((controlRequest->setup->bmRequestType & USB_REQUEST_TYPE_RECIPIENT_MASK) !=
-                    USB_REQUEST_TYPE_RECIPIENT_INTERFACE)
+                if ((audioHandle->controlInterfaceNumber == interface_index) ||
+                    (audioHandle->streamInterfaceNumber == interface_index))
                 {
-                    break;
-                }
-
-                if (USB_REQUEST_TYPE_TYPE_CLASS == (controlRequest->setup->bmRequestType & USB_REQUEST_TYPE_TYPE_MASK))
-                {
-                    switch (controlRequest->setup->bmRequestType)
+                    if ((controlRequest->setup->bmRequestType & USB_REQUEST_TYPE_RECIPIENT_MASK) !=
+                        USB_REQUEST_TYPE_RECIPIENT_INTERFACE)
                     {
-                        case USB_DEVICE_AUDIO_SET_REQUSET_INTERFACE:
-                            error = USB_DeviceAudioSetRequestInterface(audioHandle, controlRequest);
-                            break;
-                        case USB_DEVICE_AUDIO_GET_REQUSET_INTERFACE:
-                            error = USB_DeviceAudioGetRequestInterface(audioHandle, controlRequest);
-                            break;
-                        case USB_DEVICE_AUDIO_SET_REQUSET_ENDPOINT:
-                            error = USB_DeviceAudioSetRequestEndpoint(audioHandle, controlRequest);
-                            break;
-                        case USB_DEVICE_AUDIO_GET_REQUSET_ENDPOINT:
-                            error = USB_DeviceAudioGetRequestEndpoint(audioHandle, controlRequest);
-                            break;
-                        default:
-                            break;
+                        break;
+                    }
+
+                    if (USB_REQUEST_TYPE_TYPE_CLASS ==
+                        (controlRequest->setup->bmRequestType & USB_REQUEST_TYPE_TYPE_MASK))
+                    {
+                        switch (controlRequest->setup->bmRequestType)
+                        {
+                            case USB_DEVICE_AUDIO_SET_REQUEST_INTERFACE:
+                                error = USB_DeviceAudioSetRequestInterface(audioHandle, controlRequest);
+                                break;
+                            case USB_DEVICE_AUDIO_GET_REQUEST_INTERFACE:
+                                error = USB_DeviceAudioGetRequestInterface(audioHandle, controlRequest);
+                                break;
+                            case USB_DEVICE_AUDIO_SET_REQUEST_ENDPOINT:
+                                error = USB_DeviceAudioSetRequestEndpoint(audioHandle, controlRequest);
+                                break;
+                            case USB_DEVICE_AUDIO_GET_REQUEST_ENDPOINT:
+                                error = USB_DeviceAudioGetRequestEndpoint(audioHandle, controlRequest);
+                                break;
+                            default:
+                                break;
+                        }
                     }
                 }
             }

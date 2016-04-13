@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -135,8 +135,8 @@ typedef struct _usb_device_lba_information_struct
 typedef struct _usb_device_lba_app_struct
 {
     uint32_t offset; /*!< Offset of the block need to access*/
-    uint32_t size;   /*!< Size of the transferd data*/
-    uint8_t *buffer; /*!< Buffer address of the transferd data*/
+    uint32_t size;   /*!< Size of the transfered data*/
+    uint8_t *buffer; /*!< Buffer address of the transfered data*/
 } usb_device_lba_app_struct_t;
 /*! @brief the thirteen possible cases of host expectations and device intent in the absence of
 overriding error conditions. */
@@ -148,15 +148,15 @@ typedef struct _usb_device_msc_thirteen_case_struct
     usb_lba_transfer_information_struct_t lbaInformation; /*!< Read/write information*/
     uint8_t lbaSendRecvSelect;                            /*!< Whether the command is read or write command*/
     uint8_t hostExpectedDirection;                        /*!< host excepted data direction*/
-    uint8_t deviceExpectedDirection;                      /*!< deivce excepted data direction*/
+    uint8_t deviceExpectedDirection;                      /*!< device excepted data direction*/
 } usb_device_msc_thirteen_case_struct_t;
 /*! @brief stall flag */
-typedef enum _usb_devcie_msc_stall_type_t
+typedef enum _usb_device_msc_stall_type_t
 {
     USB_DEVICE_MSC_STALL_IN_CBW = 1U, /*!< Stall in cbw*/
     USB_DEVICE_MSC_STALL_IN_DATA,     /*!< Stall in data transfer*/
     USB_DEVICE_MSC_STALL_IN_CSW,      /*!< Stall in csw*/
-} usb_devcie_msc_stall_type_t;
+} usb_device_msc_stall_type_t;
 /*! @brief Available common EVENT types in msc class callback */
 typedef enum _usb_device_msc_event
 {
@@ -194,29 +194,32 @@ typedef struct _usb_device_msc_struct
     uint32_t implementingDiskDrive;   /*!< Disk drive*/
     uint32_t bulkInBufferSize;        /*!< Bulk in buffer size*/
     uint32_t bulkOutBufferSize;       /*!< Bulk out buffer size*/
+#if ((defined(USB_DEVICE_CONFIG_LPCIP3511FS)) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U))
+    uint8_t *ufiAlignBuffer;
+#endif
 
-    usb_device_msc_cbw_t mscCbw; /*!< CBW structure */
-    usb_device_msc_csw_t mscCsw; /*!< CSW structure */
+    usb_device_msc_cbw_t *mscCbw; /*!< CBW structure */
+    usb_device_msc_csw_t *mscCsw; /*!< CSW structure */
 
     usb_device_msc_ufi_struct_t mscUfi; /*!< UFI command information structure*/
 
-    uint8_t dataOutFlag;          /*!< CBW incidating bulk out transfer, clear this flag when data transfer done*/
-    uint8_t dataInFlag;           /*!< CBW incidating bulk in transfer, clear this flag when data transfer done*/
+    uint8_t dataOutFlag;          /*!< CBW indicating bulk out transfer, clear this flag when data transfer done*/
+    uint8_t dataInFlag;           /*!< CBW indicating bulk in transfer, clear this flag when data transfer done*/
     uint8_t inEndpointStallFlag;  /*!< In endpoint stall flag*/
     uint8_t outEndpointStallFlag; /*!< Out endpoint stall flag*/
     uint8_t cbwValidFlag; /*!< The CBW was received after the device had sent a CSW or after a reset ,or else it is
                              invalid*/
     uint8_t performResetRecover;  /*!< Device need reset command from host*/
     uint8_t performResetDoneFlag; /*!< Device has perform reset command */
-    uint8_t needInStallFlag;      /*!< In endpoint shoud be stalled*/
-    uint8_t needOutStallFlag;     /*!< Out endpoint shoud be stalled*/
+    uint8_t needInStallFlag;      /*!< In endpoint should be stalled*/
+    uint8_t needOutStallFlag;     /*!< Out endpoint should be stalled*/
     uint8_t cbwPrimeFlag; /*!< CBW prime flag, prime means device msc has been ready to receive cbw, the bulk out
                              endpoint has got the prepared buffer*/
     uint8_t cswPrimeFlag; /*!< CSW prime flag, prime means device msc has been ready to receive csw, the bulk in
                              endpoint has got the prepared buffer*/
     uint8_t stallStatus;  /*!< Stall status*/
 
-    uint8_t logicalUnitNumber; /*!< supported logical units number of device ,referance bulk only spec 3.2 Get Max LUN
+    uint8_t logicalUnitNumber; /*!< supported logical units number of device ,reference bulk only spec 3.2 Get Max LUN
                                   (class-specific request)*/
     uint8_t bulkInEndpoint;    /*!< bulk in endpoint number*/
     uint8_t bulkOutEndpoint;   /*!< bulk out endpoint number*/

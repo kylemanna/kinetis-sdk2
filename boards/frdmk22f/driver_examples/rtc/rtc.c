@@ -136,8 +136,13 @@ int main(void)
         RTC_GetDatetime(RTC, &date);
 
         /* print default time */
-        PRINTF("Current datetime: %04hd-%02hd-%02hd %02hd:%02hd:%02hd\r\n", date.year, date.month, date.day, date.hour,
-               date.minute, date.second);
+        PRINTF("Current datetime: %04hd-%02hd-%02hd %02hd:%02hd:%02hd\r\n",
+               date.year,
+               date.month,
+               date.day,
+               date.hour,
+               date.minute,
+               date.second);
 
         /* Get alarm time from user */
         sec = 0;
@@ -161,8 +166,13 @@ int main(void)
         RTC_GetAlarm(RTC, &date);
 
         /* Print alarm time */
-        PRINTF("Alarm will occur at: %04hd-%02hd-%02hd %02hd:%02hd:%02hd\r\n", date.year, date.month, date.day,
-               date.hour, date.minute, date.second);
+        PRINTF("Alarm will occur at: %04hd-%02hd-%02hd %02hd:%02hd:%02hd\r\n",
+               date.year,
+               date.month,
+               date.day,
+               date.hour,
+               date.minute,
+               date.second);
 
         /* Wait until alarm occurs */
         while (busyWait)

@@ -57,11 +57,10 @@ typedef struct _usb_msc_struct
 {
     usb_device_handle deviceHandle;
     class_handle_t mscHandle;
-    uint8_t storageDisk[DISK_SIZE_NORMAL];
+    uint8_t *storageDisk;
     uint8_t diskLock;
     uint8_t readWriteError;
     uint8_t currentConfiguration;
-    // uint8_t                   currentInterfaceAlternateSetting[USB_MSC_INTERFACE_COUNT];
     uint8_t speed;
     uint8_t attach;
 } usb_msc_struct_t;

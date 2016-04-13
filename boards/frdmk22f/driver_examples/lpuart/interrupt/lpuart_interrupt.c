@@ -72,6 +72,25 @@ volatile uint16_t rxIndex; /* Index of the memory to save new arrived data. */
  * Code
  ******************************************************************************/
 
+void DEMO_LPUART_IRQHandler(void)
+{
+    uint8_t data;
+
+    /* If new data arrived. */
+    if ((kLPUART_RxDataRegFullFlag)&LPUART_GetStatusFlags(DEMO_LPUART))
+    {
+        data = LPUART_ReadByte(DEMO_LPUART);
+
+        /* If ring buffer is not full, add data to ring buffer. */
+        if (((rxIndex + 1) % DEMO_RING_BUFFER_SIZE) != txIndex)
+        {
+            demoRingBuffer[rxIndex] = data;
+            rxIndex++;
+            rxIndex %= DEMO_RING_BUFFER_SIZE;
+        }
+    }
+}
+
 /*!
  * @brief Main function
  */
@@ -114,25 +133,6 @@ int main(void)
             LPUART_WriteByte(DEMO_LPUART, demoRingBuffer[txIndex]);
             txIndex++;
             txIndex %= DEMO_RING_BUFFER_SIZE;
-        }
-    }
-}
-
-void DEMO_LPUART_IRQHandler(void)
-{
-    uint8_t data;
-
-    /* If new data arrived. */
-    if ((kLPUART_RxDataRegFullFlag)&LPUART_GetStatusFlags(DEMO_LPUART))
-    {
-        data = LPUART_ReadByte(DEMO_LPUART);
-
-        /* If ring buffer is not full, add data to ring buffer. */
-        if (((rxIndex + 1) % DEMO_RING_BUFFER_SIZE) != txIndex)
-        {
-            demoRingBuffer[rxIndex] = data;
-            rxIndex++;
-            rxIndex %= DEMO_RING_BUFFER_SIZE;
         }
     }
 }

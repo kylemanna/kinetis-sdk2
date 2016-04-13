@@ -1,0 +1,17 @@
+digraph "Infrastructure"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir=LR;
+  Node0 [label="Infrastructure",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node4 [label="Client",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__infra__client.html",tooltip="Client classes. "];
+  Node1 [label="Transports",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__infra__transport.html",tooltip="Superclasses for building transports. "];
+  Node2 [label="Utilities",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__infra__utility.html",tooltip="Utility code used by the infrastructure. "];
+  Node3 [label="Server",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__infra__server.html",tooltip="Server classes. "];
+  Node5 [label="Serialization",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__infra__codec.html",tooltip="Classes used for message serialization. "];
+  Node0->Node1 [shape=plaintext, dir="back", style="solid"];
+  Node0->Node2 [shape=plaintext, dir="back", style="solid"];
+  Node0->Node3 [shape=plaintext, dir="back", style="solid"];
+  Node0->Node4 [shape=plaintext, dir="back", style="solid"];
+  Node0->Node5 [shape=plaintext, dir="back", style="solid"];
+}

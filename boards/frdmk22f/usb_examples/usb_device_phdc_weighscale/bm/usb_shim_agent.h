@@ -98,11 +98,11 @@ typedef struct _usb_shim_agent_struct
     uint8_t numberTransferBulkOut;            /*!< the number of transfer that follow Meta-data Message Preamble */
     uint8_t numberTransferBulkIn;             /*!< the number of transfer that follow Meta-data Message Preamble */
 #endif
-    uint16_t endpointsHaveData;                   /*!< Which endpoints on the device have data */
-    usb_shim_rx_data_struct_t bulkOutData;        /*!< Receive data information */
-    usb_shim_tx_data_struct_t bulkInData;         /*!< Send data information */
-    usb_shim_tx_data_struct_t interruptInData;    /*!< Send data information */
-    uint8_t recvDataBuffer[APDU_MAX_BUFFER_SIZE]; /*!< Receive data buffer */
+    uint16_t endpointsHaveData;                /*!< Which endpoints on the device have data */
+    usb_shim_rx_data_struct_t bulkOutData;     /*!< Receive data information */
+    usb_shim_tx_data_struct_t bulkInData;      /*!< Send data information */
+    usb_shim_tx_data_struct_t interruptInData; /*!< Send data information */
+    uint8_t *recvDataBuffer;                    /*!< Receive data buffer */
 } usb_shim_agent_struct_t;
 
 /*******************************************************************************

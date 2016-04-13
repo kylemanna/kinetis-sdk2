@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -94,7 +94,7 @@
 
 /* String descriptor length. */
 #define USB_DESCRIPTOR_LENGTH_STRING0 (4)
-#define USB_DESCRIPTOR_LENGTH_STRING1 (58)
+#define USB_DESCRIPTOR_LENGTH_STRING1 (38)
 #define USB_DESCRIPTOR_LENGTH_STRING2 (38)
 
 /* Class code. */
@@ -125,7 +125,7 @@
 /*!
  * @brief USB device set speed function.
  *
- * This function sets the speed of the USB devcie.
+ * This function sets the speed of the USB device.
  *
  * @param handle The USB device handle.
  * @param speed Speed type. USB_SPEED_HIGH/USB_SPEED_FULL/USB_SPEED_LOW.
@@ -136,7 +136,7 @@ extern usb_status_t USB_DeviceSetSpeed(usb_device_handle handle, uint8_t speed);
 /*!
  * @brief USB device get device descriptor function.
  *
- * This function gets the device descriptor of the USB devcie.
+ * This function gets the device descriptor of the USB device.
  *
  * @param handle The USB device handle.
  * @param deviceDescriptor The pointer to the device descriptor structure.
@@ -148,7 +148,7 @@ usb_status_t USB_DeviceGetDeviceDescriptor(usb_device_handle handle,
 /*!
  * @brief USB device get configuration descriptor function.
  *
- * This function gets the configuration descriptor of the USB devcie.
+ * This function gets the configuration descriptor of the USB device.
  *
  * @param handle The USB device handle.
  * @param configurationDescriptor The pointer to the configuration descriptor structure.

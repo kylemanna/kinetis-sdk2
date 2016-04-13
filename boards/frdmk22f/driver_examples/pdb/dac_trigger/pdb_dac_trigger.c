@@ -88,6 +88,7 @@ void static DEMO_InitPDB_DAC(void)
      */
     DAC_GetDefaultConfig(&dacConfigStruct);
     DAC_Init(DEMO_DAC_BASE, &dacConfigStruct);
+    DAC_Enable(DEMO_DAC_BASE, true);
 
     /* Configure the DAC buffer. */
     DAC_GetDefaultBufferConfig(&dacBufferConfigStruct);

@@ -74,7 +74,7 @@ void APP_ChangeFeiToBlpiExample(void)
     * It's transitional mode, don't need to wait for FLL stable,
     * so NULL is passed as variable here.
     */
-    CLOCK_SetFbiMode(kMCG_DrsLow, NULL);
+    CLOCK_SetFbiMode(kMCG_Dmx32Default, kMCG_DrsLow, NULL);
     assert(kMCG_ModeFBI == CLOCK_GetMode());
 
     /* Change FBI -> BLPI */
@@ -93,7 +93,7 @@ void APP_ChangeBlpiToFeiExample(void)
     assert(kMCG_ModeFBI == CLOCK_GetMode());
 
     /* Change FBI -> FEI */
-    CLOCK_SetFeiMode(kMCG_DrsLow, APP_FllStableDelay);
+    CLOCK_SetFeiMode(kMCG_Dmx32Default, kMCG_DrsLow, APP_FllStableDelay);
     assert(kMCG_ModeFEI == CLOCK_GetMode());
 }
 

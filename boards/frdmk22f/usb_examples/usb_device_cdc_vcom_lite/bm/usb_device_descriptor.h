@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
+* Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification,
@@ -135,13 +135,13 @@
 #define FS_CDC_VCOM_INTERRUPT_IN_PACKET_SIZE (16)
 #define HS_CDC_VCOM_INTERRUPT_IN_INTERVAL (0x07) /* 2^(7-1) = 8ms */
 #define FS_CDC_VCOM_INTERRUPT_IN_INTERVAL (0x08)
-#define HS_CDC_VCOM_BULK_IN_PACKET_SIZE (64)
+#define HS_CDC_VCOM_BULK_IN_PACKET_SIZE (512)
 #define FS_CDC_VCOM_BULK_IN_PACKET_SIZE (64)
-#define HS_CDC_VCOM_BULK_OUT_PACKET_SIZE (64)
+#define HS_CDC_VCOM_BULK_OUT_PACKET_SIZE (512)
 #define FS_CDC_VCOM_BULK_OUT_PACKET_SIZE (64)
 
 #define USB_DESCRIPTOR_LENGTH_STRING0 (4)
-#define USB_DESCRIPTOR_LENGTH_STRING1 (58)
+#define USB_DESCRIPTOR_LENGTH_STRING1 (38)
 #define USB_DESCRIPTOR_LENGTH_STRING2 (42)
 
 #define USB_DESCRIPTOR_TYPE_CDC_CS_INTERFACE (0x24)
@@ -180,7 +180,7 @@ extern usb_status_t USB_DeviceCallback(usb_device_handle handle, uint32_t event,
 /*!
  * @brief USB device set speed function.
  *
- * This function sets the speed of the USB devcie.
+ * This function sets the speed of the USB device.
  *
  * Due to the difference of HS and FS descriptors, the device descriptors and configurations need to be updated to match
  * current speed.

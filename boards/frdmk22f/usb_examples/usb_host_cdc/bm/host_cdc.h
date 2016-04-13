@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -36,13 +36,13 @@
 #define USB_HOST_CDC_SERIAL_LF '\n'
 /*! @brief buffer for size for send and receive data */
 /* host example will send the buffer's data to device cdc if the data numbers in the buffer reach
- * USB_HOST_SEND_RECV_PER_TIME or the data is CR or LF*/
+ * USB_HOST_SEND_RECV_PER_TIME or the time reach USB_HOST_UART_RECV_TIMEOUT_THRSHOLD*/
 /*the data in the buffer will format a data packet and be transfed on the usb bus, the bigger the
  * USB_HOST_SEND_RECV_PER_TIME value is ,the bigger the packet on the */
 /*usb bus will be */
-/*the deafule value is 8 ,becuse this could save ram,  but the data transfer efficiency will be lower compared with 64
+/*the deafule value is 16 ,becuse this could save ram,  but the data transfer efficiency will be lower compared with 64
  * byte size buffer. */
-#define USB_HOST_SEND_RECV_PER_TIME 8U
+#define USB_HOST_SEND_RECV_PER_TIME 16U
 /*! @brief whether device support hardware flow control */
 #define USB_HOST_UART_SUPPORT_HW_FLOW 1U
 /*! @brief buffer number used to data transfer  */

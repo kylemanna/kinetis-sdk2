@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -55,11 +55,10 @@
 #define USB_DESCRIPTOR_LENGTH_METADATA_BULK_OUT (4U)
 #define USB_DESCRIPTOR_LENGTH_METADATA_BULK_IN (7U)
 #define USB_DESCRIPTOR_LENGTH_FUNCTION_EXTENSION (6U)
-#define USB_DESCRIPTOR_LENGTH_STRING_HEADER (2U)
-#define USB_DESCRIPTOR_LENGTH_STRING0 (2U)
-#define USB_DESCRIPTOR_LENGTH_STRING1 (56U)
-#define USB_DESCRIPTOR_LENGTH_STRING2 (30U)
-#define USB_DESCRIPTOR_LENGTH_STRING_ERROR (32U)
+#define USB_DESCRIPTOR_LENGTH_STRING0 (4U)
+#define USB_DESCRIPTOR_LENGTH_STRING1 (38U)
+#define USB_DESCRIPTOR_LENGTH_STRING2 (32U)
+#define USB_DESCRIPTOR_LENGTH_STRING_ERROR (34U)
 
 /*! @brief PHDC descriptor types */
 #define USB_DESCRIPTOR_TYPE_CLASS_FUNCTION (0x20U)

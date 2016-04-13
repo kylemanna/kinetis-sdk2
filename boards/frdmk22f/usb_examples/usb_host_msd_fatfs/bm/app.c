@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -51,6 +51,9 @@
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
+/* USB clock source and frequency*/
+#define USB_FS_CLK_SRC kCLOCK_UsbSrcPll0
+#define USB_FS_CLK_FREQ CLOCK_GetFreq(kCLOCK_PllFllSelClk)
 
 #if ((defined USB_HOST_CONFIG_KHCI) && (USB_HOST_CONFIG_KHCI))
 #define CONTROLLER_ID kUSB_ControllerKhci0
@@ -116,37 +119,93 @@ void USBHS_IRQHandler(void)
 }
 #endif /* USB_HOST_CONFIG_EHCI */
 
+#if ((defined USB_HOST_CONFIG_COMPLIANCE_TEST) && (USB_HOST_CONFIG_COMPLIANCE_TEST))
+extern usb_status_t USB_HostTestEvent(usb_device_handle deviceHandle,
+                                      usb_host_configuration_handle configurationHandle,
+                                      uint32_t eventCode);
+#endif
+
 static usb_status_t USB_HostEvent(usb_device_handle deviceHandle,
                                   usb_host_configuration_handle configurationHandle,
                                   uint32_t eventCode)
 {
 #if ((defined USB_HOST_CONFIG_COMPLIANCE_TEST) && (USB_HOST_CONFIG_COMPLIANCE_TEST))
-    USB_HostTestEvent(deviceHandle, configurationHandle, eventCode);
-#else
+    usb_host_configuration_t *configuration;
+    usb_status_t status1;
+    usb_status_t status2;
+    uint8_t interfaceIndex = 0;
+#endif
     usb_status_t status = kStatus_USB_Success;
     switch (eventCode)
     {
         case kUSB_HostEventAttach:
+#if ((defined USB_HOST_CONFIG_COMPLIANCE_TEST) && (USB_HOST_CONFIG_COMPLIANCE_TEST))
+            status1 = USB_HostTestEvent(deviceHandle, configurationHandle, eventCode);
+            status2 = USB_HostMsdEvent(deviceHandle, configurationHandle, eventCode);
+            if ((status1 == kStatus_USB_NotSupported) && (status2 == kStatus_USB_NotSupported))
+            {
+                status = kStatus_USB_NotSupported;
+            }
+#else
             status = USB_HostMsdEvent(deviceHandle, configurationHandle, eventCode);
+#endif
             break;
 
         case kUSB_HostEventNotSupported:
-            usb_echo("device not supported.\r\n");
+#if ((defined USB_HOST_CONFIG_COMPLIANCE_TEST) && (USB_HOST_CONFIG_COMPLIANCE_TEST))
+            configuration = (usb_host_configuration_t *)configurationHandle;
+            for (interfaceIndex = 0; interfaceIndex < configuration->interfaceCount; ++interfaceIndex)
+            {
+                if (((usb_descriptor_interface_t *)configuration->interfaceList[interfaceIndex].interfaceDesc)
+                        ->bInterfaceClass == 9U) /* 9U is hub class code */
+                {
+                    break;
+                }
+            }
+
+            if (interfaceIndex < configuration->interfaceCount)
+            {
+                usb_echo("unsupported hub\r\n");
+            }
+            else
+            {
+                usb_echo("Unsupported Device\r\n");
+            }
+#else
+            usb_echo("Unsupported Device\r\n");
+#endif
             break;
 
         case kUSB_HostEventEnumerationDone:
+#if ((defined USB_HOST_CONFIG_COMPLIANCE_TEST) && (USB_HOST_CONFIG_COMPLIANCE_TEST))
+            status1 = USB_HostTestEvent(deviceHandle, configurationHandle, eventCode);
+            status2 = USB_HostMsdEvent(deviceHandle, configurationHandle, eventCode);
+            if ((status1 != kStatus_USB_Success) && (status2 != kStatus_USB_Success))
+            {
+                status = kStatus_USB_Error;
+            }
+#else
             status = USB_HostMsdEvent(deviceHandle, configurationHandle, eventCode);
+#endif
             break;
 
         case kUSB_HostEventDetach:
+#if ((defined USB_HOST_CONFIG_COMPLIANCE_TEST) && (USB_HOST_CONFIG_COMPLIANCE_TEST))
+            status1 = USB_HostTestEvent(deviceHandle, configurationHandle, eventCode);
+            status2 = USB_HostMsdEvent(deviceHandle, configurationHandle, eventCode);
+            if ((status1 != kStatus_USB_Success) && (status2 != kStatus_USB_Success))
+            {
+                status = kStatus_USB_Error;
+            }
+#else
             status = USB_HostMsdEvent(deviceHandle, configurationHandle, eventCode);
+#endif
             break;
 
         default:
             break;
     }
     return status;
-#endif
 }
 
 static void USB_HostApplicationInit(void)
@@ -157,12 +216,13 @@ static void USB_HostApplicationInit(void)
 #if ((defined USB_HOST_CONFIG_KHCI) && (USB_HOST_CONFIG_KHCI))
     IRQn_Type usbFsIrqs[] = USB_IRQS;
     usbIrq = usbFsIrqs[CONTROLLER_ID - kUSB_ControllerKhci0];
-    CLOCK_EnableUsbfs0Clock(kCLOCK_UsbSrcPll0, CLOCK_GetFreq(kCLOCK_PllFllSelClk));
+    CLOCK_EnableUsbfs0Clock(USB_FS_CLK_SRC, USB_FS_CLK_FREQ);
 #endif /* USB_HOST_CONFIG_KHCI */
 #if ((defined USB_HOST_CONFIG_EHCI) && (USB_HOST_CONFIG_EHCI))
     IRQn_Type usbHsIrqs[] = USBHS_IRQS;
     usbIrq = usbHsIrqs[CONTROLLER_ID - kUSB_ControllerEhci0];
-    CLOCK_EnableUsbhs0Clock(kCLOCK_UsbSrcPll0, CLOCK_GetFreq(kCLOCK_PllFllSelClk));
+    CLOCK_EnableUsbhs0PhyPllClock(USB_HS_PHY_CLK_SRC, USB_HS_PHY_CLK_FREQ);
+    CLOCK_EnableUsbhs0Clock(USB_HS_CLK_SRC, USB_HS_CLK_FREQ);
     USB_EhciPhyInit(CONTROLLER_ID, BOARD_XTAL0_CLK_HZ);
 #endif /* USB_HOST_CONFIG_EHCI */
 #if ((defined FSL_FEATURE_SOC_MPU_COUNT) && (FSL_FEATURE_SOC_MPU_COUNT))

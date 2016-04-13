@@ -37,7 +37,7 @@
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
-#define DEMO_DAC_INSTANCE DAC0
+#define DEMO_DAC_BASEADDR DAC0
 #define DEMO_DAC_IRQ_ID DAC0_IRQn
 #define DEMO_DAC_IRQ_HANDLER_FUNC DAC0_IRQHandler
 
@@ -64,7 +64,7 @@ volatile bool g_DacBufferReadPointerBottomPositionInterruptFlag;
  */
 void DEMO_DAC_IRQ_HANDLER_FUNC(void)
 {
-    uint32_t flags = DAC_GetBufferStatusFlags(DEMO_DAC_INSTANCE);
+    uint32_t flags = DAC_GetBufferStatusFlags(DEMO_DAC_BASEADDR);
 
 #if defined(FSL_FEATURE_DAC_HAS_WATERMARK_DETECTION) && FSL_FEATURE_DAC_HAS_WATERMARK_DETECTION
     if (kDAC_BufferWatermarkFlag == (kDAC_BufferWatermarkFlag & flags))
@@ -80,7 +80,7 @@ void DEMO_DAC_IRQ_HANDLER_FUNC(void)
     {
         g_DacBufferReadPointerBottomPositionInterruptFlag = true;
     }
-    DAC_ClearBufferStatusFlags(DEMO_DAC_INSTANCE, flags); /* Clear flags. */
+    DAC_ClearBufferStatusFlags(DEMO_DAC_BASEADDR, flags); /* Clear flags. */
 }
 
 /*!
@@ -107,16 +107,17 @@ int main(void)
      * dacConfigStruct.enableLowPowerMode = false;
      */
     DAC_GetDefaultConfig(&dacConfigStruct);
-    DAC_Init(DEMO_DAC_INSTANCE, &dacConfigStruct);
+    DAC_Init(DEMO_DAC_BASEADDR, &dacConfigStruct);
+    DAC_Enable(DEMO_DAC_BASEADDR, true); /* Enable output. */
 
     /* Configure the DAC buffer. */
     DAC_GetDefaultBufferConfig(&dacBufferConfigStruct);
-    DAC_SetBufferConfig(DEMO_DAC_INSTANCE, &dacBufferConfigStruct);
-    DAC_SetBufferReadPointer(DEMO_DAC_INSTANCE, 0U); /* Make sure the read pointer to the start. */
+    DAC_SetBufferConfig(DEMO_DAC_BASEADDR, &dacBufferConfigStruct);
+    DAC_SetBufferReadPointer(DEMO_DAC_BASEADDR, 0U); /* Make sure the read pointer to the start. */
     dacValue = 0U;
     for (index = 0U; index < DEMO_DAC_USED_BUFFER_SIZE; index++)
     {
-        DAC_SetBufferValue(DEMO_DAC_INSTANCE, index, dacValue);
+        DAC_SetBufferValue(DEMO_DAC_BASEADDR, index, dacValue);
         dacValue += (0xFFFU / DEMO_DAC_USED_BUFFER_SIZE);
     }
 /* Clear flags. */
@@ -132,8 +133,8 @@ int main(void)
     mask |= kDAC_BufferWatermarkInterruptEnable;
 #endif /* FSL_FEATURE_DAC_HAS_WATERMARK_DETECTION */
     mask |= kDAC_BufferReadPointerTopInterruptEnable | kDAC_BufferReadPointerBottomInterruptEnable;
-    DAC_EnableBuffer(DEMO_DAC_INSTANCE, true);
-    DAC_EnableBufferInterrupts(DEMO_DAC_INSTANCE, mask);
+    DAC_EnableBuffer(DEMO_DAC_BASEADDR, true);
+    DAC_EnableBufferInterrupts(DEMO_DAC_BASEADDR, mask);
 
     PRINTF("\r\nDAC Buffer Information\r\n");
     PRINTF("\t  Buffer index max  : %d\r\n", dacBufferConfigStruct.upperLimit);
@@ -171,7 +172,7 @@ int main(void)
 
         /* Trigger the buffer and move the pointer. */
         GETCHAR();
-        DAC_DoSoftwareTriggerBuffer(DEMO_DAC_INSTANCE);
+        DAC_DoSoftwareTriggerBuffer(DEMO_DAC_BASEADDR);
         index++;
         if (index >= DEMO_DAC_USED_BUFFER_SIZE)
         {

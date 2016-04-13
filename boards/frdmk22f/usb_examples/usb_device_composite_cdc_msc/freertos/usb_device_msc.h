@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -36,7 +36,6 @@
  * @addtogroup usb_msc
  * @{
  */
-#define USB_DEVICE_CONFIG_MSC_MAX_INSTANCE (1U)
 /*! @brief prevent media removal flag */
 #define USB_DEVICE_CONFIG_MSC_SUPPORT_DISK_LOCKING_MECHANISM (0U)
 #define USB_DEVICE_CONFIG_MSC_IMPLEMENTING_DISK_DRIVE (0U)
@@ -130,6 +129,14 @@ typedef struct _usb_device_lba_app_struct
     uint32_t size;   /*!< Size of the transferred data*/
     uint8_t *buffer; /*!< Buffer address of the transferred data*/
 } usb_device_lba_app_struct_t;
+/*! @brief command and Data transfer information for UFI command*/
+typedef struct _usb_device_ufi_app_struct
+{
+    uint8_t *cbwcb;  /*!< current ufi command block strored in the CBW*/
+    uint32_t size;   /*!< Size of the transferred data if commmand has data flow*/
+    uint8_t *buffer; /*!< Buffer address of the transferred data if commmand has data flow*/
+    usb_device_request_sense_data_struct_t *requestSense; /*!< sense data for the current command*/
+} usb_device_ufi_app_struct_t;
 /*! @brief The thirteen possible use cases of host expectations and device intent in the absence of
 overriding error conditions. */
 typedef struct _usb_device_msc_thirteen_case_struct
@@ -148,30 +155,37 @@ typedef enum
     USB_DEVICE_MSC_STALL_IN_CBW = 1U, /*!< Stall in CBW*/
     USB_DEVICE_MSC_STALL_IN_DATA,     /*!< Stall in data transfer*/
     USB_DEVICE_MSC_STALL_IN_CSW,      /*!< Stall in CSW*/
-} usb_devcie_msc_stall_type;
+} usb_device_msc_stall_type;
 /*! @brief Available common EVENT types in MSC class callback */
 typedef enum
 {
-    kUSB_DeviceMscEventReadResponse = 0x01U, /*!< Send data completed */
-    kUSB_DeviceMscEventWriteResponse,        /*!< Data received */
-    kUSB_DeviceMscEventWriteRequest,         /*!< Host write data*/
-    kUSB_DeviceMscEventReadRequest,          /*!< Host read data*/
+    kUSB_DeviceMscEventReadResponse = 0x01U, /*!< host has already read the whole data from device */
+    kUSB_DeviceMscEventWriteResponse,        /*!< devcie has already received the data from host. */
+    kUSB_DeviceMscEventWriteRequest,         /*!< Host want to write data to device through write command, devcie need prepare one buffer to store the data from host*/
+    kUSB_DeviceMscEventReadRequest,          /*!< Host want to read data from device through read command, device need prepare one buffer containing data pending for transfer*/
     kUSB_DeviceMscEventGetLbaInformation,    /*!< Get device information */
     kUSB_DeviceMscEventFormatComplete,       /*!< Format complete */
-    kUSB_DeviceMscEventRemovalRequest,       /*!< Prevent_allow_medium_command */
-    kUSB_DeviceMscEventStopEjectMedia,       /*!< Start_stop_unit_command */
+    kUSB_DeviceMscEventTestUnitReady,        /*!<  Test Unit Ready command*/
+    kUSB_DeviceMscEventInquiry,              /*!<  Inquiry Command command*/
+    kUSB_DeviceMscEventModeSense,            /*!<  mode sense command*/
+    kUSB_DeviceMscEventModeSelect, /*!<  mode select command, prepare data buffer and buffer length to store data for
+                                      mode select*/
+    kUSB_DeviceMscEventModeSelectResponse, /*!<  got data of mode select command*/
+    kUSB_DeviceMscEventRemovalRequest,     /*!< Prevent_allow_medium_command */
+    kUSB_DeviceMscEventSendDiagnostic,     /*!< Send Diagnostic command */
+    kUSB_DeviceMscEventStopEjectMedia,     /*!< Start_stop_unit_command */
 
 } USB_DeviceMscEvent_t;
 /*! @brief The MSC device UFI command status structure */
 typedef struct _usb_device_msc_ufi_struct
 {
-    usb_device_request_sense_data_struct_t requestSense;     /*!< Request Sense Standard Data*/
-    usb_device_msc_thirteen_case_struct_t thirteenCase;      /*!< Thirteen possible cases*/
-    usb_device_read_capacity_struct_t readCapacity;          /*!< READ CAPACITY Data*/
-    usb_device_read_capacity16_data_struct_t readCapacity16; /*!< READ CAPACITY Data*/
-    usb_device_inquiry_data_fromat_struct_t InquiryInfo;     /*!< Standard INQUIRY Data*/
-    usb_device_mode_parameters_header_struct_t ModeParametersHeader;/*!< Mode Parameter Header*/
-    uint8_t formattedDisk;                                   /*!< *Formatted or unformatted media*/
+    usb_device_request_sense_data_struct_t requestSense;             /*!< Request Sense Standard Data*/
+    usb_device_msc_thirteen_case_struct_t thirteenCase;              /*!< Thirteen possible cases*/
+    usb_device_read_capacity_struct_t readCapacity;                  /*!< READ CAPACITY Data*/
+    usb_device_read_capacity16_data_struct_t readCapacity16;         /*!< READ CAPACITY Data*/
+    usb_device_inquiry_data_fromat_struct_t InquiryInfo;             /*!< Standard INQUIRY Data*/
+    usb_device_mode_parameters_header_struct_t ModeParametersHeader; /*!< Mode Parameter Header*/
+    uint8_t formattedDisk;                                           /*!< *Formatted or unformatted media*/
     uint8_t formatCapacityData[sizeof(usb_device_capacity_list_header_struct_t) +
                                sizeof(usb_device_current_max_capacity_descriptor_struct_t) +
                                sizeof(usb_device_formattable_capacity_descriptor_struct_t) * 3];
@@ -190,9 +204,12 @@ typedef struct _usb_device_msc_struct
     uint32_t implementingDiskDrive;                        /*!< Disk drive*/
     uint32_t bulkInBufferSize;                             /*!< Bulk in buffer size*/
     uint32_t bulkOutBufferSize;                            /*!< Bulk out buffer size*/
+#if ((defined(USB_DEVICE_CONFIG_LPCIP3511FS)) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U))
+    uint8_t *ufiAlignBuffer;
+#endif
 
-    usb_device_msc_cbw_t mscCbw; /*!< CBW structure */
-    usb_device_msc_csw_t mscCsw; /*!< CSW structure */
+    usb_device_msc_cbw_t *mscCbw; /*!< CBW structure */
+    usb_device_msc_csw_t *mscCsw; /*!< CSW structure */
 
     usb_device_msc_ufi_struct_t mscUfi; /*!< UFI command information structure*/
 
@@ -212,7 +229,8 @@ typedef struct _usb_device_msc_struct
                              endpoint has got the prepared buffer*/
     uint8_t stallStatus;  /*!< Stall status*/
 
-    uint8_t logicalUnitNumber; /*!< Supported logical units number of device. See bulk only specification 3.2 Get Maximum LUN
+    uint8_t logicalUnitNumber; /*!< Supported logical units number of device. See bulk only specification 3.2 Get
+                                  Maximum LUN
                                   (class-specific request)*/
     uint8_t bulkInEndpoint;    /*!< Bulk in endpoint number*/
     uint8_t bulkOutEndpoint;   /*!< Bulk out endpoint number*/
@@ -232,7 +250,7 @@ typedef struct _usb_device_msc_struct
 *
 * @param controllerId   The controller ID of the USB IP. See the enumeration usb_controller_index_t.
 * @param config          The class configuration information.
-* @param handle          An parameter used to return pointer of the MSC class handle to the caller.
+* @param handle          A parameter used to return pointer of the MSC class handle to the caller.
 *
 * @return A USB error code or kStatus_USB_Success.
 */

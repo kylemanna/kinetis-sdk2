@@ -58,7 +58,7 @@ typedef struct _usb_msc_struct
     usb_device_handle deviceHandle;
     usb_device_msc_struct_t handle;
 
-    uint8_t storageDisk[DISK_SIZE_NORMAL];
+    uint8_t *storageDisk;
 
     uint8_t diskLock;
     uint8_t readWriteError;

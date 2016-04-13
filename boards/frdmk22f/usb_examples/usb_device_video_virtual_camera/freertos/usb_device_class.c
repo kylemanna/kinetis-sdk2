@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -62,7 +62,6 @@
 #endif
 
 #if ((defined(USB_DEVICE_CONFIG_PRINTER)) && (USB_DEVICE_CONFIG_PRINTER > 0U))
-#include "usb_device_printer_config.h"
 #include "usb_device_printer.h"
 #endif
 
@@ -120,7 +119,7 @@ static const usb_device_class_map_t s_UsbDeviceClassInterfaceMap[] = {
 #endif
 
 #if ((defined USB_DEVICE_CONFIG_PRINTER) && (USB_DEVICE_CONFIG_PRINTER > 0U))
-    {usb_device_printer_init, usb_device_printer_deinit, usb_device_printer_event, kUSB_DeviceClassTypePrinter},
+    {USB_DevicePrinterInit, USB_DevicePrinterDeinit, USB_DevicePrinterEvent, kUSB_DeviceClassTypePrinter},
 #endif
 
 #if ((defined USB_DEVICE_CONFIG_DFU) && (USB_DEVICE_CONFIG_DFU > 0U))

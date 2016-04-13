@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -199,12 +199,12 @@
  * @{
  */
 /*! @brief Audio device class setup request set type */
-#define USB_DEVICE_AUDIO_SET_REQUSET_INTERFACE (0x21)
-#define USB_DEVICE_AUDIO_SET_REQUSET_ENDPOINT (0x22)
+#define USB_DEVICE_AUDIO_SET_REQUEST_INTERFACE (0x21)
+#define USB_DEVICE_AUDIO_SET_REQUEST_ENDPOINT (0x22)
 
 /*! @brief Audio device class setup request get type */
-#define USB_DEVICE_AUDIO_GET_REQUSET_INTERFACE (0xA1)
-#define USB_DEVICE_AUDIO_GET_REQUSET_ENDPOINT (0xA2)
+#define USB_DEVICE_AUDIO_GET_REQUEST_INTERFACE (0xA1)
+#define USB_DEVICE_AUDIO_GET_REQUEST_ENDPOINT (0xA2)
 /*! @}*/
 
 /*! @}*/

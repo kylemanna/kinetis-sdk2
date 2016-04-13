@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 -2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -48,6 +48,9 @@
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
+/* USB clock source and frequency*/
+#define USB_FS_CLK_SRC kCLOCK_UsbSrcPll0
+#define USB_FS_CLK_FREQ CLOCK_GetFreq(kCLOCK_PllFllSelClk)
 #if ((defined USB_HOST_CONFIG_KHCI) && (USB_HOST_CONFIG_KHCI))
 #define CONTROLLER_ID kUSB_ControllerKhci0
 #endif /* USB_HOST_CONFIG_KHCI */
@@ -144,12 +147,13 @@ void APP_init(void)
 #if ((defined USB_HOST_CONFIG_KHCI) && (USB_HOST_CONFIG_KHCI))
     IRQn_Type usb_fs_irqs[] = USB_IRQS;
     usb_irq = usb_fs_irqs[CONTROLLER_ID - kUSB_ControllerKhci0];
-    CLOCK_EnableUsbfs0Clock(kCLOCK_UsbSrcPll0, CLOCK_GetFreq(kCLOCK_PllFllSelClk));
+    CLOCK_EnableUsbfs0Clock(USB_FS_CLK_SRC, USB_FS_CLK_FREQ);
 #endif
 #if ((defined USB_HOST_CONFIG_EHCI) && (USB_HOST_CONFIG_EHCI))
     IRQn_Type usb_hs_irqs[] = USBHS_IRQS;
     usb_irq = usb_hs_irqs[CONTROLLER_ID - kUSB_ControllerEhci0];
-    CLOCK_EnableUsbhs0Clock(kCLOCK_UsbSrcPll0, CLOCK_GetFreq(kCLOCK_PllFllSelClk));
+    CLOCK_EnableUsbhs0PhyPllClock(USB_HS_PHY_CLK_SRC, USB_HS_PHY_CLK_FREQ);
+    CLOCK_EnableUsbhs0Clock(USB_HS_CLK_SRC, USB_HS_CLK_FREQ);
     USB_EhciPhyInit(CONTROLLER_ID, BOARD_XTAL0_CLK_HZ);
 #endif
 #if ((defined FSL_FEATURE_SOC_MPU_COUNT) && (FSL_FEATURE_SOC_MPU_COUNT))
@@ -227,10 +231,12 @@ int main(void)
     {
         usb_echo("create audio task error\r\n");
     }
+
     if (xTaskCreate(Keypad_AppTask, "app task", 2000L / sizeof(portSTACK_TYPE), NULL, 3U, NULL) != pdPASS)
     {
         usb_echo("create keypad task error\r\n");
     }
+
     vTaskStartScheduler();
 
     while (1)

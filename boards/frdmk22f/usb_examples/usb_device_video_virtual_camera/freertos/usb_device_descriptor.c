@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -164,8 +164,8 @@ uint8_t g_UsbDeviceDescriptor[USB_DESCRIPTOR_LENGTH_DEVICE] = {
     USB_DEVICE_PROTOCOL,                                 /* Protocol code (assigned by the USB-IF). */
     USB_CONTROL_MAX_PACKET_SIZE,                         /* Maximum packet size for endpoint zero
                                                             (only 8, 16, 32, or 64 are valid) */
-    0xA2U, 0x15U,                                        /* Vendor ID (assigned by the USB-IF) */
-    0x81U, 0x00U,                                        /* Product ID (assigned by the manufacturer) */
+    0xC9U, 0x1FU,                                        /* Vendor ID (assigned by the USB-IF) */
+    0x99U, 0x00U,                                        /* Product ID (assigned by the manufacturer) */
     USB_SHORT_GET_LOW(USB_DEVICE_DEMO_BCD_VERSION),
     USB_SHORT_GET_HIGH(USB_DEVICE_DEMO_BCD_VERSION), /* Device release number in binary-coded decimal */
     0x01U,                                           /* Index of string descriptor describing manufacturer */
@@ -469,23 +469,11 @@ uint8_t g_UsbDeviceString0[USB_DESCRIPTOR_LENGTH_STRING0] = {
 uint8_t g_UsbDeviceString1[USB_DESCRIPTOR_LENGTH_STRING1] = {
     sizeof(g_UsbDeviceString1),
     USB_DESCRIPTOR_TYPE_STRING,
-    'F',
+    'N',
     0x00U,
-    'R',
+    'X',
     0x00U,
-    'E',
-    0x00U,
-    'E',
-    0x00U,
-    'S',
-    0x00U,
-    'C',
-    0x00U,
-    'A',
-    0x00U,
-    'L',
-    0x00U,
-    'E',
+    'P',
     0x00U,
     ' ',
     0x00U,
@@ -515,15 +503,7 @@ uint8_t g_UsbDeviceString1[USB_DESCRIPTOR_LENGTH_STRING1] = {
     0x00U,
     'R',
     0x00U,
-    ' ',
-    0x00U,
-    'I',
-    0x00U,
-    'N',
-    0x00U,
-    'C',
-    0x00U,
-    '.',
+    'S',
     0x00U,
 };
 
@@ -655,7 +635,7 @@ usb_status_t USB_DeviceGetStringDescriptor(usb_device_handle handle,
         uint8_t languageId = 0U;
         uint8_t languageIndex = USB_DEVICE_STRING_COUNT;
 
-        for (; languageId < USB_DEVICE_STRING_COUNT; languageId++)
+        for (; languageId < USB_DEVICE_LANGUAGE_COUNT; languageId++)
         {
             if (stringDescriptor->languageId == g_UsbDeviceLanguageList.languageList[languageId].languageId)
             {

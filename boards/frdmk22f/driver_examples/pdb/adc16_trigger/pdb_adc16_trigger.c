@@ -91,7 +91,14 @@ void static DEMO_InitPDB_ADC(void)
     ADC16_Init(DEMO_ADC_BASE, &adc16ConfigStruct);
 #if defined(FSL_FEATURE_ADC16_HAS_CALIBRATION) && FSL_FEATURE_ADC16_HAS_CALIBRATION
     ADC16_EnableHardwareTrigger(DEMO_ADC_BASE, false);
-    ADC16_DoAutoCalibration(DEMO_ADC_BASE);
+    if (kStatus_Success == ADC16_DoAutoCalibration(DEMO_ADC_BASE))
+    {
+        PRINTF("ADC16_DoAutoCalibration() Done.\r\n");
+    }
+    else
+    {
+        PRINTF("ADC16_DoAutoCalibration() Failed.\r\n");
+    }
 #endif /* FSL_FEATURE_ADC16_HAS_CALIBRATION */
     ADC16_EnableHardwareTrigger(DEMO_ADC_BASE, true);
 

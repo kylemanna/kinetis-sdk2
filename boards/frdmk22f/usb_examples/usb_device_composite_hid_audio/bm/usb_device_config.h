@@ -50,8 +50,15 @@
 /*! @brief EHCI instance count */
 #define USB_DEVICE_CONFIG_EHCI (0U)
 
+/*! @brief LPC USB IP3511 FS instance count */
+#define USB_DEVICE_CONFIG_LPCIP3511FS (0U)
+
+/*! @brief LPC USB IP3511 HS instance count */
+#define USB_DEVICE_CONFIG_LPCIP3511HS (0U)
+
 /*! @brief Device instance count, the sum of KHCI and EHCI instance counts*/
-#define USB_DEVICE_CONFIG_NUM (USB_DEVICE_CONFIG_KHCI + USB_DEVICE_CONFIG_EHCI)
+#define USB_DEVICE_CONFIG_NUM \
+    (USB_DEVICE_CONFIG_KHCI + USB_DEVICE_CONFIG_EHCI + USB_DEVICE_CONFIG_LPCIP3511FS + USB_DEVICE_CONFIG_LPCIP3511HS)
 
 /* @} */
 
@@ -92,16 +99,13 @@
 /*! @brief Whether device is self power. 1U supported, 0U not supported */
 #define USB_DEVICE_CONFIG_SELF_POWER (1U)
 
-/*! @brief Whether device remote wakeup supported. 1U supported, 0U not supported */
-#define USB_DEVICE_CONFIG_REMOTE_WAKEUP (0U)
-
 /*! @brief How many endpoints are supported in the stack. */
 #define USB_DEVICE_CONFIG_ENDPOINTS (6U)
 
 /*! @brief Whether the device task is enabled. */
 #define USB_DEVICE_CONFIG_USE_TASK (0U)
 
-/*! @brief How many the notification message are supported when the device task enabled. */
+/*! @brief How many the notification message are supported when the device task is enabled. */
 #define USB_DEVICE_CONFIG_MAX_MESSAGES (8U)
 
 #if ((defined(USB_DEVICE_CONFIG_KHCI)) && (USB_DEVICE_CONFIG_KHCI > 0U))
@@ -131,6 +135,14 @@
 
 /*! @brief Whether the low power mode is enabled or not. */
 #define USB_DEVICE_CONFIG_LOW_POWER_MODE (0U)
+
+#if ((defined(USB_DEVICE_CONFIG_LOW_POWER_MODE)) && (USB_DEVICE_CONFIG_LOW_POWER_MODE > 0U))
+/*! @brief Whether device remote wakeup supported. 1U supported, 0U not supported */
+#define USB_DEVICE_CONFIG_REMOTE_WAKEUP (0U)
+#else
+/*! @brief The device remote wakeup is unsupported. */
+#define USB_DEVICE_CONFIG_REMOTE_WAKEUP (0U)
+#endif
 
 /*! @brief Whether the device detached feature is enabled or not. */
 #define USB_DEVICE_CONFIG_DETACH_ENABLE (0U)

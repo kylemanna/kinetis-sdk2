@@ -220,7 +220,7 @@ extern usb_status_t USB_DeviceCdcAcmDeinit(class_handle_t handle);
 /*!
  * @brief Handles the CDC ACM class event.
  *
- * This function responds to various events including the common device events and the class specific-events.
+ * This function responds to various events including the common device events and the class-specific events.
  * For class-specific events, it calls the class callback defined in the application to deal with the class-specific
  * event.
  *

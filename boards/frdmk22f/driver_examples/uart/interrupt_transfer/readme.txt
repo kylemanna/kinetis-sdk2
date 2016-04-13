@@ -9,11 +9,11 @@ Note: The example echo every 8 characters, so input 8 characters every time.
 
 Toolchain supported
 ===================
-- IAR embedded Workbench 7.50.1
-- Keil MDK 5.17
+- IAR embedded Workbench 7.70.1
+- Keil MDK 5.20
 - GCC ARM Embedded 2015-4.9-q3
-- Kinetis Development Studio IDE 3.0.0
-- Atollic TrueSTUDIO 5.4.0
+- Kinetis Development Studio IDE 3.2.0
+- Atollic TrueSTUDIO 5.5.2
 
 Hardware requirements
 =====================
@@ -40,14 +40,15 @@ Prepare the Demo
 Running the demo
 ================
 When the demo runs successfully, the log would be seen on the OpenSDA terminal like:
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Uart interrupt example
 Board receives 8 characters then sends them out
 Now please input:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 When you input 8 characters, system will echo it by UART and them would be seen on the OpenSDA terminal.
 
 Customization options
 =====================
-
 

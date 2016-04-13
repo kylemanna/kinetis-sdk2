@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -251,12 +251,12 @@
  */
 
 /*! @brief Video device class setup request set type */
-#define USB_DEVICE_VIDEO_SET_REQUSET_INTERFACE (0x21U)
-#define USB_DEVICE_VIDEO_SET_REQUSET_ENDPOINT (0x22U)
+#define USB_DEVICE_VIDEO_SET_REQUEST_INTERFACE (0x21U)
+#define USB_DEVICE_VIDEO_SET_REQUEST_ENDPOINT (0x22U)
 
 /*! @brief Video device class setup request get type */
-#define USB_DEVICE_VIDEO_GET_REQUSET_INTERFACE (0xA1U)
-#define USB_DEVICE_VIDEO_GET_REQUSET_ENDPOINT (0xA2U)
+#define USB_DEVICE_VIDEO_GET_REQUEST_INTERFACE (0xA1U)
+#define USB_DEVICE_VIDEO_GET_REQUEST_ENDPOINT (0xA2U)
 
 /*! @}*/
 
@@ -811,7 +811,7 @@ struct _usb_device_video_probe_and_commit_controls_struct
     uint32_t dwMaxVideoFrameSize;      /*!< Maximum video frame or codec-specific segment size in bytes.*/
     uint32_t dwMaxPayloadTransferSize; /*!< Specifies the maximum number of bytes that the device can transmit or
                                           receive in a single payload transfer.*/
-    uint32_t dwClockFrequency; /*!< The device clock frequency in Hz for the specified format. This will specify the
+    uint32_t dwClockFrequency; /*!< The device clock frequency in Hz for the specified format. This specifies the
                                   units used for the time information fields in the Video Payload Headers in the data
                                   stream.*/
     uint8_t bmFramingInfo;     /*!< Bit-field control supporting the following values: D0 Frame ID, D1 EOF.*/

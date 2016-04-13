@@ -72,8 +72,6 @@ void BOARD_SW_IRQ_HANDLER(void)
     GPIO_ClearPinsInterruptFlags(BOARD_SW_GPIO, 1U << BOARD_SW_GPIO_PIN);
     /* Change state of button. */
     g_ButtonPress = true;
-    /* Toggle LED. */
-    GPIO_TogglePinsOutput(BOARD_LED_GPIO, 1U << BOARD_LED_GPIO_PIN);
 }
 
 /*!
@@ -112,6 +110,8 @@ int main(void)
         if (g_ButtonPress)
         {
             PRINTF(" %s is pressed \r\n", BOARD_SW_NAME);
+            /* Toggle LED. */
+            GPIO_TogglePinsOutput(BOARD_LED_GPIO, 1U << BOARD_LED_GPIO_PIN);
             /* Reset state of button. */
             g_ButtonPress = false;
         }

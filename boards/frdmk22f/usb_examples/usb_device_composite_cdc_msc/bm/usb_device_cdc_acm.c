@@ -221,7 +221,9 @@ usb_status_t USB_DeviceCdcAcmEndpointsInit(usb_device_cdc_acm_struct_t *cdcAcmHa
         return error;
     }
 
-    if (cdcAcmHandle->configuration > cdcAcmHandle->configStruct->classInfomation->configurations)
+    /* return error when configuration is invalid (0 or more than the configuration number) */
+    if ((cdcAcmHandle->configuration == 0U) ||
+        (cdcAcmHandle->configuration > cdcAcmHandle->configStruct->classInfomation->configurations))
     {
         return error;
     }
@@ -263,6 +265,7 @@ usb_status_t USB_DeviceCdcAcmEndpointsInit(usb_device_cdc_acm_struct_t *cdcAcmHa
             (USB_ENDPOINT_INTERRUPT == epInitStruct.transferType))
         {
             cdcAcmHandle->interruptIn.ep = (epInitStruct.endpointAddress & USB_DESCRIPTOR_ENDPOINT_ADDRESS_NUMBER_MASK);
+            cdcAcmHandle->interruptIn.isBusy = 0;
             epCallback.callbackFn = USB_DeviceCdcAcmInterruptIn;
         }
 
@@ -303,6 +306,7 @@ usb_status_t USB_DeviceCdcAcmEndpointsInit(usb_device_cdc_acm_struct_t *cdcAcmHa
             (USB_ENDPOINT_BULK == epInitStruct.transferType))
         {
             cdcAcmHandle->bulkIn.ep = (epInitStruct.endpointAddress & USB_DESCRIPTOR_ENDPOINT_ADDRESS_NUMBER_MASK);
+            cdcAcmHandle->bulkIn.isBusy = 0;
             epCallback.callbackFn = USB_DeviceCdcAcmBulkIn;
         }
         else if ((USB_OUT == ((epInitStruct.endpointAddress & USB_DESCRIPTOR_ENDPOINT_ADDRESS_DIRECTION_MASK) >>
@@ -310,6 +314,7 @@ usb_status_t USB_DeviceCdcAcmEndpointsInit(usb_device_cdc_acm_struct_t *cdcAcmHa
                  (USB_ENDPOINT_BULK == epInitStruct.transferType))
         {
             cdcAcmHandle->bulkOut.ep = (epInitStruct.endpointAddress & USB_DESCRIPTOR_ENDPOINT_ADDRESS_NUMBER_MASK);
+            cdcAcmHandle->bulkOut.isBusy = 0;
             epCallback.callbackFn = USB_DeviceCdcAcmBulkOut;
         }
         else
@@ -348,6 +353,9 @@ usb_status_t USB_DeviceCdcAcmEndpointsDeinit(usb_device_cdc_acm_struct_t *cdcAcm
         error = USB_DeviceDeinitEndpoint(
             cdcAcmHandle->handle, cdcAcmHandle->dataInterfaceHandle->endpointList.endpoint[count].endpointAddress);
     }
+    cdcAcmHandle->commInterfaceHandle = NULL;
+    cdcAcmHandle->dataInterfaceHandle = NULL;
+
     return error;
 }
 
@@ -381,9 +389,17 @@ usb_status_t USB_DeviceCdcAcmEvent(void *handle, uint32_t event, void *param)
 
     switch (event)
     {
+        case kUSB_DeviceClassEventDeviceReset:
+            /* Bus reset, clear the configuration. */
+            cdcAcmHandle->configuration = 0;
+            break;
         case kUSB_DeviceClassEventSetConfiguration:
             temp8 = ((uint8_t *)param);
             if (!cdcAcmHandle->configStruct)
+            {
+                break;
+            }
+            if (*temp8 == cdcAcmHandle->configuration)
             {
                 break;
             }
@@ -576,6 +592,7 @@ usb_status_t USB_DeviceCdcAcmInit(uint8_t controllerId,
     cdcAcmHandle->configStruct = config;
     cdcAcmHandle->configuration = 0;
     cdcAcmHandle->alternate = 0xFF;
+
     if (kStatus_USB_OSA_Success != USB_OsaMutexCreate(&(cdcAcmHandle->bulkIn.mutex)))
     {
         usb_echo("mutex create error!");

@@ -145,7 +145,7 @@ int main(void)
     slaveConfig.slaveAddress = I2C_MASTER_SLAVE_ADDR_7BIT;
     slaveConfig.upperAddress = 0; /*  not used for this example */
 
-    I2C_SlaveInit(EXAMPLE_I2C_SLAVE_BASEADDR, &slaveConfig);
+    I2C_SlaveInit(EXAMPLE_I2C_SLAVE_BASEADDR, &slaveConfig, CLOCK_GetFreq(I2C_SLAVE_CLK_SRC));
 
     for (uint32_t i = 0U; i < I2C_DATA_LENGTH; i++)
     {

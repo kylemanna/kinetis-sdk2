@@ -60,7 +60,7 @@ volatile bool pitIsrFlag = false;
 void PIT_LED_HANDLER(void)
 {
     /* Clear interrupt flag.*/
-    PIT_ClearStatusFlags(PIT, kPIT_Chnl_0, PIT_TFLG_TIF_MASK);
+    PIT_ClearStatusFlags(PIT, kPIT_Chnl_0, kPIT_TimerFlag);
     pitIsrFlag = true;
 }
 

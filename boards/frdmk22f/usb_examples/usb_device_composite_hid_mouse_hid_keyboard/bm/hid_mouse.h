@@ -37,7 +37,7 @@
 
 typedef struct _usb_device_hid_mouse_struct
 {
-    uint8_t buffer[USB_HID_MOUSE_REPORT_LENGTH];
+    uint8_t *buffer;
     uint8_t idleRate;
 } usb_device_hid_mouse_struct_t;
 

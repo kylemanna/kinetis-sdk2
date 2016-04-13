@@ -30,6 +30,7 @@
 #ifndef __FSL_I2C_FREERTOS_H__
 #define __FSL_I2C_FREERTOS_H__
 
+#include "FreeRTOSConfig.h"
 #include "FreeRTOS.h"
 #include "portable.h"
 #include "semphr.h"
@@ -41,27 +42,27 @@
  * @{
  */
 
-/*! @file */
-
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
 
-/*! @name Driver version */
-/*@{*/
-/*! @brief I2C FreeRTOS driver version 2.0.0. */
-#define FSL_I2C_FREERTOS_DRIVER_VERSION (MAKE_VERSION(2, 0, 0))
-/*@}*/
-
-/*! @brief I2C FreeRTOS handle */
+/*!
+ * @cond RTOS_PRIVATE
+ * @brief I2C FreeRTOS handle
+ */
 typedef struct _i2c_rtos_handle
 {
     I2C_Type *base;                 /*!< I2C base address */
-    i2c_master_handle_t drv_handle; /*!< Handle of the underlying driver, treated as opaque by the RTOS layer */
-    status_t async_status;
-    SemaphoreHandle_t mutex; /*!< Mutex to lock the handle during a trasfer */
-    SemaphoreHandle_t sem;   /*!< Semaphore to notify and unblock task when transfer ends */
+    i2c_master_handle_t drv_handle; /*!< A handle of the underlying driver, treated as opaque by the RTOS layer */
+    status_t async_status;          /*!< Transactional state of the underlying driver */
+    SemaphoreHandle_t mutex;        /*!< A mutex to lock the handle during a transfer */
+    SemaphoreHandle_t semaphore;    /*!< A semaphore to notify and unblock task when the transfer ends */
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
+    StaticSemaphore_t mutexBuffer;     /*!< Statically allocated memory for mutex */
+    StaticSemaphore_t semaphoreBuffer; /*!< Statically allocated memory for semaphore */
+#endif
 } i2c_rtos_handle_t;
+/*! \endcond */
 
 /*******************************************************************************
  * API
@@ -79,12 +80,12 @@ extern "C" {
 /*!
  * @brief Initializes I2C.
  *
- * This function initializes the I2C module and related RTOS context.
+ * This function initializes the I2C module and the related RTOS context.
  *
  * @param handle The RTOS I2C handle, the pointer to an allocated space for RTOS context.
  * @param base The pointer base address of the I2C instance to initialize.
- * @param masterConfig Configuration structure to set-up I2C in master mode.
- * @param srcClock_Hz Frequency of input clock of the I2C module.
+ * @param masterConfig The configuration structure to set-up I2C in master mode.
+ * @param srcClock_Hz The frequency of an input clock of the I2C module.
  * @return status of the operation.
  */
 status_t I2C_RTOS_Init(i2c_rtos_handle_t *handle,
@@ -95,19 +96,19 @@ status_t I2C_RTOS_Init(i2c_rtos_handle_t *handle,
 /*!
  * @brief Deinitializes the I2C.
  *
- * This function deinitializes the I2C module and related RTOS context.
+ * This function deinitializes the I2C module and the related RTOS context.
  *
  * @param handle The RTOS I2C handle.
  */
 status_t I2C_RTOS_Deinit(i2c_rtos_handle_t *handle);
 
 /*!
- * @brief Performs I2C transfer.
+ * @brief Performs the I2C transfer.
  *
- * This function performs an I2C transfer according to data given in the transfer structure.
+ * This function performs the I2C transfer according to the data given in the transfer structure.
  *
  * @param handle The RTOS I2C handle.
- * @param transfer Structure specifying the transfer parameters.
+ * @param transfer A structure specifying the transfer parameters.
  * @return status of the operation.
  */
 status_t I2C_RTOS_Transfer(i2c_rtos_handle_t *handle, i2c_master_transfer_t *transfer);

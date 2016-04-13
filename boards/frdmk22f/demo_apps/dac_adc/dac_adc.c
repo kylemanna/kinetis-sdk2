@@ -82,6 +82,7 @@ static void DAC_ADC_Init(void)
      */
     DAC_GetDefaultConfig(&dacConfigStruct);
     DAC_Init(DEMO_DAC_BASEADDR, &dacConfigStruct);
+    DAC_Enable(DEMO_DAC_BASEADDR, true); /* Enable output. */
 
     /* Configure the ADC16. */
     /*

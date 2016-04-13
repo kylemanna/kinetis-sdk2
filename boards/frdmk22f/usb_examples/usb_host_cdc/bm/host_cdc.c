@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -84,6 +84,28 @@ uint32_t g_UartActive;
  * Code
  ******************************************************************************/
 /*!
+ * @brief host cdc enter critical.
+ *
+ * This function is used to enter critical disable interrupt .
+ *
+ */
+static void USB_BmEnterCritical(uint8_t *sr)
+{
+    *sr = __get_PRIMASK();
+    __ASM("CPSID I");
+}
+/*!
+ * @brief host cdc exit critical.
+ *
+ * This function is used to exit critical ,enable interrupt .
+ *
+ */
+static void USB_BmExitCritical(uint8_t sr)
+{
+    __set_PRIMASK(sr);
+}
+
+/*!
  * @brief host cdc free buffer to queue.
  *
  * This function is used to get a buffer from memory queue .
@@ -93,15 +115,16 @@ uint32_t g_UartActive;
 usb_uart_buffer_struct_t *getNodeFromQueue(usb_uart_buffer_struct_t **queue)
 {
     usb_uart_buffer_struct_t *p;
+    uint8_t usbOsaCurrentSr;
 
-    USB_BmEnterCritical();
+    USB_BmEnterCritical(&usbOsaCurrentSr);
     p = *queue;
 
     if (p)
     {
         *queue = p->next;
     }
-    USB_BmExitCritical();
+    USB_BmExitCritical(usbOsaCurrentSr);
     return p;
 }
 /*!
@@ -114,14 +137,16 @@ usb_uart_buffer_struct_t *getNodeFromQueue(usb_uart_buffer_struct_t **queue)
  */
 void freeNodeToQueue(usb_uart_buffer_struct_t **queue, usb_uart_buffer_struct_t *p)
 {
-    USB_BmEnterCritical();
+    uint8_t usbOsaCurrentSr;
+
+    USB_BmEnterCritical(&usbOsaCurrentSr);
     if (p)
     {
         p->next = *queue;
         *queue = p;
         p->dataLength = 0;
     }
-    USB_BmExitCritical();
+    USB_BmExitCritical(usbOsaCurrentSr);
 }
 /*!
  * @brief host cdc insert buffer to queue.
@@ -134,8 +159,9 @@ void freeNodeToQueue(usb_uart_buffer_struct_t **queue, usb_uart_buffer_struct_t 
 void insertNodeToQueue(usb_uart_buffer_struct_t **queue, usb_uart_buffer_struct_t *p)
 {
     usb_uart_buffer_struct_t *q;
+    uint8_t usbOsaCurrentSr;
 
-    USB_BmEnterCritical();
+    USB_BmEnterCritical(&usbOsaCurrentSr);
 
     q = *queue;
     if (q)
@@ -151,7 +177,7 @@ void insertNodeToQueue(usb_uart_buffer_struct_t **queue, usb_uart_buffer_struct_
         *queue = p;
     }
     p->next = NULL;
-    USB_BmExitCritical();
+    USB_BmExitCritical(usbOsaCurrentSr);
 }
 /*!
  * @brief host cdc data transfer callback.
@@ -293,7 +319,9 @@ void BOARD_UART_IRQ_HANDLER(void)
  */
 void USB_HostCdcInitBuffer(void)
 {
-    USB_BmEnterCritical();
+    uint8_t usbOsaCurrentSr;
+
+    USB_BmEnterCritical(&usbOsaCurrentSr);
     g_EmptyQueue = &g_EmptyBuffer[0];
     usb_uart_buffer_struct_t *p;
     p = g_EmptyQueue;
@@ -306,7 +334,7 @@ void USB_HostCdcInitBuffer(void)
     p->next = NULL;
     g_CurrentUartRecvNode = g_EmptyQueue;
     g_EmptyQueue = g_EmptyQueue->next;
-    USB_BmExitCritical();
+    USB_BmExitCritical(usbOsaCurrentSr);
     g_UsbSendQueue = NULL;
     g_UartSendQueue = NULL;
     g_UsbSendBusy = 0;
@@ -401,6 +429,7 @@ void USB_HostCdcControlCallback(void *param, uint8_t *data, uint32_t dataLength,
  */
 void USB_HosCdcTask(void *param)
 {
+    uint8_t usbOsaCurrentSr;
     usb_status_t status = kStatus_USB_Success;
     cdc_instance_struct_t *cdcInstance = (cdc_instance_struct_t *)param;
     /* device state changes */
@@ -465,13 +494,13 @@ void USB_HosCdcTask(void *param)
                 {
                     g_UartActive = 0;
 
-                    USB_BmEnterCritical();
+                    USB_BmEnterCritical(&usbOsaCurrentSr);
                     if ((g_CurrentUartRecvNode) && (g_CurrentUartRecvNode->dataLength))
                     {
                         insertNodeToQueue(&g_UsbSendQueue, g_CurrentUartRecvNode);
                         g_CurrentUartRecvNode = getNodeFromQueue(&g_EmptyQueue);
                     }
-                    USB_BmExitCritical();
+                    USB_BmExitCritical(usbOsaCurrentSr);
                 }
             }
             break;

@@ -42,15 +42,6 @@
  */
 #define STATUS_00_REG 0x00
 
-#define ZYXOW_BIT Bit._7
-#define ZOW_BIT Bit._6
-#define YOW_BIT Bit._5
-#define XOW_BIT Bit._4
-#define ZYXDR_BIT Bit._3
-#define ZDR_BIT Bit._2
-#define YDR_BIT Bit._1
-#define XDR_BIT Bit._0
-
 #define ZYXOW_MASK 0x80
 #define ZOW_MASK 0x40
 #define YOW_MASK 0x20
@@ -62,18 +53,8 @@
 
 /*
  *  F_STATUS FIFO Status Register
- *  MMA8451 only - when F_MODE != 0
  */
 #define F_STATUS_REG 0x00
-
-#define F_OVF_BIT Bit._7
-#define F_WMRK_FLAG_BIT Bit._6
-#define F_CNT5_BIT Bit._5
-#define F_CNT4_BIT Bit._4
-#define F_CNT3_BIT Bit._3
-#define F_CNT2_BIT Bit._2
-#define F_CNT1_BIT Bit._1
-#define F_CNT0_BIT Bit._0
 
 #define F_OVF_MASK 0x80
 #define F_WMRK_FLAG_MASK 0x40
@@ -97,18 +78,8 @@
 
 /*
  *  F_SETUP FIFO Setup Register
- *  MMA8451 only
  */
 #define F_SETUP_REG 0x09
-
-#define F_MODE1_BIT Bit._7
-#define F_MODE0_BIT Bit._6
-#define F_WMRK5_BIT Bit._5
-#define F_WMRK4_BIT Bit._4
-#define F_WMRK3_BIT Bit._3
-#define F_WMRK2_BIT Bit._2
-#define F_WMRK1_BIT Bit._1
-#define F_WMRK0_BIT Bit._0
 
 #define F_MODE1_MASK 0x80
 #define F_MODE0_MASK 0x40
@@ -128,14 +99,8 @@
 
 /*
  *  TRIG_CFG FIFO Trigger Configuration Register
- *  MMA8451 only
  */
 #define TRIG_CFG_REG 0x0A
-
-#define TRIG_TRANS_BIT Bit._5
-#define TRIG_LNDPRT_BIT Bit._4
-#define TRIG_PULSE_BIT Bit._3
-#define TRIG_FF_MT_BIT Bit._2
 
 #define TRIG_TRANS_MASK 0x20
 #define TRIG_LNDPRT_MASK 0x10
@@ -146,15 +111,6 @@
  *  SYSMOD System Mode Register
  */
 #define SYSMOD_REG 0x0B
-
-#define FGERR_BIT Bit._7 /* MMA8451 only */
-#define FGT_4_BIT Bit._6 /* MMA8451 only */
-#define FGT_3_BIT Bit._5 /* MMA8451 only */
-#define FGT_2_BIT Bit._4 /* MMA8451 only */
-#define FGT_1_BIT Bit._3 /* MMA8451 only */
-#define FGT_0_BIT Bit._2 /* MMA8451 only */
-#define SYSMOD1_BIT Bit._1
-#define SYSMOD0_BIT Bit._0
 
 #define FGERR_MASK 0x80 /* MMA8451 only */
 #define FGT_4_MASK 0x40 /* MMA8451 only */
@@ -176,16 +132,8 @@
  */
 #define INT_SOURCE_REG 0x0C
 
-#define SRC_ASLP_BIT Bit._7
-#define SRC_FIFO_BIT Bit._6 /* MMA8451 only */
-#define SRC_TRANS_BIT Bit._5
-#define SRC_LNDPRT_BIT Bit._4
-#define SRC_PULSE_BIT Bit._3
-#define SRC_FF_MT_BIT Bit._2
-#define SRC_DRDY_BIT Bit._0
-
 #define SRC_ASLP_MASK 0x80
-#define SRC_FIFO_MASK 0x40 /* MMA8451 only */
+#define SRC_FIFO_MASK 0x40
 #define SRC_TRANS_MASK 0x20
 #define SRC_LNDPRT_MASK 0x10
 #define SRC_PULSE_MASK 0x08
@@ -203,11 +151,7 @@
 /* XYZ_DATA_CFG Sensor Data Configuration Register */
 #define XYZ_DATA_CFG_REG 0x0E
 
-#define HPF_OUT_BIT Bit._4 /* MMA8451 and MMA8452 only */
-#define FS1_BIT Bit._1
-#define FS0_BIT Bit._0
-
-#define HPF_OUT_MASK 0x10 /* MMA8451 and MMA8452 only */
+#define HPF_OUT_MASK 0x10
 #define FS1_MASK 0x02
 #define FS0_MASK 0x01
 #define FS_MASK 0x03
@@ -218,11 +162,6 @@
 
 /* HP_FILTER_CUTOFF High Pass Filter Register */
 #define HP_FILTER_CUTOFF_REG 0x0F
-
-#define PULSE_HPF_BYP_BIT Bit._5
-#define PULSE_LPF_EN_BIT Bit._4
-#define SEL1_BIT Bit._1
-#define SEL0_BIT Bit._0
 
 #define PULSE_HPF_BYP_MASK 0x20
 #define PULSE_LPF_EN_MASK 0x10
@@ -235,12 +174,6 @@
  */
 #define PL_STATUS_REG 0x10
 
-#define NEWLP_BIT Bit._7
-#define LO_BIT Bit._6
-#define LAPO1_BIT Bit._2
-#define LAPO0_BIT Bit._1
-#define BAFRO_BIT Bit._0
-
 #define NEWLP_MASK 0x80
 #define LO_MASK 0x40
 #define LAPO1_MASK 0x04
@@ -252,9 +185,6 @@
  *  PL_CFG Portrait/Landscape Configuration Register
  */
 #define PL_CFG_REG 0x11
-
-#define DBCNTM_BIT Bit._7
-#define PL_EN_BIT Bit._6
 
 #define DBCNTM_MASK 0x80
 #define PL_EN_MASK 0x40
@@ -269,12 +199,6 @@
  */
 #define PL_BF_ZCOMP_REG 0x13
 
-#define BKFR1_BIT Bit._7
-#define BKFR0_BIT Bit._6
-#define ZLOCK2_BIT Bit._2
-#define ZLOCK1_BIT Bit._1
-#define ZLOCK0_BIT Bit._0
-
 #define BKFR1_MASK 0x80
 #define BKFR0_MASK 0x40
 #define ZLOCK2_MASK 0x04
@@ -287,15 +211,6 @@
  *  PL_P_L_THS Portrait to Landscape Threshold Register
  */
 #define PL_P_L_THS_REG 0x14
-
-#define P_L_THS4_BIT Bit._7
-#define P_L_THS3_BIT Bit._6
-#define P_L_THS2_BIT Bit._5
-#define P_L_THS1_BIT Bit._4
-#define P_L_THS0_BIT Bit._3
-#define HYS2_BIT Bit._2
-#define HYS1_BIT Bit._1
-#define HYS0_BIT Bit._0
 
 #define P_L_THS4_MASK 0x80
 #define P_L_THS3_MASK 0x40
@@ -313,12 +228,6 @@
  */
 #define FF_MT_CFG_REG 0x15
 
-#define ELE_BIT Bit._7
-#define OAE_BIT Bit._6
-#define ZEFE_BIT Bit._5
-#define YEFE_BIT Bit._4
-#define XEFE_BIT Bit._3
-
 #define ELE_MASK 0x80
 #define OAE_MASK 0x40
 #define ZEFE_MASK 0x20
@@ -329,14 +238,6 @@
  *  FF_MT_SRC Freefall and Motion Source Registers
  */
 #define FF_MT_SRC_REG 0x16
-
-#define EA_BIT Bit._7
-#define ZHE_BIT Bit._5
-#define ZHP_BIT Bit._4
-#define YHE_BIT Bit._3
-#define YHP_BIT Bit._2
-#define XHE_BIT Bit._1
-#define XHP_BIT Bit._0
 
 #define EA_MASK 0x80
 #define ZHE_MASK 0x20
@@ -352,15 +253,6 @@
  */
 #define FT_MT_THS_REG 0x17
 #define TRANSIENT_THS_REG 0x1F
-
-#define DBCNTM_BIT Bit._7
-#define THS6_BIT Bit._6
-#define THS5_BIT Bit._5
-#define THS4_BIT Bit._4
-#define THS3_BIT Bit._3
-#define THS2_BIT Bit._2
-#define THS1_BIT Bit._1
-#define THS0_BIT Bit._0
 
 #define DBCNTM_MASK 0x80
 #define THS6_MASK 0x40
@@ -378,12 +270,6 @@
 /* TRANSIENT_CFG Transient Configuration Register */
 #define TRANSIENT_CFG_REG 0x1D
 
-#define TELE_BIT Bit._4
-#define ZTEFE_BIT Bit._3
-#define YTEFE_BIT Bit._2
-#define XTEFE_BIT Bit._1
-#define HPF_BYP_BIT Bit._0
-
 #define TELE_MASK 0x10
 #define ZTEFE_MASK 0x08
 #define YTEFE_MASK 0x04
@@ -392,14 +278,6 @@
 
 /* TRANSIENT_SRC Transient Source Register */
 #define TRANSIENT_SRC_REG 0x1E
-
-#define TEA_BIT Bit._6
-#define ZTRANSE_BIT Bit._5
-#define Z_TRANS_POL_BIT Bit._4
-#define YTRANSE_BIT Bit._3
-#define Y_TRANS_POL_BIT Bit._2
-#define XTRANSE_BIT Bit._1
-#define X_TRANS_POL_BIT Bit._0
 
 #define TEA_MASK 0x40
 #define ZTRANSE_MASK 0x20
@@ -415,15 +293,6 @@
 /* PULSE_CFG Pulse Configuration Register */
 #define PULSE_CFG_REG 0x21
 
-#define DPA_BIT Bit._7
-#define PELE_BIT Bit._6
-#define ZDPEFE_BIT Bit._5
-#define ZSPEFE_BIT Bit._4
-#define YDPEFE_BIT Bit._3
-#define YSPEFE_BIT Bit._2
-#define XDPEFE_BIT Bit._1
-#define XSPEFE_BIT Bit._0
-
 #define DPA_MASK 0x80
 #define PELE_MASK 0x40
 #define ZDPEFE_MASK 0x20
@@ -435,15 +304,6 @@
 
 /* PULSE_SRC Pulse Source Register */
 #define PULSE_SRC_REG 0x22
-
-#define PEA_BIT Bit._7
-#define AXZ_BIT Bit._6
-#define AXY_BIT Bit._5
-#define AXX_BIT Bit._4
-#define DPE_BIT Bit._3
-#define POLZ_BIT Bit._2
-#define POLY_BIT Bit._1
-#define POLX_BIT Bit._0
 
 #define PEA_MASK 0x80
 #define AXZ_MASK 0x40
@@ -475,15 +335,6 @@
 
 /* CTRL_REG1 System Control 1 Register */
 #define CTRL_REG1 0x2A
-
-#define ASLP_RATE1_BIT Bit._7
-#define ASLP_RATE0_BIT Bit._6
-#define DR2_BIT Bit._5
-#define DR1_BIT Bit._4
-#define DR0_BIT Bit._3
-#define LNOISE_BIT Bit._1
-#define FREAD_BIT Bit._1
-#define ACTIVE_BIT Bit._0
 
 #define ASLP_RATE1_MASK 0x80
 #define ASLP_RATE0_MASK 0x40
@@ -545,14 +396,6 @@
 /* CTRL_REG2 System Control 2 Register */
 #define CTRL_REG2 0x2B
 
-#define ST_BIT Bit._7
-#define RST_BIT Bit._6
-#define SMODS1_BIT Bit._4
-#define SMODS0_BIT Bit._3
-#define SLPE_BIT Bit._2
-#define MODS1_BIT Bit._1
-#define MODS0_BIT Bit._0
-
 #define ST_MASK 0x80
 #define RST_MASK 0x40
 #define SMODS1_MASK 0x10
@@ -576,15 +419,7 @@
 /* CTRL_REG3 Interrupt Control Register */
 #define CTRL_REG3 0x2C
 
-#define FIFO_GATE_BIT Bit._7 /* MMA8451 only */
-#define WAKE_TRANS_BIT Bit._6
-#define WAKE_LNDPRT_BIT Bit._5
-#define WAKE_PULSE_BIT Bit._4
-#define WAKE_FF_MT_BIT Bit._3
-#define IPOL_BIT Bit._1
-#define PP_OD_BIT Bit._0
-
-#define FIFO_GATE_MASK 0x80 /* MMA8451 only */
+#define FIFO_GATE_MASK 0x80
 #define WAKE_TRANS_MASK 0x40
 #define WAKE_LNDPRT_MASK 0x20
 #define WAKE_PULSE_MASK 0x10
@@ -595,16 +430,8 @@
 /* CTRL_REG4 Interrupt Enable Register */
 #define CTRL_REG4 0x2D
 
-#define INT_EN_ASLP_BIT Bit._7
-#define INT_EN_FIFO_BIT Bit._6 /* MMA8451 only */
-#define INT_EN_TRANS_BIT Bit._5
-#define INT_EN_LNDPRT_BIT Bit._4
-#define INT_EN_PULSE_BIT Bit._3
-#define INT_EN_FF_MT_BIT Bit._2
-#define INT_EN_DRDY_BIT Bit._0
-
 #define INT_EN_ASLP_MASK 0x80
-#define INT_EN_FIFO_MASK 0x40 /* MMA8451 only */
+#define INT_EN_FIFO_MASK 0x40
 #define INT_EN_TRANS_MASK 0x20
 #define INT_EN_LNDPRT_MASK 0x10
 #define INT_EN_PULSE_MASK 0x08
@@ -613,14 +440,6 @@
 
 /* CTRL_REG5 Interrupt Configuration Register */
 #define CTRL_REG5 0x2E
-
-#define INT_CFG_ASLP_BIT Bit._7
-#define INT_CFG_FIFO_BIT Bit._6
-#define INT_CFG_TRANS_BIT Bit._5
-#define INT_CFG_LNDPRT_BIT Bit._4
-#define INT_CFG_PULSE_BIT Bit._3
-#define INT_CFG_FF_MT_BIT Bit._2
-#define INT_CFG_DRDY_BIT Bit._0
 
 #define INT_CFG_ASLP_MASK 0x80
 #define INT_CFG_FIFO_MASK 0x40
@@ -637,15 +456,6 @@
 
 /* M_DR_STATUS Register */
 #define M_DR_STATUS_REG 0x32
-
-#define ZYXOW_BIT Bit._7
-#define ZOW_BIT Bit._6
-#define YOW_BIT Bit._5
-#define XOW_BIT Bit._4
-#define ZYXDR_BIT Bit._3
-#define ZDR_BIT Bit._2
-#define YDR_BIT Bit._1
-#define XDR_BIT Bit._0
 
 #define ZYXOW_MASK 0x80
 #define ZOW_MASK 0x40
@@ -719,15 +529,6 @@
 /* MAG CTRL_REG1 System Control 1 Register */
 #define M_CTRL_REG1 0x5B
 
-#define M_HMS_0_BIT Bit._7
-#define M_HMS_1_BIT Bit._6
-#define M_OS_2_BIT Bit._5
-#define M_OS_1_BIT Bit._4
-#define M_OS_0_BIT Bit._3
-#define M_OST_BIT Bit._2
-#define M_RST_BIT Bit._1
-#define M_ACAL_BIT Bit._0
-
 #define M_ACAL_MASK 0x80
 #define M_RST_MASK 0x40
 #define M_OST_MASK 0x20
@@ -757,13 +558,6 @@
 /* MAG CTRL_REG2 System Control 2 Register */
 #define M_CTRL_REG2 0x5C
 
-#define M_HYB_AUTOINC_BIT Bit._5
-#define M_MAXMIN_DIS_BIT Bit._4
-#define M_MAXMIN_DIS_THS_BIT Bit._3
-#define M_MAXMIN_RST_BIT Bit._2
-#define M_RST_CNT1_BIT Bit._1
-#define M_RST_CNT0_BIT Bit._0
-
 #define M_HYB_AUTOINC_MASK 0x20
 #define M_MAXMIN_DIS_MASK 0x10
 #define M_MAXMIN_DIS_THS_MASK 0x08
@@ -779,15 +573,6 @@
 
 /* MAG CTRL_REG3 System Control 3 Register */
 #define M_CTRL_REG3 0x5D
-
-#define M_RAW_BIT Bit._7
-#define M_ASLP_OS_2_BIT Bit._6
-#define M_ASLP_OS_1_BIT Bit._5
-#define M_ASLP_OS_0_BIT Bit._4
-#define M_THS_XYZ_BIT Bit._3
-#define M_ST_Z_BIT Bit._2
-#define M_ST_XY1_BIT Bit._1
-#define M_ST_XY0_BIT Bit._0
 
 #define M_RAW_MASK 0x80
 #define M_ASLP_OS_2_MASK 0x40
@@ -813,24 +598,12 @@
 /* MAG INT SOURCE Register */
 #define M_INT_SOURCE 0x5E
 
-#define SRC_M_DRDY_BIT Bit._2
-#define SRC_M_VECM_BIT Bit._1
-#define SRC_M_THS_BIT Bit._0
-
 #define SRC_M_DRDY_MASK 0x04
 #define SRC_M_VECM_MASK 0x02
 #define SRC_M_THS_MASK 0x01
 
 /* ACCEL VECTOR CONFIG Register */
 #define A_VECM_CFG 0x5F
-
-#define A_VECM_INIT_CFG_BIT Bit._6
-#define A_VECM_INIT_EN_BIT Bit._5
-#define A_VECM_WAKE_EN_BIT Bit._4
-#define A_VECM_EN_BIT Bit._3
-#define A_VECM_UPDM_BIT Bit._2
-#define A_VECM_INITM_BIT Bit._1
-#define A_VECM_ELE_BIT Bit._0
 
 #define A_VECM_INIT_CFG_MASK 0x40
 #define A_VECM_INIT_EN_MASK 0x20
@@ -843,7 +616,6 @@
 /* ACCEL VECTOR THS MSB AND LSB Register */
 #define A_VECM_THS_MSB 0x60
 
-#define A_VECM_DBCNTM_BIT Bit._7
 #define A_VECM_DBCNTM_MASK 0x80
 
 #define A_VECM_THS_LSB 0x61
@@ -862,14 +634,6 @@
 /* MAG VECTOR CONFIG Register */
 #define M_VECM_CFG 0x69
 
-#define M_VECM_INIT_CFG_BIT Bit._6
-#define M_VECM_INIT_EN_BIT Bit._5
-#define M_VECM_WAKE_EN_BIT Bit._4
-#define M_VECM_EN_BIT Bit._3
-#define M_VECM_UPDM_BIT Bit._2
-#define M_VECM_INITM_BIT Bit._1
-#define M_VECM_ELE_BIT Bit._0
-
 #define M_VECM_INIT_CFG_MASK 0x40
 #define M_VECM_INIT_EN_MASK 0x20
 #define M_VECM_WAKE_EN_MASK 0x10
@@ -881,7 +645,6 @@
 /* MAG VECTOR THS MSB AND LSB Register */
 #define M_VECM_THS_MSB 0x6A
 
-#define M_VECM_DBCNTM_BIT Bit._7
 #define M_VECM_DBCNTM_MASK 0x80
 
 #define M_VECM_THS_LSB 0x6B
@@ -900,7 +663,6 @@
 /* ACCEL FFMT THS X MSB AND LSB Register */
 #define A_FFMT_THS_X_MSB 0x73
 
-#define A_FFMT_THS_X_EN_BIT Bit._7
 #define A_FFMT_THS_XYZ_EN_MASK 0x80
 
 #define A_FFMT_THS_X_LSB 0x74
@@ -910,7 +672,6 @@
 /* ACCEL FFMT THS Y MSB AND LSB Register */
 #define A_FFMT_THS_Y_MSB 0x75
 
-#define A_FFMT_THS_Y_EN_BIT Bit._7
 #define A_FFMT_THS_Y_EN_MASK 0x80
 
 #define A_FFMT_THS_Y_LSB 0x76
@@ -920,7 +681,6 @@
 /* ACCEL FFMT THS Z MSB AND LSB Register */
 #define A_FFMT_THS_Z_MSB 0x77
 
-#define A_FFMT_THS_Z_EN_BIT Bit._7
 #define A_FFMT_THS_Z_EN_MASK 0x80
 
 #define A_FFMT_THS_Z_LSB 0x78
@@ -1013,5 +773,9 @@ status_t FXOS_WriteReg(fxos_handle_t *handle, uint8_t reg, uint8_t val);
  * @return kStatus_Success if success or kStatus_Fail if error.
  */
 status_t FXOS_ReadReg(fxos_handle_t *handle, uint8_t reg, uint8_t *val, uint8_t bytesNumber);
+
+#if defined(__cplusplus)
+}
+#endif /* __cplusplus */
 
 #endif /* _FSL_FXOS_H_ */

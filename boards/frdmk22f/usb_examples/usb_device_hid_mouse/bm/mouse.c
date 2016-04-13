@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -57,6 +57,9 @@
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
+/* USB clock source and frequency*/
+#define USB_FS_CLK_SRC kCLOCK_UsbSrcIrc48M
+#define USB_FS_CLK_FREQ 48000000U
 
 /*******************************************************************************
  * Prototypes
@@ -72,6 +75,7 @@ static void USB_DeviceApplicationInit(void);
  * Variables
  ******************************************************************************/
 
+USB_DATA_ALIGNMENT static uint8_t s_MouseBuffer[USB_HID_MOUSE_REPORT_LENGTH];
 usb_hid_mouse_struct_t g_UsbDeviceHidMouse;
 
 extern usb_device_class_struct_t g_UsbDeviceHidMouseConfig;
@@ -330,6 +334,16 @@ static usb_status_t USB_DeviceCallback(usb_device_handle handle, uint32_t event,
                                                            (usb_device_get_hid_physical_descriptor_struct_t *)param);
             }
             break;
+#if (defined(USB_DEVICE_CONFIG_EHCI_TEST_MODE) && (USB_DEVICE_CONFIG_EHCI_TEST_MODE > 0U))
+        case kUSB_DeviceEventGetDeviceQualifierDescriptor:
+            if (param)
+            {
+                /* Get device descriptor request */
+                error = USB_DeviceGetDeviceQualifierDescriptor(
+                    handle, (usb_device_get_device_qualifier_descriptor_struct_t *)param);
+            }
+            break;
+#endif
         default:
             break;
     }
@@ -349,6 +363,12 @@ void USB0_IRQHandler(void)
     USB_DeviceKhciIsrFunction(g_UsbDeviceHidMouse.deviceHandle);
 }
 #endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+void USB0_IRQHandler(void)
+{
+    USB_DeviceLpcIp3511IsrFunction(g_UsbDeviceHidMouse.deviceHandle);
+}
+#endif
 
 static void USB_DeviceApplicationInit(void)
 {
@@ -357,7 +377,8 @@ static void USB_DeviceApplicationInit(void)
     uint8_t usbDeviceEhciIrq[] = USBHS_IRQS;
     irqNumber = usbDeviceEhciIrq[CONTROLLER_ID - kUSB_ControllerEhci0];
 
-    CLOCK_EnableUsbhs0Clock(kCLOCK_UsbSrcPll0, CLOCK_GetFreq(kCLOCK_PllFllSelClk));
+    CLOCK_EnableUsbhs0PhyPllClock(USB_HS_PHY_CLK_SRC, USB_HS_PHY_CLK_FREQ);
+    CLOCK_EnableUsbhs0Clock(USB_HS_CLK_SRC, USB_HS_CLK_FREQ);
     USB_EhciPhyInit(CONTROLLER_ID, BOARD_XTAL0_CLK_HZ);
 #endif
 #if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0U)
@@ -366,12 +387,16 @@ static void USB_DeviceApplicationInit(void)
 
     SystemCoreClockUpdate();
 
-#if ((defined FSL_FEATURE_USB_KHCI_IRC48M_MODULE_CLOCK_ENABLED) && (FSL_FEATURE_USB_KHCI_IRC48M_MODULE_CLOCK_ENABLED))
-    CLOCK_EnableUsbfs0Clock(kCLOCK_UsbSrcIrc48M, 48000000U);
-#else
-    CLOCK_EnableUsbfs0Clock(kCLOCK_UsbSrcPll0, CLOCK_GetFreq(kCLOCK_PllFllSelClk));
-#endif /* FSL_FEATURE_USB_KHCI_IRC48M_MODULE_CLOCK_ENABLED */
+    CLOCK_EnableUsbfs0Clock(USB_FS_CLK_SRC, USB_FS_CLK_FREQ);
 #endif
+
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+    uint8_t usbDeviceIP3511Irq[] = USB_IRQS;
+    irqNumber = usbDeviceIP3511Irq[CONTROLLER_ID - kUSB_ControllerLpcIp3511Fs0];
+    /* enable USB IP clock */
+    CLOCK_EnableUsbfs0Clock(USB_FS_CLK_SRC, USB_FS_CLK_FREQ);
+#endif
+
 #if (defined(FSL_FEATURE_SOC_MPU_COUNT) && (FSL_FEATURE_SOC_MPU_COUNT > 0U))
     MPU_Enable(MPU, 0);
 #endif /* FSL_FEATURE_SOC_MPU_COUNT */
@@ -395,6 +420,7 @@ static void USB_DeviceApplicationInit(void)
     g_UsbDeviceHidMouse.attach = 0U;
     g_UsbDeviceHidMouse.hidHandle = (class_handle_t)NULL;
     g_UsbDeviceHidMouse.deviceHandle = NULL;
+    g_UsbDeviceHidMouse.buffer = s_MouseBuffer;
 
     /* Initialize the usb stack and class drivers */
     if (kStatus_USB_Success !=
@@ -438,6 +464,9 @@ void main(void)
 #endif
 #if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0U)
         USB_DeviceKhciTaskFunction(g_UsbDeviceHidMouse.deviceHandle);
+#endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+        USB_DeviceLpcIp3511TaskFunction(g_UsbDeviceHidMouse.deviceHandle);
 #endif
 #endif
     }

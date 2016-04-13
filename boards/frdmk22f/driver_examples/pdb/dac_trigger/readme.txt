@@ -13,11 +13,11 @@ the PDB, the buffer read pointer increases.
 
 Toolchain supported
 ===================
-- IAR embedded Workbench 7.50.1
-- Keil MDK 5.17
+- IAR embedded Workbench 7.70.1
+- Keil MDK 5.20
 - GCC ARM Embedded 2015-4.9-q3
-- Kinetis Development Studio IDE 3.0.0
-- Atollic TrueSTUDIO 5.4.0
+- Kinetis Development Studio IDE 3.2.0
+- Atollic TrueSTUDIO 5.5.2
 
 Hardware requirements
 =====================
@@ -44,11 +44,14 @@ Prepare the Demo
 Running the demo
 ================
 When the demo runs successfully, the log would be seen on the OpenSDA terminal like:
+
 PDB DAC trigger Example.
+
 DAC Buffer Information
           Buffer index max  : 15
           Buffer watermark  : 14
 Type any key into terminal to trigger the DAC buffer through PDB ...
+
 DAC Buffer Index  0: ReadPointerTopPositionEvent
 DAC Buffer Index  1:
 DAC Buffer Index  2:
@@ -65,8 +68,6 @@ DAC Buffer Index 12:
 DAC Buffer Index 13:
 DAC Buffer Index 14: WatermarkEvent
 DAC Buffer Index 15: ReadPointerBottomPositionEvent
-
 Customization options
 =====================
-
 

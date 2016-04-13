@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -76,7 +76,7 @@ static void USB_HostMsdControlCallback(void *param, uint8_t *data, uint32_t data
  *
  * @param msdCommandInstance   the host command instance pointer.
  */
-static void msd_command_test_done(void);
+static void msd_command_test_done(usb_host_msd_command_instance_t *msdCommandInstance);
 
 /*!
  * @brief host msd command test.
@@ -92,10 +92,6 @@ static void USB_HostMsdCommandTest(usb_host_msd_command_instance_t *msdCommandIn
  ******************************************************************************/
 extern usb_host_handle g_HostHandle;                        /* global host handle */
 usb_host_msd_command_instance_t g_MsdCommandInstance = {0}; /* global msd command instance */
-/* control transfer on-going state. It should set to 1 when start control transfer, it is set to 0 in the callback */
-volatile uint8_t controlIng;
-/* control transfer callback status */
-volatile usb_status_t controlStatus;
 /* command on-going state. It should set to 1 when start command, it is set to 0 in the callback */
 volatile uint8_t ufiIng;
 /* command callback status */
@@ -125,13 +121,21 @@ static void USB_HostMsdControlCallback(void *param, uint8_t *data, uint32_t data
         msdCommandInstance->runWaitState = kRunIdle;
         msdCommandInstance->runState = kRunMassStorageTest;
     }
-    controlIng = 0;
-    controlStatus = status;
 }
 
-static void msd_command_test_done(void)
+static void msd_command_test_done(usb_host_msd_command_instance_t *msdCommandInstance)
 {
     usb_echo("........................test done....................\r\n");
+}
+
+static inline void USB_HostControllerTaskFunction(usb_host_handle hostHandle)
+{
+#if ((defined USB_HOST_CONFIG_KHCI) && (USB_HOST_CONFIG_KHCI))
+    USB_HostKhciTaskFunction(hostHandle);
+#endif /* USB_HOST_CONFIG_KHCI */
+#if ((defined USB_HOST_CONFIG_EHCI) && (USB_HOST_CONFIG_EHCI))
+    USB_HostEhciTaskFunction(hostHandle);
+#endif /* USB_HOST_CONFIG_EHCI */
 }
 
 static void USB_HostMsdCommandTest(usb_host_msd_command_instance_t *msdCommandInstance)
@@ -144,38 +148,33 @@ static void USB_HostMsdCommandTest(usb_host_msd_command_instance_t *msdCommandIn
     usb_echo("........................test start....................\r\n");
 
     usb_echo("get max logical units....");
-    controlIng = 1;
-    status = USB_HostMsdGetMaxLun(msdCommandInstance->classHandle, &maxLunNumber, USB_HostMsdControlCallback,
+    ufiIng = 1;
+    status = USB_HostMsdGetMaxLun(msdCommandInstance->classHandle, &maxLunNumber, USB_HostMsdUfiCallback,
                                   msdCommandInstance);
     if (status != kStatus_USB_Success)
     {
         usb_echo("error\r\n");
-        msd_command_test_done();
+        msd_command_test_done(msdCommandInstance);
         return;
     }
-    while (controlIng) /* wait the command */
+    while (ufiIng) /* wait the command */
     {
-#if ((defined USB_HOST_CONFIG_KHCI) && (USB_HOST_CONFIG_KHCI))
-        USB_HostKhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_KHCI */
-#if ((defined USB_HOST_CONFIG_EHCI) && (USB_HOST_CONFIG_EHCI))
-        USB_HostEhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_EHCI */
+        USB_HostControllerTaskFunction(g_HostHandle);
     }
-    if (controlStatus == kStatus_USB_Success) /* print the command result */
+    if (ufiStatus == kStatus_USB_Success) /* print the command result */
     {
         usb_echo("success, logical units: %d\r\n", maxLunNumber);
     }
     else
     {
         usb_echo("fail\r\n");
-        msd_command_test_done();
+        msd_command_test_done(msdCommandInstance);
         return;
     }
 
     if (msdCommandInstance->deviceState != kStatus_DEV_Attached)
     {
-        msd_command_test_done();
+        msd_command_test_done(msdCommandInstance);
         return;
     }
     usb_echo("test unit ready....");
@@ -184,17 +183,12 @@ static void USB_HostMsdCommandTest(usb_host_msd_command_instance_t *msdCommandIn
     if (status != kStatus_USB_Success)
     {
         usb_echo("error\r\n");
-        msd_command_test_done();
+        msd_command_test_done(msdCommandInstance);
         return;
     }
     while (ufiIng) /* wait the command */
     {
-#if ((defined USB_HOST_CONFIG_KHCI) && (USB_HOST_CONFIG_KHCI))
-        USB_HostKhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_KHCI */
-#if ((defined USB_HOST_CONFIG_EHCI) && (USB_HOST_CONFIG_EHCI))
-        USB_HostEhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_EHCI */
+        USB_HostControllerTaskFunction(g_HostHandle);
     }
     if ((ufiStatus == kStatus_USB_Success) || (ufiStatus == kStatus_USB_MSDStatusFail)) /* print the command result */
     {
@@ -203,13 +197,13 @@ static void USB_HostMsdCommandTest(usb_host_msd_command_instance_t *msdCommandIn
     else
     {
         usb_echo("fail\r\n");
-        msd_command_test_done();
+        msd_command_test_done(msdCommandInstance);
         return;
     }
 
     if (msdCommandInstance->deviceState != kStatus_DEV_Attached)
     {
-        msd_command_test_done();
+        msd_command_test_done(msdCommandInstance);
         return;
     }
     usb_echo("request sense....");
@@ -219,17 +213,12 @@ static void USB_HostMsdCommandTest(usb_host_msd_command_instance_t *msdCommandIn
     if (status != kStatus_USB_Success)
     {
         usb_echo("error\r\n");
-        msd_command_test_done();
+        msd_command_test_done(msdCommandInstance);
         return;
     }
     while (ufiIng) /* wait the command */
     {
-#if ((defined USB_HOST_CONFIG_KHCI) && (USB_HOST_CONFIG_KHCI))
-        USB_HostKhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_KHCI */
-#if ((defined USB_HOST_CONFIG_EHCI) && (USB_HOST_CONFIG_EHCI))
-        USB_HostEhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_EHCI */
+        USB_HostControllerTaskFunction(g_HostHandle);
     }
     if (ufiStatus == kStatus_USB_Success) /* print the command result */
     {
@@ -238,13 +227,13 @@ static void USB_HostMsdCommandTest(usb_host_msd_command_instance_t *msdCommandIn
     else
     {
         usb_echo("fail\r\n");
-        msd_command_test_done();
+        msd_command_test_done(msdCommandInstance);
         return;
     }
 
     if (msdCommandInstance->deviceState != kStatus_DEV_Attached)
     {
-        msd_command_test_done();
+        msd_command_test_done(msdCommandInstance);
         return;
     }
     usb_echo("inquiry...");
@@ -254,17 +243,12 @@ static void USB_HostMsdCommandTest(usb_host_msd_command_instance_t *msdCommandIn
     if (status != kStatus_USB_Success)
     {
         usb_echo("error\r\n");
-        msd_command_test_done();
+        msd_command_test_done(msdCommandInstance);
         return;
     }
     while (ufiIng) /* wait the command */
     {
-#if ((defined USB_HOST_CONFIG_KHCI) && (USB_HOST_CONFIG_KHCI))
-        USB_HostKhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_KHCI */
-#if ((defined USB_HOST_CONFIG_EHCI) && (USB_HOST_CONFIG_EHCI))
-        USB_HostEhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_EHCI */
+        USB_HostControllerTaskFunction(g_HostHandle);
     }
     if (ufiStatus == kStatus_USB_Success) /* print the command result */
     {
@@ -273,13 +257,13 @@ static void USB_HostMsdCommandTest(usb_host_msd_command_instance_t *msdCommandIn
     else
     {
         usb_echo("fail\r\n");
-        msd_command_test_done();
+        msd_command_test_done(msdCommandInstance);
         return;
     }
 
     if (msdCommandInstance->deviceState != kStatus_DEV_Attached)
     {
-        msd_command_test_done();
+        msd_command_test_done(msdCommandInstance);
         return;
     }
     usb_echo("read capacity...");
@@ -289,17 +273,12 @@ static void USB_HostMsdCommandTest(usb_host_msd_command_instance_t *msdCommandIn
     if (status != kStatus_USB_Success)
     {
         usb_echo("error\r\n");
-        msd_command_test_done();
+        msd_command_test_done(msdCommandInstance);
         return;
     }
     while (ufiIng) /* wait the command */
     {
-#if ((defined USB_HOST_CONFIG_KHCI) && (USB_HOST_CONFIG_KHCI))
-        USB_HostKhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_KHCI */
-#if ((defined USB_HOST_CONFIG_EHCI) && (USB_HOST_CONFIG_EHCI))
-        USB_HostEhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_EHCI */
+        USB_HostControllerTaskFunction(g_HostHandle);
     }
     if (ufiStatus == kStatus_USB_Success) /* print the command result */
     {
@@ -314,13 +293,13 @@ static void USB_HostMsdCommandTest(usb_host_msd_command_instance_t *msdCommandIn
     else
     {
         usb_echo("fail\r\n");
-        msd_command_test_done();
+        msd_command_test_done(msdCommandInstance);
         return;
     }
 
     if (msdCommandInstance->deviceState != kStatus_DEV_Attached)
     {
-        msd_command_test_done();
+        msd_command_test_done(msdCommandInstance);
         return;
     }
     if (blockSize == 0)
@@ -334,17 +313,12 @@ static void USB_HostMsdCommandTest(usb_host_msd_command_instance_t *msdCommandIn
     if (status != kStatus_USB_Success)
     {
         usb_echo("error\r\n");
-        msd_command_test_done();
+        msd_command_test_done(msdCommandInstance);
         return;
     }
     while (ufiIng) /* wait the command */
     {
-#if ((defined USB_HOST_CONFIG_KHCI) && (USB_HOST_CONFIG_KHCI))
-        USB_HostKhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_KHCI */
-#if ((defined USB_HOST_CONFIG_EHCI) && (USB_HOST_CONFIG_EHCI))
-        USB_HostEhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_EHCI */
+        USB_HostControllerTaskFunction(g_HostHandle);
     }
     if (ufiStatus == kStatus_USB_Success) /* print the command result */
     {
@@ -353,13 +327,13 @@ static void USB_HostMsdCommandTest(usb_host_msd_command_instance_t *msdCommandIn
     else
     {
         usb_echo("fail\r\n");
-        msd_command_test_done();
+        msd_command_test_done(msdCommandInstance);
         return;
     }
 
     if (msdCommandInstance->deviceState != kStatus_DEV_Attached)
     {
-        msd_command_test_done();
+        msd_command_test_done(msdCommandInstance);
         return;
     }
     usb_echo("write(10)...");
@@ -369,17 +343,12 @@ static void USB_HostMsdCommandTest(usb_host_msd_command_instance_t *msdCommandIn
     if (status != kStatus_USB_Success)
     {
         usb_echo("error\r\n");
-        msd_command_test_done();
+        msd_command_test_done(msdCommandInstance);
         return;
     }
     while (ufiIng) /* wait the command */
     {
-#if ((defined USB_HOST_CONFIG_KHCI) && (USB_HOST_CONFIG_KHCI))
-        USB_HostKhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_KHCI */
-#if ((defined USB_HOST_CONFIG_EHCI) && (USB_HOST_CONFIG_EHCI))
-        USB_HostEhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_EHCI */
+        USB_HostControllerTaskFunction(g_HostHandle);
     }
     if (ufiStatus == kStatus_USB_Success) /* print the command result */
     {
@@ -388,7 +357,7 @@ static void USB_HostMsdCommandTest(usb_host_msd_command_instance_t *msdCommandIn
     else
     {
         usb_echo("fail\r\n");
-        msd_command_test_done();
+        msd_command_test_done(msdCommandInstance);
         return;
     }
 
@@ -421,7 +390,7 @@ static void USB_HostMsdCommandTest(usb_host_msd_command_instance_t *msdCommandIn
         {
             if (msdCommandInstance->deviceState != kStatus_DEV_Attached)
             {
-                msd_command_test_done();
+                msd_command_test_done(msdCommandInstance);
                 return;
             }
             ufiIng = 1;
@@ -434,24 +403,19 @@ static void USB_HostMsdCommandTest(usb_host_msd_command_instance_t *msdCommandIn
             if (status != kStatus_USB_Success)
             {
                 usb_echo("    error\r\n");
-                msd_command_test_done();
+                msd_command_test_done(msdCommandInstance);
                 return;
             }
             while (ufiIng) /* wait the command */
             {
-#if ((defined USB_HOST_CONFIG_KHCI) && (USB_HOST_CONFIG_KHCI))
-                USB_HostKhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_KHCI */
-#if ((defined USB_HOST_CONFIG_EHCI) && (USB_HOST_CONFIG_EHCI))
-                USB_HostEhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_EHCI */
+                USB_HostControllerTaskFunction(g_HostHandle);
             }
             totalTime += DWT->CYCCNT;
             DWT->CTRL &= ~(1U << DWT_CTRL_CYCCNTENA_Pos);
             if (ufiStatus != kStatus_USB_Success)
             {
                 usb_echo("fail\r\n");
-                msd_command_test_done();
+                msd_command_test_done(msdCommandInstance);
                 return;
             }
             testSize -= THROUGHPUT_BUFFER_SIZE;
@@ -468,7 +432,7 @@ static void USB_HostMsdCommandTest(usb_host_msd_command_instance_t *msdCommandIn
         {
             if (msdCommandInstance->deviceState != kStatus_DEV_Attached)
             {
-                msd_command_test_done();
+                msd_command_test_done(msdCommandInstance);
                 return;
             }
             ufiIng = 1;
@@ -481,24 +445,19 @@ static void USB_HostMsdCommandTest(usb_host_msd_command_instance_t *msdCommandIn
             if (status != kStatus_USB_Success)
             {
                 usb_echo("    error\r\n");
-                msd_command_test_done();
+                msd_command_test_done(msdCommandInstance);
                 return;
             }
             while (ufiIng) /* wait the command */
             {
-#if ((defined USB_HOST_CONFIG_KHCI) && (USB_HOST_CONFIG_KHCI))
-                USB_HostKhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_KHCI */
-#if ((defined USB_HOST_CONFIG_EHCI) && (USB_HOST_CONFIG_EHCI))
-                USB_HostEhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_EHCI */
+                USB_HostControllerTaskFunction(g_HostHandle);
             }
             totalTime += DWT->CYCCNT;
             DWT->CTRL &= ~(1U << DWT_CTRL_CYCCNTENA_Pos);
             if (ufiStatus != kStatus_USB_Success)
             {
                 usb_echo("fail\r\n");
-                msd_command_test_done();
+                msd_command_test_done(msdCommandInstance);
                 return;
             }
             testSize -= THROUGHPUT_BUFFER_SIZE;
@@ -510,7 +469,7 @@ static void USB_HostMsdCommandTest(usb_host_msd_command_instance_t *msdCommandIn
     }
 #endif /* MSD_THROUGHPUT_TEST_ENABLE */
 
-    msd_command_test_done(); /* all test are done */
+    msd_command_test_done(msdCommandInstance); /* all test are done */
 }
 
 void USB_HostMsdTask(void *arg)

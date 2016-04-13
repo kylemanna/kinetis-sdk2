@@ -30,6 +30,7 @@
 #ifndef __FSL_DSPI_FREERTOS_H__
 #define __FSL_DSPI_FREERTOS_H__
 
+#include "FreeRTOSConfig.h"
 #include "FreeRTOS.h"
 #include "portable.h"
 #include "semphr.h"
@@ -41,27 +42,27 @@
  * @{
  */
 
-/*! @file */
-
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
 
-/*! @name Driver version */
-/*@{*/
-/*! @brief DSPI FreeRTOS driver version 2.0.0. */
-#define FSL_DSPI_FREERTOS_DRIVER_VERSION (MAKE_VERSION(2, 0, 0))
-/*@}*/
-
-/*! @brief DSPI FreeRTOS handle */
+/*!
+* @cond RTOS_PRIVATE
+* @brief DSPI FreeRTOS handle
+*/
 typedef struct _dspi_rtos_handle
 {
     SPI_Type *base;                  /*!< DSPI base address */
     dspi_master_handle_t drv_handle; /*!< Handle of the underlying driver, treated as opaque by the RTOS layer */
-    status_t async_status;
-    SemaphoreHandle_t mutex; /*!< Mutex to lock the handle during a transfer */
-    SemaphoreHandle_t event; /*!< Semaphore to notify and unblock task when transfer ends */
+    status_t async_status;           /*!< Transactional state of the underlying driver */
+    SemaphoreHandle_t mutex;         /*!< Mutex to lock the handle during a transfer */
+    SemaphoreHandle_t event;         /*!< Semaphore to notify and unblock a task when a transfer ends */
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
+    StaticSemaphore_t mutexBuffer;     /*!< Statically allocated memory for mutex */
+    StaticSemaphore_t semaphoreBuffer; /*!< Statically allocated memory for event */
+#endif
 } dspi_rtos_handle_t;
+/*! \endcond */
 
 /*******************************************************************************
  * API
@@ -77,14 +78,14 @@ extern "C" {
  */
 
 /*!
- * @brief Initializes DSPI.
+ * @brief Initializes the DSPI.
  *
- * This function initializes the DSPI module and related RTOS context.
+ * This function initializes the DSPI module and the related RTOS context.
  *
  * @param handle The RTOS DSPI handle, the pointer to an allocated space for RTOS context.
  * @param base The pointer base address of the DSPI instance to initialize.
- * @param masterConfig Configuration structure to set-up DSPI in master mode.
- * @param srcClock_Hz Frequency of input clock of the DSPI module.
+ * @param masterConfig A configuration structure to set-up the DSPI in master mode.
+ * @param srcClock_Hz A frequency of the input clock of the DSPI module.
  * @return status of the operation.
  */
 status_t DSPI_RTOS_Init(dspi_rtos_handle_t *handle,
@@ -95,19 +96,19 @@ status_t DSPI_RTOS_Init(dspi_rtos_handle_t *handle,
 /*!
  * @brief Deinitializes the DSPI.
  *
- * This function deinitializes the DSPI module and related RTOS context.
+ * This function deinitializes the DSPI module and the related RTOS context.
  *
  * @param handle The RTOS DSPI handle.
  */
 status_t DSPI_RTOS_Deinit(dspi_rtos_handle_t *handle);
 
 /*!
- * @brief Performs SPI transfer.
+ * @brief Performs the SPI transfer.
  *
- * This function performs an SPI transfer according to data given in the transfer structure.
+ * This function performs the SPI transfer according to the data given in the transfer structure.
  *
  * @param handle The RTOS DSPI handle.
- * @param transfer Structure specifying the transfer parameters.
+ * @param transfer A structure specifying the transfer parameters.
  * @return status of the operation.
  */
 status_t DSPI_RTOS_Transfer(dspi_rtos_handle_t *handle, dspi_transfer_t *transfer);

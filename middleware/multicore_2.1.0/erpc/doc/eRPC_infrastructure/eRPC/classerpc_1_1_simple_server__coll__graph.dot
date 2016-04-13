@@ -1,0 +1,19 @@
+digraph "erpc::SimpleServer"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="erpc::SimpleServer",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node2 -> Node1 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="erpc::Server",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_server.html",tooltip="Based server functionality. "];
+  Node3 -> Node2 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_transportFactory" ,fontname="Helvetica"];
+  Node3 [label="erpc::TransportFactory",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_transport_factory.html",tooltip="Abstract interface for transport factory. "];
+  Node4 -> Node2 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_codecFactory" ,fontname="Helvetica"];
+  Node4 [label="erpc::CodecFactory",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_codec_factory.html",tooltip="Abstract interface for codec factory. "];
+  Node5 -> Node2 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_messageFactory" ,fontname="Helvetica"];
+  Node5 [label="erpc::MessageBufferFactory",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_message_buffer_factory.html",tooltip="Abstract interface for message buffer factory. "];
+  Node6 -> Node2 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_firstService" ,fontname="Helvetica"];
+  Node6 [label="erpc::Service",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_service.html",tooltip="Abstract interface for service, which can be executed on server side. "];
+  Node6 -> Node6 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_next" ,fontname="Helvetica"];
+  Node7 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_transport" ,fontname="Helvetica"];
+  Node7 [label="erpc::Transport",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classerpc_1_1_transport.html",tooltip="Abstract interface for transport layer. "];
+}

@@ -5,11 +5,11 @@ all three angles (pitch, roll, and yaw or compass heading).
 
 Toolchain supported
 ===================
-- IAR embedded Workbench 7.50.1
-- Keil MDK 5.17
+- IAR embedded Workbench 7.70.1
+- Keil MDK 5.20
 - GCC ARM Embedded 2015-4.9-q3
-- Kinetis Development Studio IDE 3.0.0
-- Atollic TrueSTUDIO 5.4.0
+- Kinetis Development Studio IDE 3.2.0
+- Atollic TrueSTUDIO 5.5.2
 
 Hardware requirements
 =====================
@@ -36,17 +36,18 @@ Prepare the Demo
 Running the demo
 ================
 When the demo runs successfully, you can see the information below printed to the terminal.
+
 Note: you must rotate the board 360 degrees to get the max / min value of the magnetic field.
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 To calibrate Magnetometer, roll the board on all orientations to get max and min values
 Press any key to start calibrating...
+
 Calibrating magnetometer...
 Calibrate magnetometer successfully!
 Magnetometer offset Mx: 313 - My: 432 - Mz: 494
 Compass Angle: xxxx
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 Customization options
 =====================
-
 

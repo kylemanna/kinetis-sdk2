@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -155,8 +155,8 @@ uint8_t g_UsbDeviceDescriptor[USB_DESCRIPTOR_LENGTH_DEVICE] = {
     USB_DEVICE_PROTOCOL,                                 /* Protocol code (assigned by the USB-IF). */
     USB_CONTROL_MAX_PACKET_SIZE,                         /* Maximum packet size for endpoint zero
                                                             (only 8, 16, 32, or 64 are valid) */
-    0x04, 0x25,                                          /* Vendor ID (assigned by the USB-IF) */
-    0x00U, 0x02,                                         /* Product ID (assigned by the manufacturer) */
+    0xC9U, 0x1FU,                                        /* Vendor ID (assigned by the USB-IF) */
+    0x97U, 0x00U,                                        /* Product ID (assigned by the manufacturer) */
     USB_SHORT_GET_LOW(USB_DEVICE_DEMO_BCD_VERSION),
     USB_SHORT_GET_HIGH(USB_DEVICE_DEMO_BCD_VERSION), /* Device release number in binary-coded decimal */
     0x01U,                                           /* Index of string descriptor describing manufacturer */
@@ -335,23 +335,11 @@ uint8_t g_UsbDeviceString0[USB_DESCRIPTOR_LENGTH_STRING0] = {
 uint8_t g_UsbDeviceString1[USB_DESCRIPTOR_LENGTH_STRING1] = {
     sizeof(g_UsbDeviceString1),
     USB_DESCRIPTOR_TYPE_STRING,
-    'F',
+    'N',
     0x00U,
-    'R',
+    'X',
     0x00U,
-    'E',
-    0x00U,
-    'E',
-    0x00U,
-    'S',
-    0x00U,
-    'C',
-    0x00U,
-    'A',
-    0x00U,
-    'L',
-    0x00U,
-    'E',
+    'P',
     0x00U,
     ' ',
     0x00U,
@@ -381,15 +369,7 @@ uint8_t g_UsbDeviceString1[USB_DESCRIPTOR_LENGTH_STRING1] = {
     0x00U,
     'R',
     0x00U,
-    ' ',
-    0x00U,
-    'I',
-    0x00U,
-    'N',
-    0x00U,
-    'C',
-    0x00U,
-    '.',
+    'S',
     0x00U,
 };
 
@@ -448,7 +428,7 @@ usb_language_list_t g_UsbDeviceLanguageList = {
 /*!
  * @brief USB device get device descriptor function.
  *
- * This function gets the device descriptor of the USB devcie.
+ * This function gets the device descriptor of the USB device.
  *
  * @param handle The USB device handle.
  * @param deviceDescriptor The pointer to the device descriptor structure.
@@ -466,7 +446,7 @@ usb_status_t USB_DeviceGetDeviceDescriptor(usb_device_handle handle,
 /*!
  * @brief USB device get configuration descriptor function.
  *
- * This function gets the configuration descriptor of the USB devcie.
+ * This function gets the configuration descriptor of the USB device.
  *
  * @param handle The USB device handle.
  * @param configurationDescriptor The pointer to the configuration descriptor structure.
@@ -488,7 +468,7 @@ usb_status_t USB_DeviceGetConfigurationDescriptor(
 /*!
  * @brief USB device get string descriptor function.
  *
- * This function gets the string descriptor of the USB devcie.
+ * This function gets the string descriptor of the USB device.
  *
  * @param handle The USB device handle.
  * @param stringDescriptor The pointer to the string descriptor structure.

@@ -1874,6 +1874,7 @@ usb_status_t HOST_PhdcManagerEvent(usb_device_handle deviceHandle,
     switch (eventCode)
     {
         case kUSB_HostEventAttach:
+            status = kStatus_USB_NotSupported;
             /* judge whether is configurationHandle supported */
             configuration = (usb_host_configuration_t *)configurationHandle;
             for (interfaceIndex = 0U; interfaceIndex < configuration->interfaceCount; ++interfaceIndex)
@@ -1901,10 +1902,6 @@ usb_status_t HOST_PhdcManagerEvent(usb_device_handle deviceHandle,
                     configHandle = configurationHandle;
                     status = kStatus_USB_Success;
                 }
-            }
-            if (interfaceIndex > configuration->interfaceCount)
-            {
-                status = kStatus_USB_NotSupported;
             }
             break;
 

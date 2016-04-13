@@ -7,11 +7,11 @@ We also try to refresh out of window to trigger reset after 10 times of refreshi
 
 Toolchain supported
 ===================
-- IAR embedded Workbench 7.50.1
-- Keil MDK 5.17
+- IAR embedded Workbench 7.70.1
+- Keil MDK 5.20
 - GCC ARM Embedded 2015-4.9-q3
-- Kinetis Development Studio IDE 3.0.0
-- Atollic TrueSTUDIO 5.4.0
+- Kinetis Development Studio IDE 3.2.0
+- Atollic TrueSTUDIO 5.5.2
 
 Hardware requirements
 =====================
@@ -38,10 +38,13 @@ Prepare the Demo
 
 Running the demo
 ================
+
 When the example runs successfully, you can see the similar information from the terminal as below.
+
 ~~~~~~~~~~~~~~~~~~~~~
 --- Quick test ---
 --- Quick test done ---
+
 --- None-window mode refresh test start---
 --- Refresh wdog 1 time ---
 --- Refresh wdog 2 time ---
@@ -54,6 +57,7 @@ When the example runs successfully, you can see the similar information from the
 --- Refresh wdog 9 time ---
 --- Refresh wdog 10 time ---
 --- None-window mode refresh test done ---
+
 --- Window mode refresh test start---
 --- Refresh wdog 1 time ---
 --- Refresh wdog 2 time ---
@@ -66,10 +70,9 @@ When the example runs successfully, you can see the similar information from the
 --- Refresh wdog 9 time ---
 --- Refresh wdog 10 time ---
 --- Window mode refresh test done---
+
 End of Wdog example!
 ~~~~~~~~~~~~~~~~~~~~~
-
 Customization options
 =====================
-
 

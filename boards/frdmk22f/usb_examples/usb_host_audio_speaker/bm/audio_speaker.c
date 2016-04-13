@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 -2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -37,7 +37,7 @@
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
-
+void Audio_SendData(void);
 /*******************************************************************************
  * Prototypes
  ******************************************************************************/
@@ -166,7 +166,7 @@ void Audio_ControlCallback(void *param, uint8_t *data, uint32_t dataLen, usb_sta
             }
             else if (g_audio.deviceIsUsed == 1)
             {
-                audio_ptr->runState = kRunDataSent;
+                audio_ptr->runState = kRunIdle;
             }
             else
             {
@@ -174,7 +174,7 @@ void Audio_ControlCallback(void *param, uint8_t *data, uint32_t dataLen, usb_sta
         }
         else if (audio_ptr->runWaitState == kRunWaitAudioConfigMute)
         {
-            audio_ptr->runState = kRunDataSent;
+            audio_ptr->runState = kRunIdle;
         }
         else
         {
@@ -200,28 +200,23 @@ void Audio_OutCallback(void *param, uint8_t *data, uint32_t dataLen, usb_status_
         return;
     }
     g_audio.bufCount--;
-    if (audio_ptr->runWaitState == kRunWaitDataSent)
+
+    if (status == kStatus_USB_Success)
     {
-        if (status == kStatus_USB_Success)
+        if (audio_ptr->devState == kStatus_DEV_Attached)
         {
-            if (audio_ptr->runState == kRunIdle)
-            {
-                if (audio_ptr->devState == kStatus_DEV_Attached)
-                {
-                    audio_ptr->runState = kRunDataSent;
-                }
-                else
-                {
-                    audio_ptr->runState = kRunIdle;
-                }
-            }
+            Audio_SendData();
         }
         else
         {
-            if (audio_ptr->devState == kStatus_DEV_Attached)
-            {
-                audio_ptr->runState = kRunPrimeDataSent;
-            }
+            audio_ptr->runState = kRunIdle;
+        }
+    }
+    else
+    {
+        if (audio_ptr->devState == kStatus_DEV_Attached)
+        {
+            Audio_SendData();
         }
     }
 }
@@ -245,9 +240,40 @@ static void USB_PrepareData(void)
         audio_position++;
     }
 
-    if (audio_position >= 111744U)
+    if (audio_position >= 65856U)
     {
         audio_position = 0U;
+    }
+}
+
+/*!
+ * @brief host audio iso out transfer send data function.
+ *
+ * This function is used to send iso data.
+ *
+ */
+void Audio_SendData(void)
+{
+    usb_status_t status = kStatus_USB_Success;
+
+#if ((defined USB_HOST_CONFIG_EHCI) && (USB_HOST_CONFIG_EHCI))
+    while (g_audio.bufCount < 3U)
+#endif
+    {
+        USB_PrepareData();
+        status = USB_HostAudioStreamSend(g_audio.classHandle, (unsigned char *)&g_wavBuff[g_packetSize * g_index],
+                                         g_audio.maxPacketSize, Audio_OutCallback, &g_audio);
+        if (status != kStatus_USB_Success)
+        {
+            usb_echo("Error in USB_HostAudioStreamSend: %x\r\n", status);
+            return;
+        }
+        g_index++;
+        if (g_index == NUMBER_OF_BUFFER)
+        {
+            g_index = 0U;
+        }
+        g_audio.bufCount++;
     }
 }
 
@@ -280,6 +306,7 @@ void USB_AudioTask(void *arg)
                 g_audio.runState = kRunSetControlInterface;
                 g_audio.deviceIsUsed = 0;
                 g_audio.bufCount = 0;
+                g_hostCurVolume = 4;
                 USB_HostAudioInit(g_audio.deviceHandle, &g_audio.classHandle);
                 usb_echo("USB audio attached\r\n");
                 break;
@@ -476,7 +503,6 @@ void USB_AudioTask(void *arg)
             {
                 USB_PrepareData();
                 g_audio.runState = kRunIdle;
-                g_audio.runWaitState = kRunWaitDataSent;
                 if (USB_HostAudioStreamSend(g_audio.classHandle, (unsigned char *)&g_wavBuff[g_packetSize * g_index],
                                             g_audio.maxPacketSize, Audio_OutCallback, &g_audio) != kStatus_USB_Success)
                 {
@@ -489,49 +515,9 @@ void USB_AudioTask(void *arg)
                 }
                 g_audio.bufCount++;
             }
-
             g_audio.deviceIsUsed = 1;
             break;
 
-        case kRunDataSent:
-            USB_PrepareData();
-            g_audio.runWaitState = kRunWaitDataSent;
-            g_audio.runState = kRunIdle;
-#if ((defined USB_HOST_CONFIG_EHCI) && (USB_HOST_CONFIG_EHCI))
-            while (g_audio.bufCount < 3U)
-#endif
-            {
-                if (USB_HostAudioStreamSend(g_audio.classHandle, (unsigned char *)&g_wavBuff[g_packetSize * g_index],
-                                            g_audio.maxPacketSize, Audio_OutCallback, &g_audio) != kStatus_USB_Success)
-                {
-                    usb_echo("Error in USB_HostAudioStreamSend: %x\r\n", status);
-                    break;
-                }
-                g_index++;
-                if (g_index == NUMBER_OF_BUFFER)
-                {
-                    g_index = 0U;
-                }
-                g_audio.bufCount++;
-            }
-            break;
-
-        case kRunPrimeDataSent:
-            USB_PrepareData();
-            g_audio.runWaitState = kRunWaitDataSent;
-            g_audio.runState = kRunIdle;
-            if (USB_HostAudioStreamSend(g_audio.classHandle, (unsigned char *)&g_wavBuff[g_packetSize * g_index],
-                                        g_audio.maxPacketSize, Audio_OutCallback, &g_audio) != kStatus_USB_Success)
-            {
-                usb_echo("kRunPrimeDataSent Error in USB_HostAudioStreamSend: %x\r\n", status);
-                break;
-            }
-            g_index++;
-            if (g_index == NUMBER_OF_BUFFER)
-            {
-                g_index = 0U;
-            }
-            break;
         default:
             break;
     }

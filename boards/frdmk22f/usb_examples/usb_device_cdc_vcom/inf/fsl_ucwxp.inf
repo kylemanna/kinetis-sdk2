@@ -81,13 +81,14 @@ ServiceBinary=%12%\%DRIVERFILENAME%.sys
 [SourceDisksFiles]
 [SourceDisksNames]
 [DeviceList]
-%DESCRIPTION%=DriverInstall, USB\VID_15A2&PID_0300
-%DESCRIPTION%=DriverInstall, USB\VID_15A2&PID_0800&MI_00
+%DESCRIPTION%=DriverInstall, USB\VID_1FC9&PID_0094
+%DESCRIPTION%=DriverInstall, USB\VID_1FC9&PID_009E&MI_00
+%DESCRIPTION%=DriverInstall, USB\VID_1FC9&PID_009F&MI_00
 
 [DeviceList.NTamd64]
-%DESCRIPTION% = DriverInstall, USB\VID_15A2&PID_0300
-%DESCRIPTION% = DriverInstall, USB\VID_15A2&PID_0800&MI_00
-
+%DESCRIPTION% = DriverInstall, USB\VID_1FC9&PID_0094
+%DESCRIPTION% = DriverInstall, USB\VID_1FC9&PID_009E&MI_00
+%DESCRIPTION% = DriverInstall, USB\VID_1FC9&PID_009F&MI_00
 
 ;------------------------------------------------------------------------------
 ; String Definitions
@@ -97,8 +98,8 @@ ServiceBinary=%12%\%DRIVERFILENAME%.sys
 [Strings]
 MFGFILENAME="CDC"
 DRIVERFILENAME ="usbser"
-MFGNAME="Freescale"
-INSTDISK="Freescale CDC Driver Installer"
+MFGNAME="NXP"
+INSTDISK="NXP CDC Driver Installer"
 DESCRIPTION="Virtual Com Port"
-SERVICE="FSL Virtual COM Driver"
+SERVICE="NXP Virtual COM Driver"
 

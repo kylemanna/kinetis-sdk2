@@ -60,14 +60,16 @@ static void uart_task(void *pvParameters);
 /*******************************************************************************
  * Variables
  ******************************************************************************/
-const char *to_send = "Hello, world!\r\n";
+const char *to_send = "FreeRTOS UART driver example!\r\n";
+const char *send_ring_overrun = "\r\nRing buffer overrun!\r\n";
+const char *send_hardware_overrun = "\r\nHardware buffer overrun!\r\n";
 uint8_t background_buffer[32];
 uint8_t recv_buffer[4];
 
 uart_rtos_handle_t handle;
 struct _uart_handle t_handle;
 
-struct rtos_uart_config uart_config = {
+uart_rtos_config_t uart_config = {
     .baudrate = 115200,
     .parity = kUART_ParityDisabled,
     .stopbits = kUART_OneStopBit,
@@ -106,18 +108,14 @@ static void uart_task(void *pvParameters)
     uart_config.srcclk = CLOCK_GetFreq(DEMO_UART_CLKSRC);
     uart_config.base = DEMO_UART;
 
-    // PRINTF("Test");
-
     if (0 > UART_RTOS_Init(&handle, &t_handle, &uart_config))
     {
-        PRINTF("Error during UART initialization.\r\n");
         vTaskSuspend(NULL);
     }
 
     /* Send some data */
     if (0 > UART_RTOS_Send(&handle, (uint8_t *)to_send, strlen(to_send)))
     {
-        PRINTF("Error during UART send.\r\n");
         vTaskSuspend(NULL);
     }
 
@@ -125,11 +123,29 @@ static void uart_task(void *pvParameters)
     do
     {
         error = UART_RTOS_Receive(&handle, recv_buffer, sizeof(recv_buffer), &n);
+        if (error == kStatus_UART_RxHardwareOverrun)
+        {
+            /* Notify about hardware buffer overrun */
+            if (kStatus_Success !=
+                UART_RTOS_Send(&handle, (uint8_t *)send_hardware_overrun, strlen(send_hardware_overrun)))
+            {
+                vTaskSuspend(NULL);
+            }
+        }
+        if (error == kStatus_UART_RxRingBufferOverrun)
+        {
+            /* Notify about ring buffer overrun */
+            if (kStatus_Success != UART_RTOS_Send(&handle, (uint8_t *)send_ring_overrun, strlen(send_ring_overrun)))
+            {
+                vTaskSuspend(NULL);
+            }
+        }
         if (n > 0)
         {
             /* send back the received data */
             UART_RTOS_Send(&handle, (uint8_t *)recv_buffer, n);
         }
+        vTaskDelay(1000);
     } while (kStatus_Success == error);
 
     UART_RTOS_Deinit(&handle);

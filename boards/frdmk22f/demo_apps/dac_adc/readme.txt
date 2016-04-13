@@ -7,11 +7,11 @@ and how to read ADC values.
 
 Toolchain supported
 ===================
-- IAR embedded Workbench 7.50.1
-- Keil MDK 5.17
+- IAR embedded Workbench 7.70.1
+- Keil MDK 5.20
 - GCC ARM Embedded 2015-4.9-q3
-- Kinetis Development Studio IDE 3.0.0
-- Atollic TrueSTUDIO 5.4.0
+- Kinetis Development Studio IDE 3.2.0
+- Atollic TrueSTUDIO 5.5.2
 
 Hardware requirements
 =====================
@@ -37,21 +37,29 @@ Prepare the Demo
 
 Running the demo
 ================
+
 This following section shows how to run the demo:
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 DAC ADC Demo!
+
 Press any key to start demo.
+
 Demo begin...
 ADC16_DoAutoCalibration() Done.
+
 The user is prompted to enter a voltage to output on the DAC:
+
 Select DAC output level:
         1. 1.0 V
         2. 1.5 V
         3. 2.0 V
         4. 2.5 V
         5. 3.0 V
+
 After entering a valid input, the ADC captures the voltage set by the DAC
 and displays the result in the terminal:
+
 Select DAC output level:
         1. 1.0 V
         2. 1.5 V
@@ -65,10 +73,10 @@ What next?:
         1. Test another DAC output value.
         2. Terminate demo.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-At this point, the user can test another DAC output value or terminate the demo.
-This configuration exhibits up to 2% error when reading back voltage.
 
+At this point, the user can test another DAC output value or terminate the demo.
+
+This configuration exhibits up to 2% error when reading back voltage.
 Customization options
 =====================
-
 

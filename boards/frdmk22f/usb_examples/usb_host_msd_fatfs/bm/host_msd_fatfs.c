@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -108,6 +108,10 @@ static uint32_t USB_HostMsdFatfsForward(const uint8_t *data_ptr, uint32_t dataLe
 static void USB_HostMsdFatfsTest(usb_host_msd_fatfs_instance_t *msdFatfsInstance);
 
 #endif /* MSD_FATFS_THROUGHPUT_TEST_ENABLE */
+
+#if ((defined USB_HOST_CONFIG_COMPLIANCE_TEST) && (USB_HOST_CONFIG_COMPLIANCE_TEST))
+extern usb_status_t USB_HostTestModeInit(usb_device_handle deviceHandle);
+#endif
 
 /*******************************************************************************
  * Variables
@@ -1038,7 +1042,6 @@ usb_status_t USB_HostTestEvent(usb_device_handle deviceHandle,
     usb_host_configuration_t *configuration;
     uint8_t interfaceIndex;
     usb_host_interface_t *interface;
-    uint32_t infoValue;
     uint32_t id;
 
     switch (eventCode)
@@ -1063,7 +1066,7 @@ usb_status_t USB_HostTestEvent(usb_device_handle deviceHandle,
             break;
 
         case kUSB_HostEventNotSupported:
-            usb_echo("device not supported.\r\n");
+            usb_echo("Unsupported Device\r\n");
             break;
 
         case kUSB_HostEventEnumerationDone:

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -151,10 +151,10 @@
 #define USB_CDC_VCOM_CIC_INTERFACE_INDEX (0)
 #define USB_CDC_VCOM_DIC_INTERFACE_INDEX (1)
 #define USB_CDC_VCOM_CIC_ENDPOINT_COUNT (1)
-#define USB_CDC_VCOM_CIC_INTERRUPT_IN_ENDPOINT (5)
+#define USB_CDC_VCOM_CIC_INTERRUPT_IN_ENDPOINT (4)
 #define USB_CDC_VCOM_DIC_ENDPOINT_COUNT (2)
 #define USB_CDC_VCOM_DIC_BULK_IN_ENDPOINT (3)
-#define USB_CDC_VCOM_DIC_BULK_OUT_ENDPOINT (4)
+#define USB_CDC_VCOM_DIC_BULK_OUT_ENDPOINT (3)
 
 /* Packet size. */
 #define HS_CDC_VCOM_INTERRUPT_IN_PACKET_SIZE (16)
@@ -162,16 +162,16 @@
 #define HS_CDC_VCOM_INTERRUPT_IN_INTERVAL (0x07) /* 2^(7-1) = 8ms */
 #define FS_CDC_VCOM_INTERRUPT_IN_INTERVAL (0x08)
 
-#define HS_CDC_VCOM_BULK_IN_PACKET_SIZE (64)
+#define HS_CDC_VCOM_BULK_IN_PACKET_SIZE (512)
 #define FS_CDC_VCOM_BULK_IN_PACKET_SIZE (64)
-#define HS_CDC_VCOM_BULK_OUT_PACKET_SIZE (64)
+#define HS_CDC_VCOM_BULK_OUT_PACKET_SIZE (512)
 #define FS_CDC_VCOM_BULK_OUT_PACKET_SIZE (64)
 
 /* String descriptor length. */
 #define USB_DESCRIPTOR_LENGTH_STRING0 (4)
-#define USB_DESCRIPTOR_LENGTH_STRING1 (58)
+#define USB_DESCRIPTOR_LENGTH_STRING1 (38)
 #define USB_DESCRIPTOR_LENGTH_STRING2 (38)
-#define USB_DESCRIPTOR_LENGTH_STRING3 (42)
+#define USB_DESCRIPTOR_LENGTH_STRING3 (34)
 #define USB_DESCRIPTOR_LENGTH_STRING4 (36)
 
 #define USB_DESCRIPTOR_TYPE_CDC_CS_INTERFACE (0x24)
@@ -190,13 +190,13 @@
 /*!
  * @brief USB device set speed function.
  *
- * This function sets the speed of the USB devcie.
+ * This function sets the speed of the USB device.
  *
  * Due to the difference of HS and FS descriptors, the device descriptors and configurations need to be updated to match
  * current speed.
  * As the default, the device descriptors and configurations are configured by using FS parameters for both EHCI and
  * KHCI.
- * When the EHCI is enabled, the application needs to call this fucntion to update device by using current speed.
+ * When the EHCI is enabled, the application needs to call this function to update device by using current speed.
  * The updated information includes endpoint max packet size, endpoint interval, etc.
  *
  * @param handle The USB device handle.
@@ -209,7 +209,7 @@ extern usb_status_t USB_DeviceSetSpeed(usb_device_handle handle, uint8_t speed);
 /*!
  * @brief USB device get device descriptor function.
  *
- * This function gets the device descriptor of the USB devcie.
+ * This function gets the device descriptor of the USB device.
  *
  * @param handle The USB device handle.
  * @param deviceDescriptor The pointer to the device descriptor structure.
@@ -222,7 +222,7 @@ usb_status_t USB_DeviceGetDeviceDescriptor(usb_device_handle handle,
 /*!
  * @brief USB device get configuration descriptor function.
  *
- * This function gets the configuration descriptor of the USB devcie.
+ * This function gets the configuration descriptor of the USB device.
  *
  * @param handle The USB device handle.
  * @param configurationDescriptor The pointer to the configuration descriptor structure.
@@ -235,7 +235,7 @@ usb_status_t USB_DeviceGetConfigurationDescriptor(
 /*!
  * @brief USB device get string descriptor function.
  *
- * This function gets the string descriptor of the USB devcie.
+ * This function gets the string descriptor of the USB device.
  *
  * @param handle The USB device handle.
  * @param stringDescriptor Pointer to the string descriptor structure.

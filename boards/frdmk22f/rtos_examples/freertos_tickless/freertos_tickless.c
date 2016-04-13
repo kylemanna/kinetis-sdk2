@@ -31,6 +31,7 @@
 #include "task.h"
 #include "queue.h"
 #include "timers.h"
+#include "semphr.h"
 
 #include "fsl_device_registers.h"
 #include "fsl_debug_console.h"
@@ -41,7 +42,7 @@
 #include "pin_mux.h"
 #include "fsl_common.h"
 #include "clock_config.h"
-#if configSYSTICK_USE_LOW_POWER_TIMER
+#if configUSE_TICKLESS_IDLE
 #include "fsl_lptmr.h"
 #endif
 /*******************************************************************************
@@ -56,20 +57,39 @@
 #define BOARD_SW_IRQ BOARD_SW3_IRQ
 #define BOARD_SW_IRQ_HANDLER BOARD_SW3_IRQ_HANDLER
 #define BOARD_SW_NAME BOARD_SW3_NAME
+/* @brief FreeRTOS tickless timer configuration. */
+#define TICKLESS_LPTMR_IRQn LPTMR0_IRQn           /*!< Tickless timer IRQ number. */
+#define TICKLESS_LPTMR_BASE_PTR LPTMR0            /*!< Tickless timer base address. */
+#define BOARD_LPTMR_IRQ_HANDLER LPTMR0_IRQHandler /*!< Timer IRQ handler. */
+
 /* Task priorities. */
 /* clang-format off */
-#define tickless_task_PRIORITY   ( configMAX_PRIORITIES - 1 )
+#define tickless_task_PRIORITY   ( configMAX_PRIORITIES - 2 )
+#define SW_task_PRIORITY   ( configMAX_PRIORITIES - 1 )
 #define TIME_DELAY_SLEEP      5000
+
+/* Interrupt priorities. */
+#if (__CORTEX_M >= 0x03)
+#define SW_NVIC_PRIO 5
+#else
+#define SW_NVIC_PRIO 2
+#endif
+
 /* clang-format on */
 /*******************************************************************************
  * Prototypes
  ******************************************************************************/
+extern void vPortLptmrIsr(void);
+IRQn_Type vPortGetLptmrIrqn(void);
+LPTMR_Type *vPortGetLptrmBase(void);
 
 /*******************************************************************************
  * Variables
  ******************************************************************************/
-/* Whether the SW button is pressed */
 static void Tickless_task(void *pvParameters);
+static void SW_task(void *pvParameters);
+
+SemaphoreHandle_t xSWSemaphore = NULL;
 /*******************************************************************************
  * Code
  ******************************************************************************/
@@ -78,12 +98,13 @@ static void Tickless_task(void *pvParameters);
  */
 int main(void)
 {
-    /* Define the init structure for the input switch pin */
+/* Define the init structure for the input switch pin */
+#ifdef BOARD_SW_NAME
     gpio_pin_config_t sw_config = {
         kGPIO_DigitalInput, 0,
     };
-
-#if configSYSTICK_USE_LOW_POWER_TIMER
+#endif
+#if configUSE_TICKLESS_IDLE
     lptmr_config_t lptmrConfig;
 
     CLOCK_EnableClock(kCLOCK_Lptmr0);
@@ -110,18 +131,24 @@ int main(void)
 
     /* Print a note to terminal. */
     PRINTF("Tickless Demo example\r\n");
+#ifdef BOARD_SW_NAME
     PRINTF("Press %s to wake up the CPU\r\n", BOARD_SW_NAME);
     /* Init input switch GPIO. */
     PORT_SetPinInterruptConfig(BOARD_SW_PORT, BOARD_SW_GPIO_PIN, kPORT_InterruptFallingEdge);
+    NVIC_SetPriority(BOARD_SW_IRQ, SW_NVIC_PRIO);
     EnableIRQ(BOARD_SW_IRQ);
     GPIO_PinInit(BOARD_SW_GPIO, BOARD_SW_GPIO_PIN, &sw_config);
+#endif
     /*Create tickless task*/
     xTaskCreate(Tickless_task, "Tickless_task", configMINIMAL_STACK_SIZE, NULL, tickless_task_PRIORITY, NULL);
+    xTaskCreate(SW_task, "Tickless_task", configMINIMAL_STACK_SIZE, NULL, tickless_task_PRIORITY, NULL);
     /*Task Scheduler*/
     vTaskStartScheduler();
     for (;;)
         ;
 }
+
+/* Tickless Task */
 static void Tickless_task(void *pvParameters)
 {
     PRINTF("\r\nTick count :\r\n");
@@ -131,14 +158,65 @@ static void Tickless_task(void *pvParameters)
         vTaskDelay(TIME_DELAY_SLEEP);
     }
 }
+
+/* Switch Task */
+static void SW_task(void *pvParameters)
+{
+    xSWSemaphore = xSemaphoreCreateBinary();
+    for (;;)
+    {
+        if (xSemaphoreTake(xSWSemaphore, portMAX_DELAY) == pdTRUE)
+        {
+            PRINTF("CPU waked up by EXT interrupt\r\n");
+        }
+    }
+}
 /*!
  * @brief Interrupt service fuction of switch.
  *
  * This function to wake up CPU
  */
+#ifdef BOARD_SW_NAME
 void BOARD_SW_IRQ_HANDLER(void)
 {
-    PRINTF("CPU waked up by EXT interrupt\r\n");
+    portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
+
     /* Clear external interrupt flag. */
     GPIO_ClearPinsInterruptFlags(BOARD_SW_GPIO, 1U << BOARD_SW_GPIO_PIN);
+
+    xSemaphoreGiveFromISR(xSWSemaphore, &xHigherPriorityTaskWoken);
 }
+#endif
+/*!
+ * @brief Interrupt service fuction of LPT timer.
+ *
+ * This function to call vPortLptmrIsr
+ */
+#if configUSE_TICKLESS_IDLE == 1
+void BOARD_LPTMR_IRQ_HANDLER(void)
+{
+    vPortLptmrIsr();
+}
+
+/*!
+ * @brief Fuction of LPT timer.
+ *
+ * This function to return LPT timer base address
+ */
+
+LPTMR_Type *vPortGetLptrmBase(void)
+{
+    return TICKLESS_LPTMR_BASE_PTR;
+}
+
+/*!
+ * @brief Fuction of LPT timer.
+ *
+ * This function to return LPT timer interrupt number
+ */
+
+IRQn_Type vPortGetLptmrIrqn(void)
+{
+    return TICKLESS_LPTMR_IRQn;
+}
+#endif /* configUSE_TICKLESS_IDLE */

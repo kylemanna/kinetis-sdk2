@@ -40,6 +40,10 @@
 #if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0)
 #define CONTROLLER_ID kUSB_ControllerKhci0
 #endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+#define CONTROLLER_ID kUSB_ControllerLpcIp3511Fs0
+#endif
+
 /*! @brief USB interrupt priority */
 #define USB_DEVICE_INTERRUPT_PRIORITY (3U)
 /*! @brief Association request length */

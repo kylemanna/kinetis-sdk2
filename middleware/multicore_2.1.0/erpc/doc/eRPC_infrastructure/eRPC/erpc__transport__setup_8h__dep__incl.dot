@@ -1,0 +1,12 @@
+digraph "erpc_transport_setup.h"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="erpc_transport_setup.h",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node1 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="erpc_arbitrated_client\l_setup.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$erpc__arbitrated__client__setup_8h.html"];
+  Node1 -> Node3 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="erpc_client_setup.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$erpc__client__setup_8h.html"];
+  Node1 -> Node4 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node4 [label="erpc_server_setup.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$erpc__server__setup_8h.html"];
+}

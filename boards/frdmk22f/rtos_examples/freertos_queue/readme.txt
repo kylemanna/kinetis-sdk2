@@ -17,21 +17,23 @@ write_task_2 print 5 messages into log.
 
 Toolchain supported
 ===================
-- IAR embedded Workbench 7.50.1
-- Keil MDK 5.17
+- IAR embedded Workbench 7.70.1
+- Keil MDK 5.20
 - GCC ARM Embedded 2015-4.9-q3
-- Kinetis Development Studio IDE 3.0.0
-- Atollic TrueSTUDIO 5.4.0
+- Kinetis Development Studio IDE 3.2.0
+- Atollic TrueSTUDIO 5.5.2
 
 Hardware requirements
 =====================
-Hardware settings
-Prepare the demo
+- Mini/micro USB cable
+- FRDM-K22F board
+- Personal Computer
 
 Board settings
 ==============
-
-
+This example project does not call for any special hardware configurations.
+Although not required, the recommendation is to leave the development board's jumper settings
+and configurations in default state when running this example.
 Prepare the Demo
 ================
 Connect a serial cable from the debug UART port of the board to the PC. Start Tera Term
@@ -39,7 +41,7 @@ Connect a serial cable from the debug UART port of the board to the PC. Start Te
 
 1. Start Tera Term
 2. New connection -> Serial
-3. Set apropriate COMx port (x is port number) in Port context menu. Number is provided by operation
+3. Set appropriate COMx port (x is port number) in Port context menu. Number is provided by operation
    system and could be different from computer to computer. Select COM number related to virtual
    serial port. Confirm selected port by OK button.
 4. Set following connection parameters in menu Setup->Serial port...
@@ -47,9 +49,8 @@ Connect a serial cable from the debug UART port of the board to the PC. Start Te
         Data:         8
         Parity:       none
         Stop:         1
-        Flow control: one
+        Flow control: none
 5.  Confirm selected parameters by OK button.
-
 
 
 Running the demo
@@ -67,7 +68,6 @@ Log 6: Task1 Message 3
 Log 7: Task2 Message 3
 Log 8: Task1 Message 4
 Log 9: Task2 Message 4
-
 Customization options
 =====================
 

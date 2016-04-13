@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -67,6 +67,9 @@
 #if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0U)
 #define AUDIO_ENDPOINT_MAX_PACKET_SIZE (FS_ISO_IN_ENDP_PACKET_SIZE)
 #endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+#define AUDIO_ENDPOINT_MAX_PACKET_SIZE (FS_ISO_IN_ENDP_PACKET_SIZE)
+#endif
 
 uint32_t audioPosition = 0U;
 uint8_t g_InterfaceIsSet = 0;
@@ -74,7 +77,7 @@ uint8_t g_InterfaceIsSet = 0;
 extern const unsigned char wavData[];
 extern const uint16_t wavSize;
 
-static uint8_t s_wavBuff[AUDIO_ENDPOINT_MAX_PACKET_SIZE];
+USB_DATA_ALIGNMENT static uint8_t s_wavBuff[AUDIO_ENDPOINT_MAX_PACKET_SIZE];
 
 static usb_device_composite_struct_t *g_deviceComposite;
 
@@ -705,16 +708,16 @@ usb_status_t USB_DeviceAudioGeneratorClassRequest(usb_device_handle handle,
 
     switch (setup->bmRequestType)
     {
-        case USB_DEVICE_AUDIO_SET_REQUSET_INTERFACE:
+        case USB_DEVICE_AUDIO_SET_REQUEST_INTERFACE:
             error = USB_DeviceAudioSetRequestInterface(handle, setup, length, buffer);
             break;
-        case USB_DEVICE_AUDIO_GET_REQUSET_INTERFACE:
+        case USB_DEVICE_AUDIO_GET_REQUEST_INTERFACE:
             error = USB_DeviceAudioGetRequestInterface(handle, setup, length, buffer);
             break;
-        case USB_DEVICE_AUDIO_SET_REQUSET_ENDPOINT:
+        case USB_DEVICE_AUDIO_SET_REQUEST_ENDPOINT:
             error = USB_DeviceAudioSetRequestEndpoint(handle, setup, length, buffer);
             break;
-        case USB_DEVICE_AUDIO_GET_REQUSET_ENDPOINT:
+        case USB_DEVICE_AUDIO_GET_REQUEST_ENDPOINT:
             error = USB_DeviceAudioGetRequestEndpoint(handle, setup, length, buffer);
             break;
         default:
@@ -728,7 +731,7 @@ usb_status_t USB_DeviceAudioProcessTerminalRequest(uint32_t audioCommand, uint32
 {
     usb_status_t error = kStatus_USB_Success;
     uint16_t volume = 0;
-    
+
     switch (audioCommand)
     {
         case USB_DEVICE_AUDIO_GET_CUR_MUTE_CONTROL:

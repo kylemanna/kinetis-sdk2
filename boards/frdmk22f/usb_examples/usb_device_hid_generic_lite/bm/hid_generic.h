@@ -41,13 +41,16 @@
 #if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0U)
 #define CONTROLLER_ID kUSB_ControllerKhci0
 #endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+#define CONTROLLER_ID kUSB_ControllerLpcIp3511Fs0
+#endif
 
 #define USB_DEVICE_INTERRUPT_PRIORITY (3U)
 
 typedef struct _usb_hid_generic_struct
 {
     usb_device_handle deviceHandle;
-    uint32_t buffer[2][USB_HID_GENERIC_IN_BUFFER_LENGTH >> 2];
+    uint8_t *buffer[2];
     uint8_t bufferIndex;
     uint8_t idleRate;
     uint8_t speed;

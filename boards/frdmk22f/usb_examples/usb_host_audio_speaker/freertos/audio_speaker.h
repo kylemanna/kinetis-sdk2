@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 -2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -75,9 +75,6 @@ typedef enum __host_audio_app_runState
     kRunAudioSetCurSamplingFreq,     /*!< execute audio set current sampling freq*/
     kRunAudioConfigMute,             /*!< execute audio config mute*/
     kRunWaitAudioConfigMute,         /*!< wait audio config mute*/
-    kRunWaitDataSent,                /*!< wait interrupt in data */
-    kRunDataSent,                    /*!< audio iso data received */
-    kRunPrimeDataSent,               /*!< prime audio iso data received */
     kRunAudioDone,                   /*!< audio done */
 } host_audio_app_runState_t;
 

@@ -81,6 +81,16 @@ static void USB_HostMsdUfiCallback(void *param, uint8_t *data, uint32_t dataLeng
     ufiStatus = status;
 }
 
+static inline void USB_HostControllerTaskFunction(usb_host_handle hostHandle)
+{
+#if ((defined USB_HOST_CONFIG_KHCI) && (USB_HOST_CONFIG_KHCI))
+    USB_HostKhciTaskFunction(hostHandle);
+#endif /* USB_HOST_CONFIG_KHCI */
+#if ((defined USB_HOST_CONFIG_EHCI) && (USB_HOST_CONFIG_EHCI))
+    USB_HostEhciTaskFunction(hostHandle);
+#endif /* USB_HOST_CONFIG_EHCI */
+}
+
 DSTATUS USB_HostMsdInitializeDisk(BYTE pdrv)
 {
     uint32_t address;
@@ -97,12 +107,7 @@ DSTATUS USB_HostMsdInitializeDisk(BYTE pdrv)
     }
     while (ufiIng) /* wait the command */
     {
-#if ((defined USB_HOST_CONFIG_KHCI) && (USB_HOST_CONFIG_KHCI))
-        USB_HostKhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_KHCI */
-#if ((defined USB_HOST_CONFIG_EHCI) && (USB_HOST_CONFIG_EHCI))
-        USB_HostEhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_EHCI */
+        USB_HostControllerTaskFunction(g_HostHandle);
     }
 
     /*request sense */
@@ -118,12 +123,7 @@ DSTATUS USB_HostMsdInitializeDisk(BYTE pdrv)
     }
     while (ufiIng) /* wait the command */
     {
-#if ((defined USB_HOST_CONFIG_KHCI) && (USB_HOST_CONFIG_KHCI))
-        USB_HostKhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_KHCI */
-#if ((defined USB_HOST_CONFIG_EHCI) && (USB_HOST_CONFIG_EHCI))
-        USB_HostEhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_EHCI */
+        USB_HostControllerTaskFunction(g_HostHandle);
     }
 
     /* get the sector size */
@@ -141,12 +141,7 @@ DSTATUS USB_HostMsdInitializeDisk(BYTE pdrv)
     {
         while (ufiIng)
         {
-#if ((defined USB_HOST_CONFIG_KHCI) && (USB_HOST_CONFIG_KHCI))
-            USB_HostKhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_KHCI */
-#if ((defined USB_HOST_CONFIG_EHCI) && (USB_HOST_CONFIG_EHCI))
-            USB_HostEhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_EHCI */
+            USB_HostControllerTaskFunction(g_HostHandle);
         }
         if (ufiStatus == kStatus_USB_Success)
         {
@@ -195,12 +190,7 @@ DRESULT USB_HostMsdReadDisk(BYTE pdrv, BYTE *buff, DWORD sector, UINT count)
         {
             while (ufiIng)
             {
-#if ((defined USB_HOST_CONFIG_KHCI) && (USB_HOST_CONFIG_KHCI))
-                USB_HostKhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_KHCI */
-#if ((defined USB_HOST_CONFIG_EHCI) && (USB_HOST_CONFIG_EHCI))
-                USB_HostEhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_EHCI */
+                USB_HostControllerTaskFunction(g_HostHandle);
             }
             if (ufiStatus == kStatus_USB_Success)
             {
@@ -245,12 +235,7 @@ DRESULT USB_HostMsdWriteDisk(BYTE pdrv, const BYTE *buff, DWORD sector, UINT cou
         {
             while (ufiIng)
             {
-#if ((defined USB_HOST_CONFIG_KHCI) && (USB_HOST_CONFIG_KHCI))
-                USB_HostKhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_KHCI */
-#if ((defined USB_HOST_CONFIG_EHCI) && (USB_HOST_CONFIG_EHCI))
-                USB_HostEhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_EHCI */
+                USB_HostControllerTaskFunction(g_HostHandle);
             }
             if (ufiStatus == kStatus_USB_Success)
             {
@@ -300,12 +285,7 @@ DRESULT USB_HostMsdIoctlDisk(BYTE pdrv, BYTE cmd, void *buff)
             {
                 while (ufiIng)
                 {
-#if ((defined USB_HOST_CONFIG_KHCI) && (USB_HOST_CONFIG_KHCI))
-                    USB_HostKhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_KHCI */
-#if ((defined USB_HOST_CONFIG_EHCI) && (USB_HOST_CONFIG_EHCI))
-                    USB_HostEhciTaskFunction(g_HostHandle);
-#endif /* USB_HOST_CONFIG_EHCI */
+                    USB_HostControllerTaskFunction(g_HostHandle);
                 }
                 if (ufiStatus == kStatus_USB_Success)
                 {

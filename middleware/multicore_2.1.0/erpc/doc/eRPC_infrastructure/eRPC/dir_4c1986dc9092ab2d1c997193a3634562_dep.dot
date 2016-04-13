@@ -1,0 +1,11 @@
+digraph "infra" {
+  compound=true
+  node [ fontsize="10", fontname="Helvetica"];
+  edge [ labelfontsize="10", labelfontname="Helvetica"];
+  subgraph clusterdir_ecce72d14eab190b8175cc3cd0696eeb {
+    graph [ bgcolor="#ddddee", pencolor="black", label="erpc_c" fontname="Helvetica", fontsize="10", URL="dir_ecce72d14eab190b8175cc3cd0696eeb.html"]
+  dir_4c1986dc9092ab2d1c997193a3634562 [shape=box, label="infra", style="filled", fillcolor="#eeeeff", pencolor="black", URL="dir_4c1986dc9092ab2d1c997193a3634562.html"];
+  }
+  dir_62e9b24ece508051f26d84717c79c815 [shape=box label="port" URL="dir_62e9b24ece508051f26d84717c79c815.html"];
+  dir_4c1986dc9092ab2d1c997193a3634562->dir_62e9b24ece508051f26d84717c79c815 [headlabel="2", labeldistance=1.5 headhref="dir_000001_000005.html"];
+}

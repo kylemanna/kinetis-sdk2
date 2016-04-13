@@ -72,6 +72,25 @@ volatile uint16_t rxIndex; /* Index of the memory to save new arrived data. */
  * Code
  ******************************************************************************/
 
+void DEMO_UART_IRQHandler(void)
+{
+    uint8_t data;
+
+    /* If new data arrived. */
+    if ((kUART_RxDataRegFullFlag | kUART_RxOverrunFlag) & UART_GetStatusFlags(DEMO_UART))
+    {
+        data = UART_ReadByte(DEMO_UART);
+
+        /* If ring buffer is not full, add data to ring buffer. */
+        if (((rxIndex + 1) % DEMO_RING_BUFFER_SIZE) != txIndex)
+        {
+            demoRingBuffer[rxIndex] = data;
+            rxIndex++;
+            rxIndex %= DEMO_RING_BUFFER_SIZE;
+        }
+    }
+}
+
 /*!
  * @brief Main function
  */
@@ -113,25 +132,6 @@ int main(void)
             UART_WriteByte(DEMO_UART, demoRingBuffer[txIndex]);
             txIndex++;
             txIndex %= DEMO_RING_BUFFER_SIZE;
-        }
-    }
-}
-
-void DEMO_UART_IRQHandler(void)
-{
-    uint8_t data;
-
-    /* If new data arrived. */
-    if ((kUART_RxDataRegFullFlag | kUART_RxOverrunFlag) & UART_GetStatusFlags(DEMO_UART))
-    {
-        data = UART_ReadByte(DEMO_UART);
-
-        /* If ring buffer is not full, add data to ring buffer. */
-        if (((rxIndex + 1) % DEMO_RING_BUFFER_SIZE) != txIndex)
-        {
-            demoRingBuffer[rxIndex] = data;
-            rxIndex++;
-            rxIndex %= DEMO_RING_BUFFER_SIZE;
         }
     }
 }

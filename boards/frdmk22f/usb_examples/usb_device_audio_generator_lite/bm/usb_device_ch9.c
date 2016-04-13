@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -187,7 +187,7 @@ extern usb_status_t USB_DeviceGetInterface(usb_device_handle handle, uint8_t int
  *
  * @return A USB error code or kStatus_USB_Success.
  */
-extern usb_status_t USB_DevcieConfigureEndpointStatus(usb_device_handle handle,
+extern usb_status_t USB_DeviceConfigureEndpointStatus(usb_device_handle handle,
                                                       uint8_t endpointAddress,
                                                       uint8_t status);
 
@@ -201,7 +201,7 @@ extern usb_status_t USB_DevcieConfigureEndpointStatus(usb_device_handle handle,
  *
  * @return A USB error code or kStatus_USB_Success.
  */
-extern usb_status_t USB_DevcieConfigureRemoteWakeup(usb_device_handle handle, uint8_t enable);
+extern usb_status_t USB_DeviceConfigureRemoteWakeup(usb_device_handle handle, uint8_t enable);
 
 static usb_status_t USB_DeviceCh9GetStatus(usb_device_handle handle,
                                            usb_setup_struct_t *setup,
@@ -372,7 +372,7 @@ static usb_status_t USB_DeviceCh9SetClearFeature(usb_device_handle handle,
     }
 
     /* Identify the request is set or clear the feature. */
-    if (USB_REQUSET_STANDARD_SET_FEATURE == setup->bRequest)
+    if (USB_REQUEST_STANDARD_SET_FEATURE == setup->bRequest)
     {
         isSet = 1U;
     }
@@ -380,14 +380,17 @@ static usb_status_t USB_DeviceCh9SetClearFeature(usb_device_handle handle,
     if ((setup->bmRequestType & USB_REQUEST_TYPE_RECIPIENT_MASK) == USB_REQUEST_TYPE_RECIPIENT_DEVICE)
     {
         /* Set or Clear the device featrue. */
-        if (USB_REQUSET_STANDARD_FEATURE_SELECTOR_DEVICE_REMOTE_WAKEUP == setup->wValue)
+        if (USB_REQUEST_STANDARD_FEATURE_SELECTOR_DEVICE_REMOTE_WAKEUP == setup->wValue)
         {
+#if ((defined(USB_DEVICE_CONFIG_REMOTE_WAKEUP)) && (USB_DEVICE_CONFIG_REMOTE_WAKEUP > 0U))
+            USB_DeviceSetStatus(classHandle->handle, kUSB_DeviceStatusRemoteWakeup, &isSet);
+#endif
             /* Set or Clear the device remote wakeup featrue. */
-            error = USB_DevcieConfigureRemoteWakeup(handle, isSet);
+            error = USB_DeviceConfigureRemoteWakeup(handle, isSet);
         }
 #if (defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 0U)) && \
     (defined(USB_DEVICE_CONFIG_EHCI_TEST_MODE) && (USB_DEVICE_CONFIG_EHCI_TEST_MODE > 0U))
-        else if (USB_REQUSET_STANDARD_FEATURE_SELECTOR_DEVICE_TEST_MODE == setup->wValue)
+        else if (USB_REQUEST_STANDARD_FEATURE_SELECTOR_DEVICE_TEST_MODE == setup->wValue)
         {
             state = kUSB_DeviceStateTestMode;
             error = USB_DeviceSetStatus(classHandle->handle, kUSB_DeviceStatusDeviceState, &state);
@@ -400,27 +403,23 @@ static usb_status_t USB_DeviceCh9SetClearFeature(usb_device_handle handle,
     else if ((setup->bmRequestType & USB_REQUEST_TYPE_RECIPIENT_MASK) == USB_REQUEST_TYPE_RECIPIENT_ENDPOINT)
     {
         /* Set or Clear the endpoint featrue. */
-        if (USB_REQUSET_STANDARD_FEATURE_SELECTOR_ENDPOINT_HALT == setup->wValue)
+        if (USB_REQUEST_STANDARD_FEATURE_SELECTOR_ENDPOINT_HALT == setup->wValue)
         {
             if (USB_CONTROL_ENDPOINT == (setup->wIndex & USB_ENDPOINT_NUMBER_MASK))
             {
                 /* Set or Clear the control endpoint status(halt or not). */
                 if (isSet)
                 {
-                    USB_DeviceStallEndpoint(
-                        handle, (setup->wIndex & USB_ENDPOINT_NUMBER_MASK) |
-                                    (uint8_t)(setup->wIndex >> USB_DESCRIPTOR_ENDPOINT_ADDRESS_DIRECTION_SHIFT));
+                    USB_DeviceStallEndpoint(handle, (uint8_t)setup->wIndex);
                 }
                 else
                 {
-                    USB_DeviceUnstallEndpoint(
-                        handle, (setup->wIndex & USB_ENDPOINT_NUMBER_MASK) |
-                                    (uint8_t)(setup->wIndex >> USB_DESCRIPTOR_ENDPOINT_ADDRESS_DIRECTION_SHIFT));
+                    USB_DeviceUnstallEndpoint(handle, (uint8_t)setup->wIndex);
                 }
             }
 
             /* Set or Clear the endpoint status featrue. */
-            error = USB_DevcieConfigureEndpointStatus(handle, setup->wIndex, isSet);
+            error = USB_DeviceConfigureEndpointStatus(handle, setup->wIndex, isSet);
         }
         else
         {
@@ -734,7 +733,7 @@ static usb_status_t USB_DeviceControlCallbackFeedback(usb_device_handle handle,
     {
         /* Stall the control pipe when the request is unsupported. */
         if ((!((setup->bmRequestType & USB_REQUEST_TYPE_TYPE_MASK) == USB_REQUEST_TYPE_TYPE_STANDARD)) &&
-            ((setup->bmRequestType & USB_REQUSET_TYPE_DIR_MASK) == USB_REQUEST_TYPE_DIR_OUT) && (setup->wLength) &&
+            ((setup->bmRequestType & USB_REQUEST_TYPE_DIR_MASK) == USB_REQUEST_TYPE_DIR_OUT) && (setup->wLength) &&
             (kUSB_DeviceControlPipeSetupStage == stage))
         {
             direction = USB_OUT;
@@ -752,7 +751,7 @@ static usb_status_t USB_DeviceControlCallbackFeedback(usb_device_handle handle,
         errorCode = USB_DeviceSendRequest(handle, (USB_CONTROL_ENDPOINT), *buffer, *length);
 
         if ((kStatus_USB_Success == errorCode) &&
-            (USB_REQUEST_TYPE_DIR_IN == (setup->bmRequestType & USB_REQUSET_TYPE_DIR_MASK)))
+            (USB_REQUEST_TYPE_DIR_IN == (setup->bmRequestType & USB_REQUEST_TYPE_DIR_MASK)))
         {
             errorCode = USB_DeviceRecvRequest(handle, (USB_CONTROL_ENDPOINT), (uint8_t *)NULL, 0U);
         }
@@ -829,7 +828,7 @@ usb_status_t USB_DeviceControlCallback(usb_device_handle handle,
         else
         {
             if ((deviceSetup->wLength) &&
-                ((deviceSetup->bmRequestType & USB_REQUSET_TYPE_DIR_MASK) == USB_REQUEST_TYPE_DIR_OUT))
+                ((deviceSetup->bmRequestType & USB_REQUEST_TYPE_DIR_MASK) == USB_REQUEST_TYPE_DIR_OUT))
             {
                 /* Class or vendor request with the OUT data phase. */
                 if ((deviceSetup->wLength) &&
@@ -882,7 +881,7 @@ usb_status_t USB_DeviceControlCallback(usb_device_handle handle,
     }
 #endif
     else if ((message->length) && (deviceSetup->wLength) &&
-             ((deviceSetup->bmRequestType & USB_REQUSET_TYPE_DIR_MASK) == USB_REQUEST_TYPE_DIR_OUT))
+             ((deviceSetup->bmRequestType & USB_REQUEST_TYPE_DIR_MASK) == USB_REQUEST_TYPE_DIR_OUT))
     {
         if (((deviceSetup->bmRequestType & USB_REQUEST_TYPE_TYPE_CLASS) == USB_REQUEST_TYPE_TYPE_CLASS))
         {

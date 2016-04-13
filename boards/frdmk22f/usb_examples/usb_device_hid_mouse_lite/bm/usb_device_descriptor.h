@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -48,7 +48,7 @@
 #define USB_DESCRIPTOR_LENGTH_HID_MOUSE_REPORT (52U)
 #define USB_DESCRIPTOR_LENGTH_HID (9U)
 #define USB_DESCRIPTOR_LENGTH_STRING0 (4U)
-#define USB_DESCRIPTOR_LENGTH_STRING1 (58U)
+#define USB_DESCRIPTOR_LENGTH_STRING1 (38U)
 #define USB_DESCRIPTOR_LENGTH_STRING2 (34U)
 
 #define USB_DEVICE_CONFIGURATION_COUNT (1U)

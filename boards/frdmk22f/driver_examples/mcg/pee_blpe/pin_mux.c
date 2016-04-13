@@ -26,20 +26,47 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
+
+/*
+ * TEXT BELOW IS USED AS SETTING FOR THE PINS TOOL *****************************
+PinsProfile:
+- !!product 'Pins v1.0'
+- !!processor 'MK22FN512xxx12'
+- !!package 'MK22FN512VLH12'
+- !!mcu_data 'ksdk2_0'
+- !!processor_version '1.0.0'
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR THE PINS TOOL ***
  */
 
 #include "fsl_common.h"
 #include "fsl_port.h"
 #include "pin_mux.h"
 
-/*******************************************************************************
- * Code
- ******************************************************************************/
+#define PIN2_IDX                         2u   /*!< Pin number for pin 2 in a port */
 
-void BOARD_InitPins(void)
-{
-    /* Enable LED port clock */
-    CLOCK_EnableClock(kCLOCK_PortA);
-    /* Led pin mux Configuration */
-    PORT_SetPinMux(PORTA, 2U, kPORT_MuxAsGpio);
+/*
+ * TEXT BELOW IS USED AS SETTING FOR THE PINS TOOL *****************************
+BOARD_InitPins:
+- options: {coreID: singlecore, enableClock: 'true'}
+- pin_list:
+  - {pin_num: '24', peripheral: GPIOA, signal: 'GPIO, 2', pin_signal: PTA2/UART0_TX/FTM0_CH7/JTAG_TDO/TRACE_SWO/EZP_DO}
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR THE PINS TOOL ***
+ */
+
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : BOARD_InitPins
+ * Description   : Configures pin routing and optionally pin electrical features.
+ *
+ *END**************************************************************************/
+void BOARD_InitPins(void) {
+  CLOCK_EnableClock(kCLOCK_PortA);                           /* Port A Clock Gate Control: Clock enabled */
+
+  PORT_SetPinMux(PORTA, PIN2_IDX, kPORT_MuxAsGpio);          /* PORTA2 (pin 24) is configured as PTA2 */
 }
+
+/*******************************************************************************
+ * EOF
+ ******************************************************************************/

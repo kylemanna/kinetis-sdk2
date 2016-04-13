@@ -2,12 +2,12 @@
 /*  @file:    startup_MK22F51212.s                                                        */
 /*  @purpose: CMSIS Cortex-M4 Core Device Startup File                                    */
 /*            MK22F51212                                                                  */
-/*  @version: 1.7                                                                         */
-/*  @date:    2015-2-19                                                                   */
-/*  @build:   b151111                                                                     */
+/*  @version: 2.9                                                                         */
+/*  @date:    2016-3-21                                                                   */
+/*  @build:   b160321                                                                     */
 /* ---------------------------------------------------------------------------------------*/
 /*                                                                                        */
-/* Copyright (c) 1997 - 2015 , Freescale Semiconductor, Inc.                              */
+/* Copyright (c) 1997 - 2016 , Freescale Semiconductor, Inc.                              */
 /* All rights reserved.                                                                   */
 /*                                                                                        */
 /* Redistribution and use in source and binary forms, with or without modification,       */

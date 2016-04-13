@@ -57,6 +57,7 @@ static usb_status_t USB_DeviceHidKeyboardInterruptIn(usb_device_handle handle,
  * Variables
  ******************************************************************************/
 
+USB_DATA_ALIGNMENT static uint8_t s_KeyboardBuffer[USB_HID_KEYBOARD_REPORT_LENGTH];
 static usb_device_composite_struct_t *s_UsbDeviceComposite;
 static usb_device_hid_keyboard_struct_t s_UsbDeviceHidKeyboard;
 
@@ -195,5 +196,6 @@ usb_status_t USB_DeviceHidKeyboardEndpointStall(usb_device_handle handle, uint8_
 usb_status_t USB_DeviceHidKeyboardInit(usb_device_composite_struct_t *deviceComposite)
 {
     s_UsbDeviceComposite = deviceComposite;
+    s_UsbDeviceHidKeyboard.buffer = s_KeyboardBuffer;
     return kStatus_USB_Success;
 }

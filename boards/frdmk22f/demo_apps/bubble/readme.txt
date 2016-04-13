@@ -5,18 +5,19 @@ level utilizes two axes to visually show deviation from a level plane (0 degrees
 FTM/TPM to modulate the duty cycle of two on-board LEDs to gradually increase LED intensity as the board deviates from
 a level state.
 
+
 Toolchain supported
 ===================
-- IAR embedded Workbench 7.50.1
-- Keil MDK 5.17
+- IAR embedded Workbench 7.70.1
+- Keil MDK 5.20
 - GCC ARM Embedded 2015-4.9-q3
-- Kinetis Development Studio IDE 3.0.0
-- Atollic TrueSTUDIO 5.4.0
+- Kinetis Development Studio IDE 3.2.0
+- Atollic TrueSTUDIO 5.5.2
 
 Hardware requirements
 =====================
 - Mini/Micro USB cable
-- FRDM-K22f board
+- FRDM-K22F board
 - Personal Computer
 
 Board settings
@@ -40,16 +41,23 @@ Running the demo
 When the bubble level demo is programmed, simply tilt the board to see the LEDs illuminate. One LED color indicates
 X-axis angle while the other indicates Y-axis angle.  When the example runs successfully, you can see the similar
 information from the terminal as shown below.
+
+
 Welcome to BUBBLE example
+
 You will see the change of LED brightness when change angles of board
+
 x= -72 y = -328
+
 x= -16 y = -268
+
 x= -40 y = -296
+
 x= -40 y = -296
-x= -96 y = -288
+
 x= -96 y = -288
 
+x= -96 y = -288
 Customization options
 =====================
-
 

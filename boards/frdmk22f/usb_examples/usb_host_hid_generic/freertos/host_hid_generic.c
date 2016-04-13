@@ -100,7 +100,7 @@ static usb_status_t USB_HostHidGenericPrepareOutData(usb_host_hid_generic_instan
 
 usb_host_hid_generic_instance_t g_HostHidGeneric; /* hid generic instance */
 uint8_t testData[] =
-    "Test string: This is usb host hid generic demo, it only support pid=0x007f and vid=0x15a2 hid device. Host send "
+    "Test string: This is usb host hid generic demo, it only support pid=0x0090 and vid=0x1fc9 hid device. Host send "
     "this test string to device, device reply the data to host then host print the data\r\n";
 
 /*******************************************************************************
@@ -434,7 +434,7 @@ usb_status_t USB_HostHidGenericEvent(usb_device_handle deviceHandle,
                 }
                 USB_HostHelperGetPeripheralInformation(deviceHandle, kUSB_HostGetDevicePID, &pid);
                 USB_HostHelperGetPeripheralInformation(deviceHandle, kUSB_HostGetDeviceVID, &vid);
-                if ((pid == 0x007f) && (vid == 0x15a2))
+                if ((pid == 0x0090) && (vid == 0x1fc9))
                 {
                     if (g_HostHidGeneric.deviceState == kStatus_DEV_Idle)
                     {

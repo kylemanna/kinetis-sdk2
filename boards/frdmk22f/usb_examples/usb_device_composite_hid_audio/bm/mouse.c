@@ -57,6 +57,7 @@
 /*******************************************************************************
 * Variables
 ******************************************************************************/
+USB_DATA_ALIGNMENT static uint8_t s_MouseBuffer[USB_HID_MOUSE_REPORT_LENGTH];
 static usb_device_composite_struct_t *g_deviceComposite;
 
 /*******************************************************************************
@@ -176,6 +177,7 @@ usb_status_t USB_DeviceHidMouseCallback(class_handle_t handle, uint32_t event, v
 usb_status_t USB_DeviceHidMouseSetConfigure(class_handle_t handle, uint8_t configure)
 {
     g_deviceComposite->hidMouse.attach = 1U;
+    g_deviceComposite->hidMouse.buffer = s_MouseBuffer;
     return USB_DeviceMouseAction();
 }
 

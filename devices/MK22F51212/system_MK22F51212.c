@@ -2,6 +2,7 @@
 ** ###################################################################
 **     Processors:          MK22FN512CAP12
 **                          MK22FN512VDC12
+**                          MK22FN512VFX12
 **                          MK22FN512VLH12
 **                          MK22FN512VLL12
 **                          MK22FN512VMP12
@@ -12,15 +13,15 @@
 **                          IAR ANSI C/C++ Compiler for ARM
 **
 **     Reference manual:    K22P121M120SF7RM, Rev. 1, March 24, 2014
-**     Version:             rev. 2.8, 2015-02-19
-**     Build:               b151217
+**     Version:             rev. 2.9, 2016-03-21
+**     Build:               b160321
 **
 **     Abstract:
 **         Provides a system configuration function and a global variable that
 **         contains the system frequency. It configures the device and initializes
 **         the oscillator (PLL) that is part of the microcontroller device.
 **
-**     Copyright (c) 2015 Freescale Semiconductor, Inc.
+**     Copyright (c) 2016 Freescale Semiconductor, Inc.
 **     All rights reserved.
 **
 **     Redistribution and use in source and binary forms, with or without modification,
@@ -80,14 +81,17 @@
 **         Interrupt INT_LPTimer renamed to INT_LPTMR0, interrupt INT_Watchdog renamed to INT_WDOG_EWM.
 **     - rev. 2.8 (2015-02-19)
 **         Renamed interrupt vector LLW to LLWU.
+**     - rev. 2.9 (2016-03-21)
+**         Added MK22FN512VFX12 part.
+**         GPIO - renamed port instances: PTx -> GPIOx.
 **
 ** ###################################################################
 */
 
 /*!
  * @file MK22F51212
- * @version 2.8
- * @date 2015-02-19
+ * @version 2.9
+ * @date 2016-03-21
  * @brief Device specific configuration file for MK22F51212 (implementation file)
  *
  * Provides a system configuration function and a global variable that contains

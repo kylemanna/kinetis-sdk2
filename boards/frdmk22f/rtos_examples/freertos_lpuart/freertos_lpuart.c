@@ -60,14 +60,16 @@ static void uart_task(void *pvParameters);
 /*******************************************************************************
  * Code
  ******************************************************************************/
-const char *to_send = "Hello, world!\r\n";
+const char *to_send = "FreeRTOS LPUART driver example!\r\n";
+const char *send_ring_overrun = "\r\nRing buffer overrun!\r\n";
+const char *send_hardware_overrun = "\r\nHardware buffer overrun!\r\n";
 uint8_t background_buffer[32];
 uint8_t recv_buffer[4];
 
 lpuart_rtos_handle_t handle;
 struct _lpuart_handle t_handle;
 
-struct rtos_lpuart_config lpuart_config = {
+lpuart_rtos_config_t lpuart_config = {
     .baudrate = 115200,
     .parity = kLPUART_ParityDisabled,
     .stopbits = kLPUART_OneStopBit,
@@ -86,7 +88,7 @@ int main(void)
     SIM->SOPT2 = ((SIM->SOPT2 & ~SIM_SOPT2_LPUARTSRC_MASK) | SIM_SOPT2_LPUARTSRC(0x2U));
     NVIC_SetPriority(DEMO_LPUART_RX_TX_IRQn, 5);
 
-    xTaskCreate(uart_task, "Uart_task", configMINIMAL_STACK_SIZE, NULL, uart_task_PRIORITY, NULL);
+    xTaskCreate(uart_task, "Uart_task", configMINIMAL_STACK_SIZE + 10, NULL, uart_task_PRIORITY, NULL);
 
     vTaskStartScheduler();
     for (;;)
@@ -104,18 +106,14 @@ static void uart_task(void *pvParameters)
     lpuart_config.srcclk = CLOCK_GetFreq(DEMO_LPUART_CLKSRC);
     lpuart_config.base = DEMO_LPUART;
 
-    // PRINTF("Test");
-
     if (0 > LPUART_RTOS_Init(&handle, &t_handle, &lpuart_config))
     {
-        PRINTF("Error during UART initialization.\r\n");
         vTaskSuspend(NULL);
     }
 
     /* Send some data */
     if (0 > LPUART_RTOS_Send(&handle, (uint8_t *)to_send, strlen(to_send)))
     {
-        PRINTF("Error during UART send.\r\n");
         vTaskSuspend(NULL);
     }
 
@@ -123,11 +121,30 @@ static void uart_task(void *pvParameters)
     do
     {
         error = LPUART_RTOS_Receive(&handle, recv_buffer, sizeof(recv_buffer), &n);
+        if (error == kStatus_LPUART_RxHardwareOverrun)
+        {
+            /* Notify about hardware buffer overrun */
+            if (kStatus_Success !=
+                LPUART_RTOS_Send(&handle, (uint8_t *)send_hardware_overrun, strlen(send_hardware_overrun)))
+            {
+                vTaskSuspend(NULL);
+            }
+        }
+        if (error == kStatus_LPUART_RxRingBufferOverrun)
+        {
+            /* Notify about ring buffer overrun */
+            if (kStatus_Success != LPUART_RTOS_Send(&handle, (uint8_t *)send_ring_overrun, strlen(send_ring_overrun)))
+            {
+                vTaskSuspend(NULL);
+            }
+        }
+
         if (n > 0)
         {
             /* send back the received data */
             LPUART_RTOS_Send(&handle, (uint8_t *)recv_buffer, n);
         }
+        vTaskDelay(1000);
     } while (kStatus_Success == error);
 
     LPUART_RTOS_Deinit(&handle);

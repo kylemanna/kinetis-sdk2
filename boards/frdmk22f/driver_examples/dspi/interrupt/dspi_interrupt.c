@@ -78,6 +78,90 @@ volatile bool isTransferCompleted = false;
 /*******************************************************************************
  * Code
  ******************************************************************************/
+
+void EXAMPLE_DSPI_MASTER_IRQHandler(void)
+{
+    if (masterRxCount < TRANSFER_SIZE)
+    {
+        while (DSPI_GetStatusFlags(EXAMPLE_DSPI_MASTER_BASEADDR) & kDSPI_RxFifoDrainRequestFlag)
+        {
+            masterRxData[masterRxCount] = DSPI_ReadData(EXAMPLE_DSPI_MASTER_BASEADDR);
+            ++masterRxCount;
+
+            DSPI_ClearStatusFlags(EXAMPLE_DSPI_MASTER_BASEADDR, kDSPI_RxFifoDrainRequestFlag);
+
+            if (masterRxCount == TRANSFER_SIZE)
+            {
+                break;
+            }
+        }
+    }
+
+    if (masterTxCount < TRANSFER_SIZE)
+    {
+        while ((DSPI_GetStatusFlags(EXAMPLE_DSPI_MASTER_BASEADDR) & kDSPI_TxFifoFillRequestFlag) &&
+               ((masterTxCount - masterRxCount) < masterFifoSize))
+        {
+            if (masterTxCount < TRANSFER_SIZE)
+            {
+                EXAMPLE_DSPI_MASTER_BASEADDR->PUSHR = masterCommand | masterTxData[masterTxCount];
+                ++masterTxCount;
+            }
+            else
+            {
+                break;
+            }
+
+            /* Try to clear the TFFF; if the TX FIFO is full this will clear */
+            DSPI_ClearStatusFlags(EXAMPLE_DSPI_MASTER_BASEADDR, kDSPI_TxFifoFillRequestFlag);
+        }
+    }
+
+    /* Check if we're done with this transfer.*/
+    if ((masterTxCount == TRANSFER_SIZE) && (masterRxCount == TRANSFER_SIZE))
+    {
+        /* Complete the transfer and disable the interrupts */
+        DSPI_DisableInterrupts(EXAMPLE_DSPI_MASTER_BASEADDR,
+                               kDSPI_RxFifoDrainRequestInterruptEnable | kDSPI_TxFifoFillRequestInterruptEnable);
+    }
+}
+
+void EXAMPLE_DSPI_SLAVE_IRQHandler(void)
+{
+    if (slaveRxCount < TRANSFER_SIZE)
+    {
+        while (DSPI_GetStatusFlags(EXAMPLE_DSPI_SLAVE_BASEADDR) & kDSPI_RxFifoDrainRequestFlag)
+        {
+            slaveRxData[slaveRxCount] = DSPI_ReadData(EXAMPLE_DSPI_SLAVE_BASEADDR);
+            slaveRxCount++;
+
+            DSPI_ClearStatusFlags(EXAMPLE_DSPI_SLAVE_BASEADDR, kDSPI_RxFifoDrainRequestFlag);
+
+            if (slaveTxCount < TRANSFER_SIZE)
+            {
+                DSPI_SlaveWriteData(EXAMPLE_DSPI_SLAVE_BASEADDR, slaveTxData[slaveTxCount]);
+                slaveTxCount++;
+            }
+
+            /* Try to clear TFFF by writing a one to it; it will not clear if TX FIFO not full */
+            DSPI_ClearStatusFlags(EXAMPLE_DSPI_SLAVE_BASEADDR, kDSPI_TxFifoFillRequestFlag);
+
+            if (slaveRxCount == TRANSFER_SIZE)
+            {
+                break;
+            }
+        }
+    }
+
+    /* Check if remaining receive byte count matches user request */
+    if ((slaveRxCount == TRANSFER_SIZE) && (slaveTxCount == TRANSFER_SIZE))
+    {
+        isTransferCompleted = true;
+        /* Disable interrupt requests */
+        DSPI_DisableInterrupts(EXAMPLE_DSPI_SLAVE_BASEADDR, kDSPI_RxFifoDrainRequestInterruptEnable);
+    }
+}
+
 /*!
  * @brief Main function
  */
@@ -260,88 +344,5 @@ int main(void)
 
     while (1)
     {
-    }
-}
-
-void EXAMPLE_DSPI_MASTER_IRQHandler(void)
-{
-    if (masterRxCount < TRANSFER_SIZE)
-    {
-        while (DSPI_GetStatusFlags(EXAMPLE_DSPI_MASTER_BASEADDR) & kDSPI_RxFifoDrainRequestFlag)
-        {
-            masterRxData[masterRxCount] = DSPI_ReadData(EXAMPLE_DSPI_MASTER_BASEADDR);
-            ++masterRxCount;
-
-            DSPI_ClearStatusFlags(EXAMPLE_DSPI_MASTER_BASEADDR, kDSPI_RxFifoDrainRequestFlag);
-
-            if (masterRxCount == TRANSFER_SIZE)
-            {
-                break;
-            }
-        }
-    }
-
-    if (masterTxCount < TRANSFER_SIZE)
-    {
-        while ((DSPI_GetStatusFlags(EXAMPLE_DSPI_MASTER_BASEADDR) & kDSPI_TxFifoFillRequestFlag) &&
-               ((masterTxCount - masterRxCount) < masterFifoSize))
-        {
-            if (masterTxCount < TRANSFER_SIZE)
-            {
-                EXAMPLE_DSPI_MASTER_BASEADDR->PUSHR = masterCommand | masterTxData[masterTxCount];
-                ++masterTxCount;
-            }
-            else
-            {
-                break;
-            }
-
-            /* Try to clear the TFFF; if the TX FIFO is full this will clear */
-            DSPI_ClearStatusFlags(EXAMPLE_DSPI_MASTER_BASEADDR, kDSPI_TxFifoFillRequestFlag);
-        }
-    }
-
-    /* Check if we're done with this transfer.*/
-    if ((masterTxCount == TRANSFER_SIZE) && (masterRxCount == TRANSFER_SIZE))
-    {
-        /* Complete the transfer and disable the interrupts */
-        DSPI_DisableInterrupts(EXAMPLE_DSPI_MASTER_BASEADDR,
-                               kDSPI_RxFifoDrainRequestInterruptEnable | kDSPI_TxFifoFillRequestInterruptEnable);
-    }
-}
-
-void EXAMPLE_DSPI_SLAVE_IRQHandler(void)
-{
-    if (slaveRxCount < TRANSFER_SIZE)
-    {
-        while (DSPI_GetStatusFlags(EXAMPLE_DSPI_SLAVE_BASEADDR) & kDSPI_RxFifoDrainRequestFlag)
-        {
-            slaveRxData[slaveRxCount] = DSPI_ReadData(EXAMPLE_DSPI_SLAVE_BASEADDR);
-            slaveRxCount++;
-
-            DSPI_ClearStatusFlags(EXAMPLE_DSPI_SLAVE_BASEADDR, kDSPI_RxFifoDrainRequestFlag);
-
-            if (slaveTxCount < TRANSFER_SIZE)
-            {
-                DSPI_SlaveWriteData(EXAMPLE_DSPI_SLAVE_BASEADDR, slaveTxData[slaveTxCount]);
-                slaveTxCount++;
-            }
-
-            /* Try to clear TFFF by writing a one to it; it will not clear if TX FIFO not full */
-            DSPI_ClearStatusFlags(EXAMPLE_DSPI_SLAVE_BASEADDR, kDSPI_TxFifoFillRequestFlag);
-
-            if (slaveRxCount == TRANSFER_SIZE)
-            {
-                break;
-            }
-        }
-    }
-
-    /* Check if remaining receive byte count matches user request */
-    if ((slaveRxCount == TRANSFER_SIZE) && (slaveTxCount == TRANSFER_SIZE))
-    {
-        isTransferCompleted = true;
-        /* Disable interrupt requests */
-        DSPI_DisableInterrupts(EXAMPLE_DSPI_SLAVE_BASEADDR, kDSPI_RxFifoDrainRequestInterruptEnable);
     }
 }

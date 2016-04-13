@@ -6,11 +6,11 @@ for an ASCII string. Several CRC protocols are implemented using the CRC driver 
 
 Toolchain supported
 ===================
-- IAR embedded Workbench 7.50.1
-- Keil MDK 5.17
+- IAR embedded Workbench 7.70.1
+- Keil MDK 5.20
 - GCC ARM Embedded 2015-4.9-q3
-- Kinetis Development Studio IDE 3.0.0
-- Atollic TrueSTUDIO 5.4.0
+- Kinetis Development Studio IDE 3.2.0
+- Atollic TrueSTUDIO 5.5.2
 
 Hardware requirements
 =====================
@@ -40,7 +40,6 @@ Connect a serial cable from the debug UART port of the board to the PC. Start Te
         Flow control: one
 5.  Confirm selected parameters by OK button.
 
-
 Running the demo
 ================
 Example output on terminal:
@@ -53,8 +52,6 @@ CRC-16 MAXIM: 0x44c2
 CRC-16 KERMIT: 0x2189
 CRC-32: 0xcbf43926
 CRC-32 POSIX: 0x765e7680
-
 Customization options
 =====================
-
 

@@ -6,16 +6,16 @@ a message a printed on the UART terminal and an LED is toggled on the board.
 
 Toolchain supported
 ===================
-- IAR embedded Workbench 7.50.1
-- Keil MDK 5.17
+- IAR embedded Workbench 7.70.1
+- Keil MDK 5.20
 - GCC ARM Embedded 2015-4.9-q3
-- Kinetis Development Studio IDE 3.0.0
-- Atollic TrueSTUDIO 5.4.0
+- Kinetis Development Studio IDE 3.2.0
+- Atollic TrueSTUDIO 5.5.2
 
 Hardware requirements
 =====================
 - Mini/micro USB cable
-- FRDM-K22ZF board
+- FRDM-K22F board
 - Personal Computer
 
 Board settings
@@ -48,8 +48,6 @@ Starting channel No.0 ...
 ....................
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 And you will find the LED RED is taking turns to shine.
-
 Customization options
 =====================
-
 

@@ -58,6 +58,7 @@ static usb_status_t USB_DeviceHidMouseInterruptIn(usb_device_handle deviceHandle
  * Variables
  ******************************************************************************/
 
+USB_DATA_ALIGNMENT static uint8_t s_MouseBuffer[USB_HID_MOUSE_REPORT_LENGTH];
 static usb_device_composite_struct_t *s_UsbDeviceComposite;
 static usb_device_hid_mouse_struct_t s_UsbDeviceHidMouse;
 
@@ -224,5 +225,6 @@ usb_status_t USB_DeviceHidMouseEndpointStall(usb_device_handle handle, uint8_t e
 usb_status_t USB_DeviceHidMouseInit(usb_device_composite_struct_t *deviceComposite)
 {
     s_UsbDeviceComposite = deviceComposite;
+    s_UsbDeviceHidMouse.buffer = s_MouseBuffer;
     return kStatus_USB_Success;
 }

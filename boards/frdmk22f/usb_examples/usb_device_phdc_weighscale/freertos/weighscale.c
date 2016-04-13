@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -58,6 +58,9 @@
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
+/* USB clock source and frequency*/
+#define USB_FS_CLK_SRC kCLOCK_UsbSrcIrc48M
+#define USB_FS_CLK_FREQ 48000000U
 
 /*******************************************************************************
  * Prototypes
@@ -73,6 +76,7 @@ static void USB_DeviceApplicationTask(uint32_t handle);
  * Variables
  ******************************************************************************/
 
+USB_DATA_ALIGNMENT uint8_t s_RecvDataBuffer[APDU_MAX_BUFFER_SIZE];
 /*! @brief agent instance */
 usb_shim_agent_struct_t g_shimAgent;
 
@@ -103,7 +107,7 @@ weightscale_measurement_struct_t measurement = {
 };
 
 /*! @brief association request data to send */
-static uint8_t g_associationRequestData[ASSOCIATION_REQUEST_LENGTH] = {
+USB_DATA_ALIGNMENT static uint8_t g_associationRequestData[ASSOCIATION_REQUEST_LENGTH] = {
     0xE2U, 0x00U,               /* APDU CHOICE Type (AarqApdu) */
     0x00U, 0x32U,               /* CHOICE.length = 50 */
     0x80U, 0x00U, 0x00U, 0x00U, /* assoc-version */
@@ -123,7 +127,7 @@ static uint8_t g_associationRequestData[ASSOCIATION_REQUEST_LENGTH] = {
 };
 
 /*! @brief remote operation invoke event report configuration data */
-static uint8_t g_roivEventRepostConfigurationData[EVENT_REPORT_CONFIGURATION_LENGTH] = {
+USB_DATA_ALIGNMENT static uint8_t g_roivEventRepostConfigurationData[EVENT_REPORT_CONFIGURATION_LENGTH] = {
     0xE7U, 0x00U, /* APDU CHOICE Type (PrstApdu) */
     0x00U, 0xA2U, /* CHOICE.length = 162 */
     0x00U, 0xA0U, /* OCTET STRING.length = 160 */
@@ -210,7 +214,7 @@ static uint8_t g_roivEventRepostConfigurationData[EVENT_REPORT_CONFIGURATION_LEN
 };
 
 /*! @brief remote operation response | Get with all MDS attributes */
-static uint8_t g_rorsCmipGetData[EVENT_RESPONSE_GET_LENGTH] = {
+USB_DATA_ALIGNMENT static uint8_t g_rorsCmipGetData[EVENT_RESPONSE_GET_LENGTH] = {
     0xE7U, 0x00U, /* APDU CHOICE Type (PrstApdu) */
     0x00U, 0x6EU, /* CHOICE.length = 110 */
     0x00U, 0x6CU, /* OCTET STRING.length = 108 */
@@ -251,7 +255,7 @@ static uint8_t g_rorsCmipGetData[EVENT_RESPONSE_GET_LENGTH] = {
     0x12U, 0x05U, 0x00U, 0x00};
 
 /*! @brief measurements to send */
-static uint8_t g_eventReportData[EVENT_REPORT_DATA_LENGTH] = {
+USB_DATA_ALIGNMENT static uint8_t g_eventReportData[EVENT_REPORT_DATA_LENGTH] = {
     0xE7U, 0x00U,               /* APDU CHOICE Type (PrstApdu) */
     0x00U, 0x5AU,               /* CHOICE.length = 90 */
     0x00U, 0x58U,               /* OCTET STRING.length = 88 */
@@ -653,6 +657,12 @@ void USBHS_IRQHandler(void)
     USB_DeviceEhciIsrFunction(g_shimAgent.deviceHandle);
 }
 #endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+void USB0_IRQHandler(void)
+{
+    USB_DeviceLpcIp3511IsrFunction(g_shimAgent.deviceHandle);
+}
+#endif
 
 /*!
  * @brief application initialization.
@@ -667,7 +677,8 @@ static void USB_DeviceApplicationInit(void)
     uint8_t ehciIrq[] = USBHS_IRQS;
     irqNumber = ehciIrq[CONTROLLER_ID - kUSB_ControllerEhci0];
 
-    CLOCK_EnableUsbhs0Clock(kCLOCK_UsbSrcPll0, CLOCK_GetFreq(kCLOCK_PllFllSelClk));
+    CLOCK_EnableUsbhs0PhyPllClock(USB_HS_PHY_CLK_SRC, USB_HS_PHY_CLK_FREQ);
+    CLOCK_EnableUsbhs0Clock(USB_HS_CLK_SRC, USB_HS_CLK_FREQ);
     USB_EhciPhyInit(CONTROLLER_ID, BOARD_XTAL0_CLK_HZ);
 #endif
 #if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0U)
@@ -676,12 +687,17 @@ static void USB_DeviceApplicationInit(void)
 
     SystemCoreClockUpdate();
 
-#if ((defined FSL_FEATURE_USB_KHCI_IRC48M_MODULE_CLOCK_ENABLED) && (FSL_FEATURE_USB_KHCI_IRC48M_MODULE_CLOCK_ENABLED))
-    CLOCK_EnableUsbfs0Clock(kCLOCK_UsbSrcIrc48M, 48000000U);
-#else
-    CLOCK_EnableUsbfs0Clock(kCLOCK_UsbSrcPll0, CLOCK_GetFreq(kCLOCK_PllFllSelClk));
-#endif /* FSL_FEATURE_USB_KHCI_IRC48M_MODULE_CLOCK_ENABLED */
+    CLOCK_EnableUsbfs0Clock(USB_FS_CLK_SRC, USB_FS_CLK_FREQ);
 #endif
+
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+    uint8_t usbDeviceIP3511Irq[] = USB_IRQS;
+    irqNumber = usbDeviceIP3511Irq[CONTROLLER_ID - kUSB_ControllerLpcIp3511Fs0];
+
+    /* enable USB IP clock */
+    CLOCK_EnableUsbfs0Clock(USB_FS_CLK_SRC, USB_FS_CLK_FREQ);
+#endif
+
 #if (defined(FSL_FEATURE_SOC_MPU_COUNT) && (FSL_FEATURE_SOC_MPU_COUNT > 0U))
     MPU_Enable(MPU, 0);
 #endif /* FSL_FEATURE_SOC_MPU_COUNT */
@@ -703,6 +719,7 @@ static void USB_DeviceApplicationInit(void)
     g_shimAgent.speed = USB_SPEED_FULL;
     g_shimAgent.attach = 0U;
     g_shimAgent.deviceHandle = NULL;
+    g_shimAgent.recvDataBuffer = s_RecvDataBuffer;
 
     if (kStatus_USB_Success != USB_DeviceClassInit(CONTROLLER_ID, &g_agentDeviceConfigList, &g_shimAgent.deviceHandle))
     {
@@ -732,6 +749,9 @@ void USB_DeviceTask(void *handle)
 #endif
 #if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0U)
         USB_DeviceKhciTaskFunction(handle);
+#endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+        USB_DeviceLpcIp3511TaskFunction(handle);
 #endif
     }
 }

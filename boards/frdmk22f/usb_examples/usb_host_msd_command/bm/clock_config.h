@@ -43,6 +43,7 @@
 extern "C" {
 #endif /* __cplusplus*/
 
+void BOARD_InitOsc0(void);
 void BOARD_BootClockVLPR(void);
 void BOARD_BootClockRUN(void);
 void BOARD_BootClockHSRUN(void);

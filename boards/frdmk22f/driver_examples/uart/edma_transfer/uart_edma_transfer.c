@@ -59,7 +59,7 @@ void UART_UserCallback(UART_Type *base, uart_edma_handle_t *handle, status_t sta
 uart_edma_handle_t g_uartEdmaHandle;
 edma_handle_t g_uartTxEdmaHandle;
 edma_handle_t g_uartRxEdmaHandle;
-uint8_t g_tipString[] = "UART DMA example\r\nSend back received data\r\nEcho every 8 characters\r\n";
+uint8_t g_tipString[] = "UART EDMA example\r\nSend back received data\r\nEcho every 8 characters\r\n";
 uint8_t g_txBuffer[ECHO_BUFFER_LENGTH] = {0};
 uint8_t g_rxBuffer[ECHO_BUFFER_LENGTH] = {0};
 volatile bool rxBufferEmpty = true;
@@ -128,7 +128,7 @@ int main(void)
 
     /* Create UART DMA handle. */
     UART_TransferCreateHandleEDMA(DEMO_UART, &g_uartEdmaHandle, UART_UserCallback, NULL, &g_uartTxEdmaHandle,
-                          &g_uartRxEdmaHandle);
+                                  &g_uartRxEdmaHandle);
 
     /* Send g_tipString out. */
     xfer.data = g_tipString;

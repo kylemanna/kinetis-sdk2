@@ -26,25 +26,52 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
 #ifndef _PIN_MUX_H_
 #define _PIN_MUX_H_
 
-#include "board.h"
-#include "fsl_common.h"
+/*******************************************************************************
+ * Definitions
+ ******************************************************************************/
+
+/*! @brief Direction type  */
+typedef enum _pin_mux_direction
+{
+    kPIN_MUX_DirectionInput = 0U,        /* Input direction */
+    kPIN_MUX_DirectionOutput = 1U,       /* Output direction */
+    kPIN_MUX_DirectionInputOrOutput = 2U /* Input or output direction */
+} pin_mux_direction_t;
+
+/*!
+ * @addtogroup pin_mux
+ * @{
+ */
+
+/*******************************************************************************
+ * API
+ ******************************************************************************/
 
 #if defined(__cplusplus)
 extern "C" {
-#endif /* __cplusplus*/
-       /*!
-        * @brief configure all pins for this demo/example
-        *
-        */
+#endif
+
+/*!
+ * @brief Configures pin routing and optionally pin electrical features.
+ *
+ */
 void BOARD_InitPins(void);
 
 #if defined(__cplusplus)
 }
-#endif /* __cplusplus*/
+#endif
 
+/*!
+ * @}
+ */
 #endif /* _PIN_MUX_H_ */
+
+/*******************************************************************************
+ * EOF
+ ******************************************************************************/

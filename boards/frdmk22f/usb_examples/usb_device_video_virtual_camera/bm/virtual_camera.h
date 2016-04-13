@@ -41,6 +41,9 @@
 #if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0U)
 #define CONTROLLER_ID kUSB_ControllerKhci0
 #endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+#define CONTROLLER_ID kUSB_ControllerLpcIp3511Fs0
+#endif
 
 #define USB_DEVICE_INTERRUPT_PRIORITY (3U)
 
@@ -49,7 +52,7 @@ typedef struct _usb_video_virtual_camera_struct
     usb_device_handle deviceHandle;
     class_handle_t videoHandle;
     uint32_t currentMaxPacketSize;
-    uint8_t imageBuffer[HS_STREAM_IN_PACKET_SIZE];
+    uint8_t *imageBuffer;
     uint32_t imageBufferLength;
     usb_device_video_probe_and_commit_controls_struct_t probeStruct;
     usb_device_video_probe_and_commit_controls_struct_t commitStruct;
