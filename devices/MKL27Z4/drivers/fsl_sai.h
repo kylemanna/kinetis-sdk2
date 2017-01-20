@@ -838,6 +838,16 @@ void SAI_TransferTxHandleIRQ(I2S_Type *base, sai_handle_t *handle);
  */
 void SAI_TransferRxHandleIRQ(I2S_Type *base, sai_handle_t *handle);
 
+/*!
+ * @brief Called when a DMA TX needs to disable after the last byte is sent
+ *        otherwise DMA driver will disable the driver when the last byte is
+ *        written to the FIFO and disable the transmitter before it is sent.
+ *
+ * @param base SAI base pointer.
+ * @param handle Pointer to the sai_handle_t structure.
+ */
+void SAI_TxDisableAfterFIFOEmpty(I2S_Type *base, void *userData);
+
 /*! @} */
 
 #if defined(__cplusplus)

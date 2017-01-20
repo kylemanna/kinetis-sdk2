@@ -361,8 +361,8 @@ void SAI_TransferAbortSendDMA(I2S_Type *base, sai_dma_handle_t *handle)
     SAI_TxEnableDMA(base, kSAI_FIFOWarningDMAEnable, false);
 #endif
 
-    /* Disable Tx */
-    SAI_TxEnable(base, false);
+    /* Disable Tx after the FIFO is empty */
+    SAI_TxDisableAfterFIFOEmpty(base, handle);
 
     /* Set the handle state */
     handle->state = kSAI_Idle;

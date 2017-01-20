@@ -690,6 +690,37 @@ void SAI_TransferTxCreateHandle(I2S_Type *base, sai_handle_t *handle, sai_transf
     EnableIRQ(s_saiTxIRQ[SAI_GetInstance(base)]);
 }
 
+static void SAI_TxDisableAfterFIFOEmptyCallback(I2S_Type *base, sai_handle_t *handle)
+{
+    /* Handle isn't actually a handle in this case */
+    void *userData = (void*)handle;
+    assert(userData);
+
+    SAI_TxDisableInterrupts(base, kSAI_FIFOWarningInterruptEnable);
+    SAI_TxEnable(base, false);
+}
+
+void SAI_TxDisableAfterFIFOEmpty(I2S_Type *base, void *userData)
+{
+    /* When called from SAI_TransferAbortSendDMA a sai_dma_handle_t* is passed
+     * in as userData and is only used to satisfy the IRQ test for the handle
+     * being set before calling SAI_TxDisableAfterFIFOEmptyCallback().
+     *
+     * This is a hack.
+     */
+    assert(userData);
+
+    /* Handle isn't actually a handle in this case */
+    s_saiHandle[SAI_GetInstance(base)][0] = userData;
+
+    /* Set the isr pointer */
+    s_saiTxIsr = SAI_TxDisableAfterFIFOEmptyCallback;
+
+    /* Enable Tx irq */
+    SAI_TxEnableInterrupts(base, kSAI_FIFOWarningInterruptEnable);
+    EnableIRQ(s_saiTxIRQ[SAI_GetInstance(base)]);
+}
+
 void SAI_TransferRxCreateHandle(I2S_Type *base, sai_handle_t *handle, sai_transfer_callback_t callback, void *userData)
 {
     assert(handle);
