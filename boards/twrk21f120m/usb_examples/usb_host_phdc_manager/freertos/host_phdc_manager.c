@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -165,8 +165,11 @@ static void PHDC_ManagerRecvAssociationRequest(void *param, aarq_apdu_t *associa
     aare_apdu_t *associationResponse = NULL;
     /* Initialize the association result variable is Reject-unknown */
     phdcManagerInstance->assocResult = REJECTED_UNKNOWN;
+    uint32_t tempassocVersion;
+    USB_ASSIGN_VALUE_ADDRESS_LONG_BY_BYTE(tempassocVersion, associationRequest->assocVersion);
+
     /* Checks the association version of association procedure */
-    if (USB_LONG_FROM_BIG_ENDIAN(ASSOC_VERSION1) != associationRequest->assocVersion)
+    if (USB_LONG_FROM_BIG_ENDIAN(ASSOC_VERSION1) != tempassocVersion)
     {
         data_proto_t *dataProto = (data_proto_t *)&associationRequest->dataProtoList.value[0U];
         /* The manager does not understand the association version, it shall reject
@@ -288,13 +291,17 @@ static void PHDC_ManagerSendAssociationResponse(void *param, aare_apdu_t *associ
                           sizeof(associationResponse->selectedDataProto.dataProtoId) +
                           sizeof(associationResponse->selectedDataProto.dataProtoInfo.length) +
                           USB_SHORT_FROM_BIG_ENDIAN(associationResponse->selectedDataProto.dataProtoInfo.length));
+
         pApdu = (apdu_t *)&phdcManagerInstance->sendDataBuffer[0];
-        pApdu->choice = (uint16_t)USB_SHORT_FROM_BIG_ENDIAN(AARE_CHOSEN);
-        pApdu->length = (uint16_t)USB_SHORT_FROM_BIG_ENDIAN(size - APDU_HEADER_SIZE);
-        pApdu->u.aare.result = associationResponse->result;
-        pApdu->u.aare.selectedDataProto.dataProtoId = associationResponse->selectedDataProto.dataProtoId;
-        pApdu->u.aare.selectedDataProto.dataProtoInfo.length =
-            associationResponse->selectedDataProto.dataProtoInfo.length;
+        USB_ASSIGN_MACRO_VALUE_ADDRESS_SHORT_BY_BYTE(pApdu->choice, USB_SHORT_FROM_BIG_ENDIAN(AARE_CHOSEN));
+        USB_ASSIGN_MACRO_VALUE_ADDRESS_SHORT_BY_BYTE(pApdu->length, USB_SHORT_FROM_BIG_ENDIAN(size - APDU_HEADER_SIZE));
+
+        USB_ASSIGN_VALUE_ADDRESS_SHORT_BY_BYTE(pApdu->u.aare.result, associationResponse->result);
+        USB_ASSIGN_VALUE_ADDRESS_SHORT_BY_BYTE(pApdu->u.aare.selectedDataProto.dataProtoId,
+                                               associationResponse->selectedDataProto.dataProtoId);
+        USB_ASSIGN_VALUE_ADDRESS_SHORT_BY_BYTE(pApdu->u.aare.selectedDataProto.dataProtoInfo.length,
+                                               associationResponse->selectedDataProto.dataProtoInfo.length);
+
         if (USB_SHORT_FROM_BIG_ENDIAN(associationResponse->selectedDataProto.dataProtoInfo.length) > 0U)
         {
             memcpy(&pApdu->u.aare.selectedDataProto.dataProtoInfo.value[0],
@@ -794,7 +801,7 @@ static void PHDC_ManagerRecvMdcNotiConfig(void *param, event_report_argument_sim
         eventResponse = (event_report_result_simple_t *)&s_tempBuffer[0U];
         config_report_rsp_t *configResponse;
         eventResponse->objectHandle = eventReport->objectHandle;
-        eventResponse->currentTime = eventReport->eventTime;
+        USB_ASSIGN_VALUE_ADDRESS_LONG_BY_BYTE(eventResponse->currentTime, eventReport->eventTime);
         eventResponse->eventType = eventReport->eventType;
         eventResponse->eventReplyInfo.length = USB_SHORT_FROM_BIG_ENDIAN(sizeof(config_report_rsp_t));
         configResponse = (config_report_rsp_t *)(&eventResponse->eventReplyInfo.value[0]);
@@ -880,7 +887,7 @@ static void PHDC_ManagerRecvMdcNotiScanReportFixed(void *param, event_report_arg
     /* prepare response data */
     eventResponse = (event_report_result_simple_t *)&s_tempBuffer[0U];
     eventResponse->objectHandle = eventReport->objectHandle;
-    eventResponse->currentTime = eventReport->eventTime;
+    USB_ASSIGN_VALUE_ADDRESS_LONG_BY_BYTE(eventResponse->currentTime, eventReport->eventTime);
     eventResponse->eventType = eventReport->eventType;
     eventResponse->eventReplyInfo.length = 0U; /* There is no reply data */
     PHDC_ManagerSendRorsCmipConfirmedEventReport(param, eventResponse);
@@ -1014,18 +1021,27 @@ static void PHDC_ManagerSendRorsCmipConfirmedEventReport(void *param, event_repo
                       sizeof(eventResponse->eventReplyInfo.length) +
                       USB_SHORT_FROM_BIG_ENDIAN(eventResponse->eventReplyInfo.length));
     pApdu = (apdu_t *)&phdcManagerInstance->sendDataBuffer[0];
-    pApdu->choice = (uint16_t)USB_SHORT_FROM_BIG_ENDIAN(PRST_CHOSEN);
-    pApdu->length = (uint16_t)USB_SHORT_FROM_BIG_ENDIAN(size - APDU_HEADER_SIZE);
-    pApdu->u.prst.length = (uint16_t)USB_SHORT_FROM_BIG_ENDIAN(size - APDU_HEADER_SIZE - sizeof(uint16_t));
+    USB_ASSIGN_MACRO_VALUE_ADDRESS_SHORT_BY_BYTE(pApdu->choice, USB_SHORT_FROM_BIG_ENDIAN(PRST_CHOSEN));
+    USB_ASSIGN_MACRO_VALUE_ADDRESS_SHORT_BY_BYTE(pApdu->length, USB_SHORT_FROM_BIG_ENDIAN(size - APDU_HEADER_SIZE));
+    USB_ASSIGN_MACRO_VALUE_ADDRESS_SHORT_BY_BYTE(pApdu->u.prst.length,
+                                                 USB_SHORT_FROM_BIG_ENDIAN(size - APDU_HEADER_SIZE - sizeof(uint16_t)));
 
     pPrst = (data_apdu_t *)&(pApdu->u.prst.value[0U]);
-    pPrst->invokeId = phdcManagerInstance->invokeId;
-    pPrst->choice.length = (uint16_t)USB_SHORT_FROM_BIG_ENDIAN(size - APDU_HEADER_SIZE - ASSOC_PRST_HEADER_SIZE);
-    pPrst->choice.choice = (uint16_t)USB_SHORT_FROM_BIG_ENDIAN(RORS_CMIP_CONFIRMED_EVENT_REPORT_CHOSEN);
-    pPrst->choice.u.rorsCmipConfirmedEventReport.objectHandle = eventResponse->objectHandle;
-    pPrst->choice.u.rorsCmipConfirmedEventReport.currentTime = eventResponse->currentTime;
-    pPrst->choice.u.rorsCmipConfirmedEventReport.eventType = eventResponse->eventType;
-    pPrst->choice.u.rorsCmipConfirmedEventReport.eventReplyInfo.length = eventResponse->eventReplyInfo.length;
+    USB_ASSIGN_VALUE_ADDRESS_SHORT_BY_BYTE(pPrst->invokeId, phdcManagerInstance->invokeId);
+    USB_ASSIGN_MACRO_VALUE_ADDRESS_SHORT_BY_BYTE(
+        pPrst->choice.length, USB_SHORT_FROM_BIG_ENDIAN(size - APDU_HEADER_SIZE - ASSOC_PRST_HEADER_SIZE));
+    USB_ASSIGN_MACRO_VALUE_ADDRESS_SHORT_BY_BYTE(pPrst->choice.choice,
+                                                 USB_SHORT_FROM_BIG_ENDIAN(RORS_CMIP_CONFIRMED_EVENT_REPORT_CHOSEN));
+    USB_ASSIGN_VALUE_ADDRESS_SHORT_BY_BYTE(pPrst->choice.u.rorsCmipConfirmedEventReport.objectHandle,
+                                           eventResponse->objectHandle);
+    USB_ASSIGN_VALUE_ADDRESS_LONG_BY_BYTE(pPrst->choice.u.rorsCmipConfirmedEventReport.currentTime,
+                                          eventResponse->currentTime);
+
+    USB_ASSIGN_VALUE_ADDRESS_SHORT_BY_BYTE(pPrst->choice.u.rorsCmipConfirmedEventReport.eventType,
+                                           eventResponse->eventType);
+    USB_ASSIGN_VALUE_ADDRESS_SHORT_BY_BYTE(pPrst->choice.u.rorsCmipConfirmedEventReport.eventReplyInfo.length,
+                                           eventResponse->eventReplyInfo.length);
+
     if (USB_SHORT_FROM_BIG_ENDIAN(eventResponse->eventReplyInfo.length) > 0U)
     {
         memcpy(&(pPrst->choice.u.rorsCmipConfirmedEventReport.eventReplyInfo.value[0U]),
@@ -1076,19 +1092,24 @@ static void PHDC_ManagerSendRoivCmipGet(void *param, get_argument_simple_t *getA
                       USB_SHORT_FROM_BIG_ENDIAN(getArg->attributeIdList.length));
     pApdu = (apdu_t *)&phdcManagerInstance->sendDataBuffer[0];
     /* Set value for APDU header */
-    pApdu->choice = (uint16_t)USB_SHORT_FROM_BIG_ENDIAN(PRST_CHOSEN);
-    pApdu->length = (uint16_t)USB_SHORT_FROM_BIG_ENDIAN(size - APDU_HEADER_SIZE);
+    USB_ASSIGN_MACRO_VALUE_ADDRESS_SHORT_BY_BYTE(pApdu->choice, USB_SHORT_FROM_BIG_ENDIAN(PRST_CHOSEN));
+    USB_ASSIGN_MACRO_VALUE_ADDRESS_SHORT_BY_BYTE(pApdu->length, USB_SHORT_FROM_BIG_ENDIAN(size - APDU_HEADER_SIZE));
 
     /* Set value for PRST_APDU header */
-    pApdu->u.prst.length = (uint16_t)USB_SHORT_FROM_BIG_ENDIAN(size - APDU_HEADER_SIZE - sizeof(uint16_t));
-    pPrst = (data_apdu_t *)&(pApdu->u.prst.value[0U]);
-    pPrst->invokeId = USB_SHORT_FROM_BIG_ENDIAN(invokeId);
-    pPrst->choice.choice = (uint16_t)USB_SHORT_FROM_BIG_ENDIAN(ROIV_CMIP_GET_CHOSEN);
-    pPrst->choice.length = (uint16_t)USB_SHORT_FROM_BIG_ENDIAN(size - APDU_HEADER_SIZE - ASSOC_PRST_HEADER_SIZE);
+    USB_ASSIGN_MACRO_VALUE_ADDRESS_SHORT_BY_BYTE(pApdu->u.prst.length,
+                                                 USB_SHORT_FROM_BIG_ENDIAN(size - APDU_HEADER_SIZE - sizeof(uint16_t)));
 
-    pPrst->choice.u.roivCmipGet.objectHandle = getArg->objectHandle;
-    pPrst->choice.u.roivCmipGet.attributeIdList.count = getArg->attributeIdList.count;
-    pPrst->choice.u.roivCmipGet.attributeIdList.length = getArg->attributeIdList.length;
+    pPrst = (data_apdu_t *)&(pApdu->u.prst.value[0U]);
+    USB_ASSIGN_MACRO_VALUE_ADDRESS_SHORT_BY_BYTE(pPrst->invokeId, USB_SHORT_FROM_BIG_ENDIAN(invokeId));
+    USB_ASSIGN_MACRO_VALUE_ADDRESS_SHORT_BY_BYTE(pPrst->choice.choice, USB_SHORT_FROM_BIG_ENDIAN(ROIV_CMIP_GET_CHOSEN));
+    USB_ASSIGN_MACRO_VALUE_ADDRESS_SHORT_BY_BYTE(
+        pPrst->choice.length, USB_SHORT_FROM_BIG_ENDIAN(size - APDU_HEADER_SIZE - ASSOC_PRST_HEADER_SIZE));
+
+    USB_ASSIGN_VALUE_ADDRESS_SHORT_BY_BYTE(pPrst->choice.u.roivCmipGet.objectHandle, getArg->objectHandle);
+    USB_ASSIGN_VALUE_ADDRESS_SHORT_BY_BYTE(pPrst->choice.u.roivCmipGet.attributeIdList.count,
+                                           getArg->attributeIdList.count);
+    USB_ASSIGN_VALUE_ADDRESS_SHORT_BY_BYTE(pPrst->choice.u.roivCmipGet.attributeIdList.length,
+                                           getArg->attributeIdList.length);
     if (USB_SHORT_FROM_BIG_ENDIAN(getArg->attributeIdList.length) > 0U)
     {
         memcpy((uint8_t *)&(pPrst->choice.u.roivCmipGet.attributeIdList.value[0U]),

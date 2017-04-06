@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -33,7 +33,7 @@
 #include "usb_device.h"
 
 #include "usb_device_audio.h"
-
+#include "usb_audio_config.h"
 #include "usb_device_ch9.h"
 #include "usb_device_descriptor.h"
 
@@ -56,25 +56,13 @@
 /*******************************************************************************
  * Prototypes
  ******************************************************************************/
-
+extern void USB_PrepareData(void);
 /*******************************************************************************
-* Variables
-******************************************************************************/
-#if defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 0U)
-#define AUDIO_ENDPOINT_MAX_PACKET_SIZE \
-    (FS_ISO_IN_ENDP_PACKET_SIZE > HS_ISO_IN_ENDP_PACKET_SIZE ? FS_ISO_IN_ENDP_PACKET_SIZE : HS_ISO_IN_ENDP_PACKET_SIZE)
-#endif
-#if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0U)
-#define AUDIO_ENDPOINT_MAX_PACKET_SIZE (FS_ISO_IN_ENDP_PACKET_SIZE)
-#endif
-
-uint32_t audioPosition = 0U;
+ * Variables
+ ******************************************************************************/
 uint8_t g_InterfaceIsSet = 0;
 
-extern const unsigned char wavData[];
-extern const uint16_t wavSize;
-
-static uint8_t s_wavBuff[AUDIO_ENDPOINT_MAX_PACKET_SIZE];
+extern uint8_t s_wavBuff[];
 
 static usb_device_composite_struct_t *g_deviceComposite;
 
@@ -88,21 +76,6 @@ usb_status_t USB_DeviceAudioProcessTerminalRequest(uint32_t audioCommand, uint32
  *
  * This function prepare audio wav data before send.
  */
-void USB_PrepareData(void)
-{
-    uint8_t k;
-    /* copy audio wav data from flash to buffer */
-    for (k = 0U; k < AUDIO_ENDPOINT_MAX_PACKET_SIZE; k++)
-    {
-        if (audioPosition > (wavSize - 1U))
-        {
-            audioPosition = 0U;
-        }
-        s_wavBuff[k] = wavData[audioPosition];
-        audioPosition++;
-    }
-}
-
 /* USB device audio ISO OUT endpoint callback */
 usb_status_t USB_DeviceAudioIsoOut(usb_device_handle deviceHandle,
                                    usb_device_endpoint_callback_message_struct_t *event,
@@ -705,16 +678,16 @@ usb_status_t USB_DeviceAudioGeneratorClassRequest(usb_device_handle handle,
 
     switch (setup->bmRequestType)
     {
-        case USB_DEVICE_AUDIO_SET_REQUSET_INTERFACE:
+        case USB_DEVICE_AUDIO_SET_REQUEST_INTERFACE:
             error = USB_DeviceAudioSetRequestInterface(handle, setup, length, buffer);
             break;
-        case USB_DEVICE_AUDIO_GET_REQUSET_INTERFACE:
+        case USB_DEVICE_AUDIO_GET_REQUEST_INTERFACE:
             error = USB_DeviceAudioGetRequestInterface(handle, setup, length, buffer);
             break;
-        case USB_DEVICE_AUDIO_SET_REQUSET_ENDPOINT:
+        case USB_DEVICE_AUDIO_SET_REQUEST_ENDPOINT:
             error = USB_DeviceAudioSetRequestEndpoint(handle, setup, length, buffer);
             break;
-        case USB_DEVICE_AUDIO_GET_REQUSET_ENDPOINT:
+        case USB_DEVICE_AUDIO_GET_REQUEST_ENDPOINT:
             error = USB_DeviceAudioGetRequestEndpoint(handle, setup, length, buffer);
             break;
         default:
@@ -728,7 +701,7 @@ usb_status_t USB_DeviceAudioProcessTerminalRequest(uint32_t audioCommand, uint32
 {
     usb_status_t error = kStatus_USB_Success;
     uint16_t volume = 0;
-    
+
     switch (audioCommand)
     {
         case USB_DEVICE_AUDIO_GET_CUR_MUTE_CONTROL:

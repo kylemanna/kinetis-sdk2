@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -69,8 +69,7 @@ int main(void)
     BOARD_InitPins();
     BOARD_BootClockRUN();
     BOARD_InitDebugConsole();
-    xTaskCreate(producer_task, "PRODUCER_TASK", configMINIMAL_STACK_SIZE, NULL, TASK_PRIO, NULL);
-    PRINTF("Producer_task created.\r\n");
+    xTaskCreate(producer_task, "PRODUCER_TASK", configMINIMAL_STACK_SIZE + 128, NULL, TASK_PRIO, NULL);
     /* Start scheduling. */
     vTaskStartScheduler();
     for (;;)
@@ -83,7 +82,8 @@ int main(void)
 static void producer_task(void *pvParameters)
 {
     uint32_t i;
-
+    
+    PRINTF("Producer_task created.\r\n");
     xSemaphore_producer = xSemaphoreCreateBinary();
     if (xSemaphore_producer == NULL)
     {

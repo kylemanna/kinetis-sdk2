@@ -30,7 +30,7 @@
  *  of this software
 
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -42,7 +42,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -66,9 +66,10 @@
 #include <math.h>
 #include "fsl_debug_console.h"
 
-#if defined(FSL_FEATURE_SOC_UART_COUNT) && (FSL_FEATURE_SOC_UART_COUNT > 0)
+#if (defined(FSL_FEATURE_SOC_UART_COUNT) && (FSL_FEATURE_SOC_UART_COUNT > 0)) || \
+    (defined(FSL_FEATURE_SOC_IUART_COUNT) && (FSL_FEATURE_SOC_IUART_COUNT > 0))
 #include "fsl_uart.h"
-#endif /* FSL_FEATURE_SOC_UART_COUNT */
+#endif /* FSL_FEATURE_SOC_UART_COUNT || FSL_FEATURE_SOC_IUART_COUNT */
 
 #if defined(FSL_FEATURE_SOC_LPSCI_COUNT) && (FSL_FEATURE_SOC_LPSCI_COUNT > 0)
 #include "fsl_lpsci.h"
@@ -77,6 +78,18 @@
 #if defined(FSL_FEATURE_SOC_LPUART_COUNT) && (FSL_FEATURE_SOC_LPUART_COUNT > 0)
 #include "fsl_lpuart.h"
 #endif /* FSL_FEATURE_SOC_LPUART_COUNT */
+
+#if defined(FSL_FEATURE_SOC_USB_COUNT) && (FSL_FEATURE_SOC_USB_COUNT > 0) && defined(BOARD_USE_VIRTUALCOM)
+#include "usb_device_config.h"
+#include "usb.h"
+#include "usb_device_cdc_acm.h"
+#include "usb_device_ch9.h"
+#include "virtual_com.h"
+#endif
+
+#if defined(FSL_FEATURE_SOC_FLEXCOMM_COUNT) && (FSL_FEATURE_SOC_FLEXCOMM_COUNT > 0)
+#include "fsl_usart.h"
+#endif /* FSL_FEATURE_SOC_FLEXCOMM_COUNT */
 
 /*! @brief Keil: suppress ellipsis warning in va_arg usage below. */
 #if defined(__CC_ARM)
@@ -105,28 +118,42 @@ typedef struct DebugConsoleOperationFunctions
     union
     {
         void (*PutChar)(void *base, const uint8_t *buffer, size_t length);
-#if defined(FSL_FEATURE_SOC_UART_COUNT) && (FSL_FEATURE_SOC_UART_COUNT > 0)
+#if (defined(FSL_FEATURE_SOC_UART_COUNT) && (FSL_FEATURE_SOC_UART_COUNT > 0)) || \
+    (defined(FSL_FEATURE_SOC_IUART_COUNT) && (FSL_FEATURE_SOC_IUART_COUNT > 0))
         void (*UART_PutChar)(UART_Type *base, const uint8_t *buffer, size_t length);
-#endif /* FSL_FEATURE_SOC_UART_COUNT */
+#endif /* FSL_FEATURE_SOC_UART_COUNT || FSL_FEATURE_SOC_IUART_COUNT */
 #if defined(FSL_FEATURE_SOC_LPSCI_COUNT) && (FSL_FEATURE_SOC_LPSCI_COUNT > 0)
         void (*LPSCI_PutChar)(UART0_Type *base, const uint8_t *buffer, size_t length);
 #endif /* FSL_FEATURE_SOC_LPSCI_COUNT */
 #if defined(FSL_FEATURE_SOC_LPUART_COUNT) && (FSL_FEATURE_SOC_LPUART_COUNT > 0)
         void (*LPUART_PutChar)(LPUART_Type *base, const uint8_t *buffer, size_t length);
 #endif /* FSL_FEATURE_SOC_LPUART_COUNT */
+#if defined(FSL_FEATURE_SOC_USB_COUNT) && (FSL_FEATURE_SOC_USB_COUNT > 0) && defined(BOARD_USE_VIRTUALCOM)
+        void (*USB_PutChar)(usb_device_handle base, const uint8_t *buf, size_t count);
+#endif /* FSL_FEATURE_SOC_USB_COUNT && BOARD_USE_VIRTUALCOM*/
+#if defined(FSL_FEATURE_SOC_FLEXCOMM_COUNT) && (FSL_FEATURE_SOC_FLEXCOMM_COUNT > 0)
+        void (*USART_PutChar)(USART_Type *base, const uint8_t *data, size_t length);
+#endif /* FSL_FEATURE_SOC_FLEXCOMM_COUNT */
     } tx_union;
     union
     {
-        void (*GetChar)(void *base, const uint8_t *buffer, size_t length);
-#if defined(FSL_FEATURE_SOC_UART_COUNT) && (FSL_FEATURE_SOC_UART_COUNT > 0)
+        status_t (*GetChar)(void *base, const uint8_t *buffer, size_t length);
+#if (defined(FSL_FEATURE_SOC_UART_COUNT) && (FSL_FEATURE_SOC_UART_COUNT > 0)) || \
+    (defined(FSL_FEATURE_SOC_IUART_COUNT) && (FSL_FEATURE_SOC_IUART_COUNT > 0))
         status_t (*UART_GetChar)(UART_Type *base, uint8_t *buffer, size_t length);
-#endif /* FSL_FEATURE_SOC_UART_COUNT */
+#endif /* FSL_FEATURE_SOC_UART_COUNT || FSL_FEATURE_SOC_IUART_COUNT*/
 #if defined(FSL_FEATURE_SOC_LPSCI_COUNT) && (FSL_FEATURE_SOC_LPSCI_COUNT > 0)
         status_t (*LPSCI_GetChar)(UART0_Type *base, uint8_t *buffer, size_t length);
 #endif /* FSL_FEATURE_SOC_LPSCI_COUNT */
 #if defined(FSL_FEATURE_SOC_LPUART_COUNT) && (FSL_FEATURE_SOC_LPUART_COUNT > 0)
         status_t (*LPUART_GetChar)(LPUART_Type *base, uint8_t *buffer, size_t length);
 #endif /* FSL_FEATURE_SOC_LPUART_COUNT */
+#if defined(FSL_FEATURE_SOC_USB_COUNT) && (FSL_FEATURE_SOC_USB_COUNT > 0) && defined(BOARD_USE_VIRTUALCOM)
+        status_t (*USB_GetChar)(usb_device_handle base, uint8_t *buf, size_t count);
+#endif /* FSL_FEATURE_SOC_USB_COUNT && BOARD_USE_VIRTUALCOM*/
+#if defined(FSL_FEATURE_SOC_FLEXCOMM_COUNT) && (FSL_FEATURE_SOC_FLEXCOMM_COUNT > 0)
+        status_t (*USART_GetChar)(USART_Type *base, uint8_t *data, size_t length);
+#endif
     } rx_union;
 } debug_console_ops_t;
 
@@ -190,7 +217,7 @@ static debug_console_state_t s_debugConsole = {.type = DEBUG_CONSOLE_DEVICE_TYPE
  * Prototypes
  ******************************************************************************/
 #if SDK_DEBUGCONSOLE
-static int DbgConsole_PrintfFormattedData(PUTCHAR_FUNC func_ptr, char *fmt, va_list ap);
+static int DbgConsole_PrintfFormattedData(PUTCHAR_FUNC func_ptr, const char *fmt, va_list ap);
 static int DbgConsole_ScanfFormattedData(const char *line_ptr, char *format, va_list args_ptr);
 double modf(double input_dbl, double *intpart_ptr);
 #endif /* SDK_DEBUGCONSOLE */
@@ -215,8 +242,10 @@ status_t DbgConsole_Init(uint32_t baseAddr, uint32_t baudRate, uint8_t device, u
     /* Switch between different device. */
     switch (device)
     {
-#if defined(FSL_FEATURE_SOC_UART_COUNT) && (FSL_FEATURE_SOC_UART_COUNT > 0)
+#if (defined(FSL_FEATURE_SOC_UART_COUNT) && (FSL_FEATURE_SOC_UART_COUNT > 0)) || \
+    (defined(FSL_FEATURE_SOC_IUART_COUNT) && (FSL_FEATURE_SOC_IUART_COUNT > 0))
         case DEBUG_CONSOLE_DEVICE_TYPE_UART:
+        case DEBUG_CONSOLE_DEVICE_TYPE_IUART:
         {
             uart_config_t uart_config;
             s_debugConsole.base = (UART_Type *)baseAddr;
@@ -265,7 +294,31 @@ status_t DbgConsole_Init(uint32_t baseAddr, uint32_t baudRate, uint8_t device, u
             s_debugConsole.ops.rx_union.LPUART_GetChar = LPUART_ReadBlocking;
         }
         break;
-#endif  /* FSL_FEATURE_SOC_LPUART_COUNT */
+#endif /* FSL_FEATURE_SOC_LPUART_COUNT */
+#if defined(FSL_FEATURE_SOC_USB_COUNT) && (FSL_FEATURE_SOC_USB_COUNT > 0) && defined(BOARD_USE_VIRTUALCOM)
+        case DEBUG_CONSOLE_DEVICE_TYPE_USBCDC:
+        {
+            s_debugConsole.base = USB_VcomInit();
+            s_debugConsole.ops.tx_union.USB_PutChar = USB_VcomWriteBlocking;
+            s_debugConsole.ops.rx_union.USB_GetChar = USB_VcomReadBlocking;
+        }
+        break;
+#endif /* FSL_FEATURE_SOC_USB_COUNT && BOARD_USE_VIRTUALCOM*/
+#if defined(FSL_FEATURE_SOC_FLEXCOMM_COUNT) && (FSL_FEATURE_SOC_FLEXCOMM_COUNT > 0)
+        case DEBUG_CONSOLE_DEVICE_TYPE_FLEXCOMM:
+        {
+            usart_config_t usart_config;
+            s_debugConsole.base = (USART_Type *)baseAddr;
+            USART_GetDefaultConfig(&usart_config);
+            usart_config.baudRate_Bps = baudRate;
+            /* Enable clock and initial UART module follow user configure structure. */
+            USART_Init(s_debugConsole.base, &usart_config, clkSrcFreq);
+            /* Set the function pointer for send and receive for this kind of device. */
+            s_debugConsole.ops.tx_union.USART_PutChar = USART_WriteBlocking;
+            s_debugConsole.ops.rx_union.USART_GetChar = USART_ReadBlocking;
+        }
+        break;
+#endif  /* FSL_FEATURE_SOC_FLEXCOMM_COUNT*/
         /* If new device is required as the low level device for debug console,
          * Add the case branch and add the preprocessor macro to judge whether
          * this kind of device exist in this SOC. */
@@ -287,8 +340,10 @@ status_t DbgConsole_Deinit(void)
 
     switch (s_debugConsole.type)
     {
-#if defined(FSL_FEATURE_SOC_UART_COUNT) && (FSL_FEATURE_SOC_UART_COUNT > 0)
+#if (defined(FSL_FEATURE_SOC_UART_COUNT) && (FSL_FEATURE_SOC_UART_COUNT > 0)) || \
+    (defined(FSL_FEATURE_SOC_IUART_COUNT) && (FSL_FEATURE_SOC_IUART_COUNT > 0))
         case DEBUG_CONSOLE_DEVICE_TYPE_UART:
+        case DEBUG_CONSOLE_DEVICE_TYPE_IUART:
             /* Disable UART module. */
             UART_Deinit(s_debugConsole.base);
             break;
@@ -305,17 +360,37 @@ status_t DbgConsole_Deinit(void)
             LPUART_Deinit(s_debugConsole.base);
             break;
 #endif /* FSL_FEATURE_SOC_LPUART_COUNT */
+#if defined(FSL_FEATURE_SOC_USB_COUNT) && (FSL_FEATURE_SOC_USB_COUNT > 0) && defined(BOARD_USE_VIRTUALCOM)
+        case DEBUG_CONSOLE_DEVICE_TYPE_USBCDC:
+            /* Disable USBCDC module. */
+            USB_VcomDeinit(s_debugConsole.base);
+            break;
+#endif /* FSL_FEATURE_SOC_USB_COUNT && BOARD_USE_VIRTUALCOM*/
+#if defined(FSL_FEATURE_SOC_FLEXCOMM_COUNT) && (FSL_FEATURE_SOC_FLEXCOMM_COUNT > 0)
+        case DEBUG_CONSOLE_DEVICE_TYPE_FLEXCOMM:
+        {
+            USART_Deinit((USART_Type *)s_debugConsole.base);
+        }
+        break;
+#endif /* FSL_FEATURE_SOC_FLEXCOMM_COUNT*/
         default:
-            /* Device identified is invalid, return invalid device error code. */
-            return kStatus_InvalidArgument;
+            s_debugConsole.type = DEBUG_CONSOLE_DEVICE_TYPE_NONE;
+            break;
     }
+
+    /* Device identified is invalid, return invalid device error code. */
+    if (s_debugConsole.type == DEBUG_CONSOLE_DEVICE_TYPE_NONE)
+    {
+        return kStatus_InvalidArgument;
+    }
+
     s_debugConsole.type = DEBUG_CONSOLE_DEVICE_TYPE_NONE;
     return kStatus_Success;
 }
 
 #if SDK_DEBUGCONSOLE
 /* See fsl_debug_console.h for documentation of this function. */
-int DbgConsole_Printf(char *fmt_s, ...)
+int DbgConsole_Printf(const char *fmt_s, ...)
 {
     va_list ap;
     int result;
@@ -348,9 +423,10 @@ int DbgConsole_Putchar(int ch)
 /* See fsl_debug_console.h for documentation of this function. */
 int DbgConsole_Scanf(char *fmt_ptr, ...)
 {
-    char temp_buf[IO_MAXLINE];
+    /* Plus one to store end of string char */
+    char temp_buf[IO_MAXLINE + 1];
     va_list ap;
-    uint32_t i;
+    int32_t i;
     char result;
 
     /* Do nothing if the debug UART is not initialized. */
@@ -370,17 +446,24 @@ int DbgConsole_Scanf(char *fmt_ptr, ...)
             /* End of Line. */
             if (i == 0)
             {
-                i = (uint32_t)-1;
+                temp_buf[i] = '\0';
+                i = -1;
             }
             else
             {
                 break;
             }
         }
-
-        temp_buf[i + 1] = '\0';
     }
 
+    if ((i == IO_MAXLINE))
+    {
+        temp_buf[i] = '\0';
+    }
+    else
+    {
+        temp_buf[i + 1] = '\0';
+    }
     result = DbgConsole_ScanfFormattedData(temp_buf, fmt_ptr, ap);
     va_end(ap);
 
@@ -396,7 +479,10 @@ int DbgConsole_Getchar(void)
     {
         return -1;
     }
-    s_debugConsole.ops.rx_union.GetChar(s_debugConsole.base, (uint8_t *)(&ch), 1);
+    while (kStatus_Success != s_debugConsole.ops.rx_union.GetChar(s_debugConsole.base, (uint8_t *)(&ch), 1))
+    {
+        return -1;
+    }
 
     return ch;
 }
@@ -619,7 +705,7 @@ static int32_t DbgConsole_ConvertFloatRadixNumToString(char *numstr,
     else
     {
         fa = fractpart - (double)0.5;
-        if (fa <= pow(-10, precision_width))
+        if (fa <= -pow(10, precision_width))
         {
             intpart--;
         }
@@ -686,7 +772,7 @@ static int32_t DbgConsole_ConvertFloatRadixNumToString(char *numstr,
  *
  * @return Number of characters
  */
-static int DbgConsole_PrintfFormattedData(PUTCHAR_FUNC func_ptr, char *fmt, va_list ap)
+static int DbgConsole_PrintfFormattedData(PUTCHAR_FUNC func_ptr, const char *fmt, va_list ap)
 {
     /* va_list ap; */
     char *p;
@@ -711,6 +797,7 @@ static int DbgConsole_PrintfFormattedData(PUTCHAR_FUNC func_ptr, char *fmt, va_l
     int32_t schar, dschar;
     int64_t ival;
     uint64_t uval = 0;
+    bool valid_precision_width;
 #else
     int32_t ival;
     uint32_t uval = 0;
@@ -781,6 +868,12 @@ static int DbgConsole_PrintfFormattedData(PUTCHAR_FUNC func_ptr, char *fmt, va_l
             {
                 field_width = (field_width * 10) + (c - '0');
             }
+#if PRINTF_ADVANCED_ENABLE
+            else if (c == '*')
+            {
+                field_width = (uint32_t)va_arg(ap, uint32_t);
+            }
+#endif /* PRINTF_ADVANCED_ENABLE */
             else
             {
                 /* We've gone one char too far. */
@@ -790,6 +883,9 @@ static int DbgConsole_PrintfFormattedData(PUTCHAR_FUNC func_ptr, char *fmt, va_l
         }
         /* Next check for the width and precision field separator. */
         precision_width = 6;
+#if PRINTF_ADVANCED_ENABLE
+        valid_precision_width = false;
+#endif /* PRINTF_ADVANCED_ENABLE */
         if (*++p == '.')
         {
             /* Must get precision field width, if present. */
@@ -801,7 +897,17 @@ static int DbgConsole_PrintfFormattedData(PUTCHAR_FUNC func_ptr, char *fmt, va_l
                 if ((c >= '0') && (c <= '9'))
                 {
                     precision_width = (precision_width * 10) + (c - '0');
+#if PRINTF_ADVANCED_ENABLE
+                    valid_precision_width = true;
+#endif /* PRINTF_ADVANCED_ENABLE */
                 }
+#if PRINTF_ADVANCED_ENABLE
+                else if (c == '*')
+                {
+                    precision_width = (uint32_t)va_arg(ap, uint32_t);
+                    valid_precision_width = true;
+                }
+#endif /* PRINTF_ADVANCED_ENABLE */
                 else
                 {
                     /* We've gone one char too far. */
@@ -1060,31 +1166,35 @@ static int DbgConsole_PrintfFormattedData(PUTCHAR_FUNC func_ptr, char *fmt, va_l
                     }
 #endif /* PRINTF_ADVANCED_ENABLE */
                 }
-                if (c == 'o')
-                {
-                    uval = (uint32_t)va_arg(ap, uint32_t);
-                    radix = 8;
-                }
-                if (c == 'b')
-                {
-                    uval = (uint32_t)va_arg(ap, uint32_t);
-                    radix = 2;
-                    vstrp = &vstr[vlen];
-                }
-                if (c == 'p')
-                {
-                    uval = (uint32_t)va_arg(ap, void *);
-                    radix = 16;
-                    vstrp = &vstr[vlen];
-                }
-                if (c == 'u')
-                {
-                    uval = (uint32_t)va_arg(ap, uint32_t);
-                    radix = 10;
-                    vstrp = &vstr[vlen];
-                }
                 if ((c == 'o') || (c == 'b') || (c == 'p') || (c == 'u'))
                 {
+#if PRINTF_ADVANCED_ENABLE
+                    if (flags_used & kPRINTF_LengthLongLongInt)
+                    {
+                        uval = (uint64_t)va_arg(ap, uint64_t);
+                    }
+                    else
+#endif /* PRINTF_ADVANCED_ENABLE */
+                    {
+                        uval = (uint32_t)va_arg(ap, uint32_t);
+                    }
+                    switch (c)
+                    {
+                        case 'o':
+                            radix = 8;
+                            break;
+                        case 'b':
+                            radix = 2;
+                            break;
+                        case 'p':
+                            radix = 16;
+                            break;
+                        case 'u':
+                            radix = 10;
+                            break;
+                        default:
+                            break;
+                    }
                     vlen = DbgConsole_ConvertRadixNumToString(vstr, &uval, false, radix, use_caps);
                     vstrp = &vstr[vlen];
 #if PRINTF_ADVANCED_ENABLE
@@ -1105,10 +1215,13 @@ static int DbgConsole_PrintfFormattedData(PUTCHAR_FUNC func_ptr, char *fmt, va_l
 #if !PRINTF_ADVANCED_ENABLE
                 DbgConsole_PrintfPaddingCharacter(' ', vlen, field_width, &count, func_ptr);
 #endif /* !PRINTF_ADVANCED_ENABLE */
-                while (*vstrp)
+                if (vstrp != NULL)
                 {
-                    func_ptr(*vstrp--);
-                    count++;
+                    while (*vstrp)
+                    {
+                        func_ptr(*vstrp--);
+                        count++;
+                    }
                 }
 #if PRINTF_ADVANCED_ENABLE
                 if (flags_used & kPRINTF_Minus)
@@ -1128,18 +1241,49 @@ static int DbgConsole_PrintfFormattedData(PUTCHAR_FUNC func_ptr, char *fmt, va_l
                 sval = (char *)va_arg(ap, char *);
                 if (sval)
                 {
+#if PRINTF_ADVANCED_ENABLE
+                    if (valid_precision_width)
+                    {
+                        vlen = precision_width;
+                    }
+                    else
+                    {
+                        vlen = strlen(sval);
+                    }
+#else
                     vlen = strlen(sval);
+#endif /* PRINTF_ADVANCED_ENABLE */
 #if PRINTF_ADVANCED_ENABLE
                     if (!(flags_used & kPRINTF_Minus))
 #endif /* PRINTF_ADVANCED_ENABLE */
                     {
                         DbgConsole_PrintfPaddingCharacter(' ', vlen, field_width, &count, func_ptr);
                     }
-                    while (*sval)
+
+#if PRINTF_ADVANCED_ENABLE
+                    if (valid_precision_width)
                     {
-                        func_ptr(*sval++);
-                        count++;
+                        while ((*sval) && (vlen > 0))
+                        {
+                            func_ptr(*sval++);
+                            count++;
+                            vlen--;
+                        }
+                        /* In case that vlen sval is shorter than vlen */
+                        vlen = precision_width - vlen;
                     }
+                    else
+                    {
+#endif /* PRINTF_ADVANCED_ENABLE */
+                        while (*sval)
+                        {
+                            func_ptr(*sval++);
+                            count++;
+                        }
+#if PRINTF_ADVANCED_ENABLE
+                    }
+#endif /* PRINTF_ADVANCED_ENABLE */
+
 #if PRINTF_ADVANCED_ENABLE
                     if (flags_used & kPRINTF_Minus)
                     {
@@ -1404,7 +1548,7 @@ static int DbgConsole_ScanfFormattedData(const char *line_ptr, char *format, va_
                         n_decode++;
                     }
 
-                    if (((!(flag)) & kSCANF_Suppress) && (s != p))
+                    if ((!(flag & kSCANF_Suppress)) && (s != p))
                     {
                         nassigned++;
                     }
@@ -1671,9 +1815,58 @@ size_t __read(int handle, unsigned char *buffer, size_t size)
 
     return size;
 }
+
+/* support LPC Xpresso with RedLib */
+#elif(defined(__REDLIB__))
+
+#if (!SDK_DEBUGCONSOLE) && (defined(SDK_DEBUGCONSOLE_UART))
+int __attribute__((weak)) __sys_write(int handle, char *buffer, int size)
+{
+    if (buffer == 0)
+    {
+        /* return -1 if error. */
+        return -1;
+    }
+
+    /* This function only writes to "standard out" and "standard err" for all other file handles it returns failure. */
+    if ((handle != 1) && (handle != 2))
+    {
+        return -1;
+    }
+
+    /* Do nothing if the debug UART is not initialized. */
+    if (s_debugConsole.type == DEBUG_CONSOLE_DEVICE_TYPE_NONE)
+    {
+        return -1;
+    }
+
+    /* Send data. */
+    s_debugConsole.ops.tx_union.PutChar(s_debugConsole.base, (uint8_t *)buffer, size);
+    return 0;
+}
+
+int __attribute__((weak)) __sys_readc(void)
+{
+    char tmp;
+    /* Do nothing if the debug UART is not initialized. */
+    if (s_debugConsole.type == DEBUG_CONSOLE_DEVICE_TYPE_NONE)
+    {
+        return -1;
+    }
+
+    /* Receive data. */
+    s_debugConsole.ops.rx_union.GetChar(s_debugConsole.base, (uint8_t *)&tmp, sizeof(tmp));
+    return tmp;
+}
+#endif
+
 /* These function __write and __read is used to support ARM_GCC, KDS, Atollic toolchains to printf and scanf*/
 #elif(defined(__GNUC__))
-int _write(int handle, char *buffer, int size)
+
+#if ((defined(__GNUC__) && (!defined(__MCUXPRESSO))) || \
+     (defined(__MCUXPRESSO) && (!SDK_DEBUGCONSOLE) && (defined(SDK_DEBUGCONSOLE_UART))))
+
+int __attribute__((weak)) _write(int handle, char *buffer, int size)
 {
     if (buffer == 0)
     {
@@ -1698,7 +1891,7 @@ int _write(int handle, char *buffer, int size)
     return size;
 }
 
-int _read(int handle, char *buffer, int size)
+int __attribute__((weak)) _read(int handle, char *buffer, int size)
 {
     /* This function only reads from "standard in", for all other file handles it returns failure. */
     if (handle != 0)
@@ -1716,6 +1909,8 @@ int _read(int handle, char *buffer, int size)
     s_debugConsole.ops.rx_union.GetChar(s_debugConsole.base, (uint8_t *)buffer, size);
     return size;
 }
+#endif
+
 /* These function fputc and fgetc is used to support KEIL toolchain to printf and scanf*/
 #elif defined(__CC_ARM)
 struct __FILE
@@ -1729,6 +1924,7 @@ struct __FILE
 
 /* FILE is typedef in stdio.h. */
 #pragma weak __stdout
+#pragma weak __stdin
 FILE __stdout;
 FILE __stdin;
 

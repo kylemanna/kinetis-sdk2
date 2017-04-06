@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -202,6 +202,11 @@ static usb_status_t USB_DeviceHidEndpointsInit(usb_device_hid_struct_t *hidHandl
     usb_status_t error = kStatus_USB_Error;
 
     /* Check the configuration is valid or not. */
+    if (!hidHandle->configuration)
+    {
+        return error;
+    }
+
     if (hidHandle->configuration > hidHandle->configStruct->classInfomation->configurations)
     {
         return error;
@@ -290,6 +295,7 @@ static usb_status_t USB_DeviceHidEndpointsDeinit(usb_device_hid_struct_t *hidHan
         error = USB_DeviceDeinitEndpoint(hidHandle->handle,
                                          hidHandle->interfaceHandle->endpointList.endpoint[count].endpointAddress);
     }
+    hidHandle->interfaceHandle = NULL;
     return error;
 }
 
@@ -331,6 +337,7 @@ usb_status_t USB_DeviceHidEvent(void *handle, uint32_t event, void *param)
             hidHandle->configuration = 0U;
             hidHandle->interruptInPipeBusy = 0U;
             hidHandle->interruptOutPipeBusy = 0U;
+            hidHandle->interfaceHandle = NULL;
             break;
         case kUSB_DeviceClassEventSetConfiguration:
             /* Get the new configuration. */

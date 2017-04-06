@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -72,8 +72,6 @@ void BOARD_SW_IRQ_HANDLER(void)
     GPIO_ClearPinsInterruptFlags(BOARD_SW_GPIO, 1U << BOARD_SW_GPIO_PIN);
     /* Change state of button. */
     g_ButtonPress = true;
-    /* Toggle LED. */
-    GPIO_TogglePinsOutput(BOARD_LED_GPIO, 1U << BOARD_LED_GPIO_PIN);
 }
 
 /*!
@@ -112,6 +110,8 @@ int main(void)
         if (g_ButtonPress)
         {
             PRINTF(" %s is pressed \r\n", BOARD_SW_NAME);
+            /* Toggle LED. */
+            GPIO_TogglePinsOutput(BOARD_LED_GPIO, 1U << BOARD_LED_GPIO_PIN);
             /* Reset state of button. */
             g_ButtonPress = false;
         }

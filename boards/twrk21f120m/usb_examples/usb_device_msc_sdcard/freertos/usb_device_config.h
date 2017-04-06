@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -50,8 +50,15 @@
 /*! @brief EHCI instance count */
 #define USB_DEVICE_CONFIG_EHCI (0U)
 
+/*! @brief LPC USB IP3511 FS instance count */
+#define USB_DEVICE_CONFIG_LPCIP3511FS (0U)
+
+/*! @brief LPC USB IP3511 HS instance count */
+#define USB_DEVICE_CONFIG_LPCIP3511HS (0U)
+
 /*! @brief Device instance count, the sum of KHCI and EHCI instance counts*/
-#define USB_DEVICE_CONFIG_NUM (USB_DEVICE_CONFIG_KHCI + USB_DEVICE_CONFIG_EHCI)
+#define USB_DEVICE_CONFIG_NUM \
+    (USB_DEVICE_CONFIG_KHCI + USB_DEVICE_CONFIG_EHCI + USB_DEVICE_CONFIG_LPCIP3511FS + USB_DEVICE_CONFIG_LPCIP3511HS)
 
 /* @} */
 
@@ -92,17 +99,17 @@
 /*! @brief Whether device is self power. 1U supported, 0U not supported */
 #define USB_DEVICE_CONFIG_SELF_POWER (1U)
 
-/*! @brief Whether device remote wakeup supported. 1U supported, 0U not supported */
-#define USB_DEVICE_CONFIG_REMOTE_WAKEUP (0U)
-
 /*! @brief How many endpoints are supported in the stack. */
 #define USB_DEVICE_CONFIG_ENDPOINTS (4U)
 
 /*! @brief Whether the device task is enabled. */
 #define USB_DEVICE_CONFIG_USE_TASK (1U)
 
-/*! @brief How many the notification message are supported when the device task enabled. */
+/*! @brief How many the notification message are supported when the device task is enabled. */
 #define USB_DEVICE_CONFIG_MAX_MESSAGES (8U)
+
+/*! @brief Whether test mode enabled. */
+#define USB_DEVICE_CONFIG_USB20_TEST_MODE (0U)
 
 #if ((defined(USB_DEVICE_CONFIG_KHCI)) && (USB_DEVICE_CONFIG_KHCI > 0U))
 
@@ -117,8 +124,7 @@
 #define USB_DEVICE_CONFIG_EHCI_MAX_DTD (16U)
 /*! @brief Whether handle the USB EHCI bus error. */
 #define USB_DEVICE_CONFIG_EHCI_ERROR_HANDLING (0U)
-/*! @brief Whether test mode enabled. */
-#define USB_DEVICE_CONFIG_EHCI_TEST_MODE (0U)
+
 /*! @brief Whether the EHCI ID pin detect feature enabled. */
 #define USB_DEVICE_CONFIG_EHCI_ID_PIN_DETECT (0U)
 #endif
@@ -131,6 +137,17 @@
 
 /*! @brief Whether the low power mode is enabled or not. */
 #define USB_DEVICE_CONFIG_LOW_POWER_MODE (0U)
+
+#if ((defined(USB_DEVICE_CONFIG_LOW_POWER_MODE)) && (USB_DEVICE_CONFIG_LOW_POWER_MODE > 0U))
+/*! @brief Whether device remote wakeup supported. 1U supported, 0U not supported */
+#define USB_DEVICE_CONFIG_REMOTE_WAKEUP (0U)
+
+/*! @brief Whether LPM is supported. 1U supported, 0U not supported */
+#define USB_DEVICE_CONFIG_LPM_L1 (0U)
+#else
+/*! @brief The device remote wakeup is unsupported. */
+#define USB_DEVICE_CONFIG_REMOTE_WAKEUP (0U)
+#endif
 
 /*! @brief Whether the device detached feature is enabled or not. */
 #define USB_DEVICE_CONFIG_DETACH_ENABLE (0U)

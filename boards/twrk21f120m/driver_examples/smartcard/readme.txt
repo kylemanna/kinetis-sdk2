@@ -10,25 +10,25 @@ of GSM sim cards.
 
 Toolchain supported
 ===================
-- IAR embedded Workbench 7.50.1
-- Keil MDK 5.17
-- GCC ARM Embedded 2015-4.9-q3
-- Kinetis Development Studio IDE 3.0.0
-- Atollic TrueSTUDIO 5.4.0
+- IAR embedded Workbench 7.80.4
+- Keil MDK 5.21a
+- GCC ARM Embedded 2016-5.4-q3
+- Kinetis Development Studio IDE 3.2.0
+- MCUXpresso0.8
 
 Hardware requirements
 =====================
 - Mini/micro USB cable
 - TWR-K21F120M board
+- TWR-POSCARD board (TDA8035)
 - Personal Computer
 - GSM sim card
 
 Board settings
 ==============
-This example project does not call for any special hardware configurations.
-Although not required, the recommendation is to leave the development board's jumper settings
-and configurations in default state when running this example.
-
+- TWR-K21F120M board requires to REMOVE jumper from J13(1-2) position when using the twr-ser board.
+- TWR-POSCARD board requires the following important jumper setting of J6(empty), J7(3-5), J8(3-5), J9(empty),
+  J10(1-2), J11(empty), J12(2-4;3-5), J16(3-4).
 Prepare the Demo
 ================
 Connect a serial cable from the debug UART port of the board to the PC. Start Tera Term
@@ -47,7 +47,6 @@ Connect a serial cable from the debug UART port of the board to the PC. Start Te
         Flow control: one
 5.  Confirm selected parameters by OK button.
 
-
 Running the demo
 ================
 
@@ -64,8 +63,6 @@ Received smartcard ICC-IC: 000000000000000000
 
 Send receive functionality example finished!
 ~~~~~~~~~~~~~~~~~~~~~
-
 Customization options
 =====================
-
 

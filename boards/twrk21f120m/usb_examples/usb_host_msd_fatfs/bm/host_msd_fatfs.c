@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -109,6 +109,10 @@ static void USB_HostMsdFatfsTest(usb_host_msd_fatfs_instance_t *msdFatfsInstance
 
 #endif /* MSD_FATFS_THROUGHPUT_TEST_ENABLE */
 
+#if ((defined USB_HOST_CONFIG_COMPLIANCE_TEST) && (USB_HOST_CONFIG_COMPLIANCE_TEST))
+extern usb_status_t USB_HostTestModeInit(usb_device_handle deviceHandle);
+#endif
+
 /*******************************************************************************
  * Variables
  ******************************************************************************/
@@ -127,7 +131,7 @@ volatile usb_status_t controlStatus;
 static uint32_t testThroughputBuffer[THROUGHPUT_BUFFER_SIZE / 4]; /* the buffer for throughput test */
 uint32_t testSizeArray[] = {20 * 1024, 20 * 1024};                /* test time and test size (uint: K)*/
 #else
-uint8_t testBuffer[256]; /* normal test buffer */
+uint8_t testBuffer[(_MAX_SS > 256) ? _MAX_SS : 256]; /* normal test buffer */
 #endif /* MSD_FATFS_THROUGHPUT_TEST_ENABLE */
 
 /*******************************************************************************
@@ -409,7 +413,7 @@ static void USB_HostMsdFatfsTest(usb_host_msd_fatfs_instance_t *msdFatfsInstance
 
 #if _USE_MKFS
     usb_echo("test f_mkfs......");
-    fatfsCode = f_mkfs((char const *)&driverNumberBuffer[0], 1, 0);
+    fatfsCode = f_mkfs((char const *)&driverNumberBuffer[0], FM_SFD | FM_ANY, 0U, testBuffer, _MAX_SS);
     if (fatfsCode)
     {
         usb_echo("error\r\n");
@@ -1038,7 +1042,6 @@ usb_status_t USB_HostTestEvent(usb_device_handle deviceHandle,
     usb_host_configuration_t *configuration;
     uint8_t interfaceIndex;
     usb_host_interface_t *interface;
-    uint32_t infoValue;
     uint32_t id;
 
     switch (eventCode)
@@ -1063,7 +1066,7 @@ usb_status_t USB_HostTestEvent(usb_device_handle deviceHandle,
             break;
 
         case kUSB_HostEventNotSupported:
-            usb_echo("device not supported.\r\n");
+            usb_echo("Unsupported Device\r\n");
             break;
 
         case kUSB_HostEventEnumerationDone:

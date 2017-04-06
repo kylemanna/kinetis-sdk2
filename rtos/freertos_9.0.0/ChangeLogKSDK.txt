@@ -4,7 +4,14 @@
 @section FreeRTOS FreeRTOS for KSDK
 Current version is FreeRTOS 9.0.0. Original package is available at freertos.org.
 
-  - 9.0.0
+  - 9.0.0_rev2
+    - New Features:
+      - Enable MCUXpresso thread aware debugging. Add freertos_tasks_c_additions.h and configINCLUDE_FREERTOS_TASK_C_ADDITIONS_H and configFRTOS_MEMORY_SCHEME macros.
+  - 9.0.0_rev1
+    - New Features:
+      - Enable -flto optimization in GCC by adding __attribute__((used)) for vTaskSwitchContext.
+      - Enable KDS Task Aware Debugger. Apply FreeRTOS patch to enable configRECORD_STACK_HIGH_ADDRESS macro. Modified files are task.c and FreeRTOS.h.
+  - 9.0.0_rev0
     - New Features:
       - Example freertos_sem_static.
       - Static allocation support RTOS driver wrappers.

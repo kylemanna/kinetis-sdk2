@@ -1,32 +1,32 @@
 /*
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification,
-* are permitted provided that the following conditions are met:
-*
-* o Redistributions of source code must retain the above copyright notice, this list
-*   of conditions and the following disclaimer.
-*
-* o Redistributions in binary form must reproduce the above copyright notice, this
-*   list of conditions and the following disclaimer in the documentation and/or
-*   other materials provided with the distribution.
-*
-* o Neither the name of Freescale Semiconductor, Inc. nor the names of its
-*   contributors may be used to endorse or promote products derived from this
-*   software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-* ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-* ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016-2017 NXP
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ * o Redistributions of source code must retain the above copyright notice, this list
+ *   of conditions and the following disclaimer.
+ *
+ * o Redistributions in binary form must reproduce the above copyright notice, this
+ *   list of conditions and the following disclaimer in the documentation and/or
+ *   other materials provided with the distribution.
+ *
+ * o Neither the name of the copyright holder nor the names of its
+ *   contributors may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 #include "fsl_device_registers.h"
 #include "fsl_debug_console.h"
@@ -37,8 +37,8 @@
 #else
 #include "fsl_smartcard_uart.h"
 #endif
-#if defined(USING_PHY_NCN8025)
-#include "fsl_smartcard_phy_ncn8025.h"
+#if defined(USING_PHY_TDA8035)
+#include "fsl_smartcard_phy_tda8035.h"
 #endif
 #if defined(USING_PHY_EMVSIM)
 #include "fsl_smartcard_phy_emvsim.h"
@@ -61,12 +61,13 @@
 #define SMARTCARD_GetTransferRemainingBytes(base, handle) SMARTCARD_UART_GetTransferRemainingBytes(base, handle)
 #define SMARTCARD_AbortTransfer(base, handle) SMARTCARD_UART_AbortTransfer(base, handle)
 
-#define SMARTCARD_PHY_Activate(base, handle, resetType) SMARTCARD_PHY_NCN8025_Activate(base, handle, resetType)
-#define SMARTCARD_PHY_Deactivate(base, handle) SMARTCARD_PHY_NCN8025_Deactivate(base, handle)
-#define SMARTCARD_PHY_Control(base, handle, control, param) SMARTCARD_PHY_NCN8025_Control(base, handle, control, param)
-#define SMARTCARD_PHY_Init(base, config, sourceClockHz) SMARTCARD_PHY_NCN8025_Init(base, config, sourceClockHz)
-#define SMARTCARD_PHY_Deinit(base, config) SMARTCARD_PHY_NCN8025_Deinit(base, config)
-#define SMARTCARD_PHY_GetDefaultConfig(config) SMARTCARD_PHY_NCN8025_GetDefaultConfig(config)
+#define SMARTCARD_PHY_Activate(base, handle, resetType) SMARTCARD_PHY_TDA8035_Activate(base, handle, resetType)
+#define SMARTCARD_PHY_Deactivate(base, handle) SMARTCARD_PHY_TDA8035_Deactivate(base, handle)
+#define SMARTCARD_PHY_Control(base, handle, control, param) SMARTCARD_PHY_TDA8035_Control(base, handle, control, param)
+#define SMARTCARD_PHY_Init(base, config, sourceClockHz) SMARTCARD_PHY_TDA8035_Init(base, config, sourceClockHz)
+#define SMARTCARD_PHY_Deinit(base, config) SMARTCARD_PHY_TDA8035_Deinit(base, config)
+#define SMARTCARD_PHY_GetDefaultConfig(config) SMARTCARD_PHY_TDA8035_GetDefaultConfig(config)
+#define CORE_CLK_FREQ CLOCK_GetFreq(kCLOCK_CoreSysClk)
 #define MAX_TRANSFER_SIZE (258u)
 #define EMVL1_ATR_BUFF_SIZE (100u)
 /*! @brief Smartcard instruction codes */
@@ -87,7 +88,7 @@ static void wait_for_card_presence(smartcard_context_t *context);
 static int16_t receive_atr(smartcard_context_t *context, uint8_t *buf, uint16_t length);
 void smartcard_interface_callback_function(void *context, void *param);
 static void smartcard_installTimeDelay(smartcard_context_t *context);
-void timeDelay(uint32_t miliseconds);
+void timeDelay(uint32_t microseconds);
 static void smartcard_interrupts_config(void);
 static int smartcard_test(void);
 static int smartcard_parse_atr(smartcard_context_t *context, uint8_t *buff, uint8_t length);
@@ -128,7 +129,7 @@ void PORTD_IRQHandler(void)
 {
     /* Clear interrupt status flags */
     PORT_ClearPinsInterruptFlags(PORTD, 1u << 14u);
-    SMARTCARD_PHY_NCN8025_IRQHandler(BOARD_SMARTCARD_MODULE, g_smartcardContext);
+    SMARTCARD_PHY_TDA8035_IRQHandler(BOARD_SMARTCARD_MODULE, g_smartcardContext);
 }
 /*
  * This example will example the efficiency of the transmit/receive drivers with
@@ -147,9 +148,9 @@ static void smartcard_interrupts_config(void)
     NVIC_SetPriority(BOARD_SMARTCARD_MODULE_ERRIRQ, 8u);
 #endif
 /* Set smartcard presence detect gpio pin interrupt priority */
-#if defined(USING_PHY_NCN8025)
+#if defined(USING_PHY_TDA8035)
     NVIC_SetPriority(BOARD_SMARTCARD_IRQ_PIN_IRQ, 6u);
-#endif /* USING_NCN8025_INTERFACE */
+#endif /* USING_TDA8035_INTERFACE */
        /* Set external PIT timer interrupt priority
         * (used for initial TS char detection time-out) */
 #if !(defined(FSL_FEATURE_SOC_EMVSIM_COUNT) && (FSL_FEATURE_SOC_EMVSIM_COUNT))
@@ -163,17 +164,17 @@ static void smartcard_interrupts_config(void)
 
 /*!
  * @brief Time delay required by smartcard test and smartcard driver. Function
- * waits desired time with accuracy 1ms.
+ * waits desired time with accuracy 1us.
  */
-void timeDelay(uint32_t miliseconds)
+void timeDelay(uint32_t microseconds)
 {
-    miliseconds++;
+    microseconds++;
     /* Wait desired time */
-    while (miliseconds > 0u)
+    while (microseconds > 0u)
     {
         if (SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk)
         {
-            miliseconds--;
+            microseconds--;
         }
     }
 }
@@ -182,8 +183,8 @@ static void smartcard_installTimeDelay(smartcard_context_t *context)
 {
     /* Disable SysTick timer */
     SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;
-    /* Initialize Reload value to 1ms */
-    SysTick->LOAD = CLOCK_GetFreq(kCLOCK_CoreSysClk) / 1000u;
+    /* Initialize Reload value to 1us */
+    SysTick->LOAD = CORE_CLK_FREQ / 1000000u;
     /* Set clock source to processor clock */
     SysTick->CTRL |= SysTick_CTRL_CLKSOURCE_Msk;
     /* Enable SysTick timer */
@@ -200,7 +201,7 @@ static void wait_for_card_presence(smartcard_context_t *context)
     smartcard_interface_control_t interfaceControl = kSMARTCARD_InterfaceReadStatus;
 
     /* Putting delay as few boards has de-bouncing cap in card slot presence detect pin */
-    timeDelay(1000u);
+    timeDelay(1000*1000);
     /* Read card presence status */
     SMARTCARD_PHY_Control(base, context, interfaceControl, 0u);
     /* Check if a card is already inserted */
@@ -658,7 +659,7 @@ static int smartcard_test(void)
 #endif
     context.interfaceConfig.resetPort = BOARD_SMARTCARD_RST_PORT;
     context.interfaceConfig.resetPin = BOARD_SMARTCARD_RST_PIN;
-#if defined(USING_PHY_NCN8025)
+#if defined(USING_PHY_TDA8035)
     context.interfaceConfig.vsel0Port = BOARD_SMARTCARD_VSEL0_PORT;
     context.interfaceConfig.vsel0Pin = BOARD_SMARTCARD_VSEL0_PIN;
     context.interfaceConfig.vsel1Port = BOARD_SMARTCARD_VSEL1_PORT;
@@ -677,8 +678,8 @@ static int smartcard_test(void)
     smartcard_installTimeDelay(&context);
     PRINTF("\r\n***** SMARTCARD Driver Send Receive functionality example *****\r\n\r\n");
     /* Initialize the smartcard module with base address and config structure*/
-    SMARTCARD_Init(base, &context, CLOCK_GetFreq(BOARD_SMARTCARD_CLOCK_MODULE_SOURCE_CLK));
-    SMARTCARD_PHY_Init(base, &context.interfaceConfig, CLOCK_GetFreq(BOARD_SMARTCARD_CLOCK_MODULE_SOURCE_CLK));
+    SMARTCARD_Init(base, &context, BOARD_SMARTCARD_CLOCK_MODULE_CLK_FREQ);
+    SMARTCARD_PHY_Init(base, &context.interfaceConfig, BOARD_SMARTCARD_CLOCK_MODULE_CLK_FREQ);
     /* Install test/application callback function */
     context.interfaceCallback = smartcard_interface_callback_function;
 #if !defined(USING_PHY_GPIO)
@@ -714,7 +715,7 @@ static int smartcard_test(void)
     while ((context.xIsBusy == true) && (context.transferState == kSMARTCARD_WaitingForTSState))
     { /* Wait until all the data is received, or error occurs */
     }
-    if (context.transferState != kSMARTCARD_IdleState)
+    if (context.transferState == kSMARTCARD_InvalidTSDetecetedState || context.timersState.initCharTimerExpired)
     { /* Reject the card */
         PRINTF("INVALID ATR received.... \r\nCard Rejected !\r\n");
         return -1;
@@ -978,6 +979,10 @@ int main(void)
 {
     /* Initialize board hardware */
     BOARD_InitPins();
+
+    /* Initialize pin interrupt */
+    PORT_SetPinInterruptConfig(PORTD, 14u, kPORT_InterruptEitherEdge);
+
     BOARD_BootClockRUN();
     BOARD_InitDebugConsole();
     /* Call smartcard driver demonstration example */

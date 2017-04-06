@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -47,8 +47,10 @@
   * Variables
   ******************************************************************************/
 usb_uart_buffer_struct_t g_EmptyBuffer[USB_HOST_CDC_BUFFER_NUM];
+usb_uart_buffer_struct_t g_EmptySendBuffer[USB_HOST_CDC_BUFFER_NUM];
 
 usb_uart_buffer_struct_t *g_EmptyQueue;
+usb_uart_buffer_struct_t *g_EmptySendQueue;
 
 usb_uart_buffer_struct_t *g_CurrentUartRecvNode;
 
@@ -89,7 +91,11 @@ uint32_t g_UartActive;
  */
 void USB_HostCdcEnterCritical(uint8_t *sr)
 {
+#if defined(__GIC_PRIO_BITS)
+    if ((__get_CPSR() & CPSR_M_Msk) == 0x13)
+#else
     if (__get_IPSR())
+#endif
     {
         *sr = portSET_INTERRUPT_MASK_FROM_ISR();
     }
@@ -104,7 +110,11 @@ void USB_HostCdcEnterCritical(uint8_t *sr)
  */
 void USB_HostCdcExitCritical(uint8_t sr)
 {
+#if defined(__GIC_PRIO_BITS)
+    if ((__get_CPSR() & CPSR_M_Msk) == 0x13)
+#else
     if (__get_IPSR())
+#endif
     {
         portCLEAR_INTERRUPT_MASK_FROM_ISR(sr);
     }
@@ -202,10 +212,14 @@ void USB_HostCdcDataInCallback(void *param, uint8_t *data, uint32_t dataLength, 
 {
     cdc_instance_struct_t *cdcInstance = (cdc_instance_struct_t *)param;
 
-    if ((g_CurrentUsbRecvNode) && (dataLength))
+    usb_uart_buffer_struct_t *p;
+    p = (usb_uart_buffer_struct_t *)data;
+
+    if ((p) && (dataLength))
     {
-        g_CurrentUsbRecvNode->dataLength = dataLength;
-        insertNodeToQueue(&g_UartSendQueue, g_CurrentUsbRecvNode);
+        p->dataLength = dataLength;
+        insertNodeToQueue(&g_UartSendQueue, p);
+
         if (cdcInstance->bulkInMaxPacketSize == dataLength)
         {
             /*host will send zero length packet after recvive one maxpacketsize */
@@ -228,9 +242,10 @@ void USB_HostCdcDataOutCallback(void *param, uint8_t *data, uint32_t dataLength,
 {
     freeNodeToQueue(&g_EmptyQueue, g_UsbSendNode);
 
-    g_CurrentUsbRecvNode = getNodeFromQueue(&g_EmptyQueue);
+    g_CurrentUsbRecvNode = getNodeFromQueue(&g_EmptySendQueue);
     if (g_CurrentUsbRecvNode)
     {
+        g_CurrentUsbRecvNode->next = NULL;
         g_CurrentUsbRecvNode->dataLength = USB_HOST_SEND_RECV_PER_TIME;
         USB_HostCdcDataRecv(g_cdc.classHandle, (uint8_t *)&g_CurrentUsbRecvNode->buffer[0],
                             g_CurrentUsbRecvNode->dataLength, USB_HostCdcDataInCallback, &g_cdc);
@@ -277,16 +292,21 @@ void UART_UserCallback(USB_UartType *base, usb_uart_handle_t *handle, status_t s
                 g_CurrentUartRecvNode = getNodeFromQueue(&g_EmptyQueue);
                 if (!g_CurrentUartRecvNode)
                 {
-                     /*buffer is run out and example could not work well */
+                    /*buffer is run out and example could not work well */
                     /* usb_echo("Invalid buffer\r\n");*/
                 }
             }
+        }
+        else
+        {
+            /*if code run to here, it means buffer has been run out once, some data has been lost*/
+            g_CurrentUartRecvNode = getNodeFromQueue(&g_EmptyQueue);
         }
         USB_UartReceiveDataIRQ((USB_UartType *)BOARD_DEBUG_UART_BASEADDR, &g_UartHandle, &g_xfer, NULL);
     }
     else if ((usb_uart_status_t)status == kStatus_USB_UART_TxIdle)
     {
-        freeNodeToQueue(&g_EmptyQueue, g_UartSendNode);
+        freeNodeToQueue(&g_EmptySendQueue, g_UartSendNode);
         g_UartSendNode = getNodeFromQueue(&g_UartSendQueue);
         if (g_UartSendNode)
         {
@@ -342,7 +362,18 @@ void USB_HostCdcInitBuffer(void)
     p->next = NULL;
     g_CurrentUartRecvNode = g_EmptyQueue;
     g_EmptyQueue = g_EmptyQueue->next;
+
+    g_EmptySendQueue = &g_EmptySendBuffer[0];
+    p = g_EmptySendQueue;
+    for (int m = 1; m < (sizeof(g_EmptySendBuffer) / sizeof(usb_uart_buffer_struct_t)); m++)
+    {
+        p->next = &g_EmptySendBuffer[m];
+        p->dataLength = 0;
+        p = p->next;
+    }
+    p->next = NULL;
     USB_HostCdcExitCritical(usbOsaCurrentSr);
+
     g_UsbSendQueue = NULL;
     g_UartSendQueue = NULL;
     g_UsbSendBusy = 0;

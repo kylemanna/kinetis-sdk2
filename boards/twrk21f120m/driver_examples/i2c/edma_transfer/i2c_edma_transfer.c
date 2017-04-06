@@ -1,37 +1,36 @@
 /*
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification,
-* are permitted provided that the following conditions are met:
-*
-* o Redistributions of source code must retain the above copyright notice, this list
-*   of conditions and the following disclaimer.
-*
-* o Redistributions in binary form must reproduce the above copyright notice, this
-*   list of conditions and the following disclaimer in the documentation and/or
-*   other materials provided with the distribution.
-*
-* o Neither the name of Freescale Semiconductor, Inc. nor the names of its
-*   contributors may be used to endorse or promote products derived from this
-*   software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-* ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-* ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright 2016-2017 NXP
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ * o Redistributions of source code must retain the above copyright notice, this list
+ *   of conditions and the following disclaimer.
+ *
+ * o Redistributions in binary form must reproduce the above copyright notice, this
+ *   list of conditions and the following disclaimer in the documentation and/or
+ *   other materials provided with the distribution.
+ *
+ * o Neither the name of the copyright holder nor the names of its
+ *   contributors may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 /*  SDK Included Files */
 #include "board.h"
 #include "fsl_debug_console.h"
-#include "fsl_dma_manager.h"
 #include "fsl_i2c.h"
 #include "fsl_i2c_edma.h"
 
@@ -43,9 +42,14 @@
 #define EXAMPLE_I2C_MASTER_BASEADDR I2C0
 #define EXAMPLE_I2C_SLAVE_BASEADDR I2C1
 #define I2C_MASTER_CLK_SRC I2C0_CLK_SRC
+#define I2C_MASTER_CLK_FREQ CLOCK_GetFreq(I2C0_CLK_SRC)
 #define I2C_SLAVE_CLK_SRC I2C1_CLK_SRC
+#define I2C_SLAVE_CLK_FREQ CLOCK_GetFreq(I2C1_CLK_SRC)
 
 #define DMA_REQUEST_SRC kDmaRequestMux0I2C0
+#define I2C_DMA_CHANNEL 0U
+#define EXAMPLE_I2C_DMAMUX_BASEADDR DMAMUX0
+#define EXAMPLE_I2C_DMA_BASEADDR DMA0
 #define I2C_DATA_LENGTH (32) /* MAX is 256 */
 #define I2C_MASTER_SLAVE_ADDR_7BIT (0x7EU)
 #define I2C_BAUDRATE (100000) /* 100K */
@@ -93,7 +97,7 @@ static void i2c_slave_callback(I2C_Type *base, i2c_slave_transfer_t *xfer, void 
             break;
 
         default:
-            completionFlag = true;
+            completionFlag = false;
             break;
     }
 }
@@ -105,13 +109,16 @@ int main(void)
     i2c_master_config_t masterConfig;
     uint32_t sourceClock;
     i2c_master_transfer_t masterXfer;
+    edma_config_t config;
 
     BOARD_InitPins();
     BOARD_BootClockRUN();
     BOARD_InitDebugConsole();
 
-    /*Init DMA for example*/
-    DMAMGR_Init();
+    /*Init EDMA for example*/
+    DMAMUX_Init(EXAMPLE_I2C_DMAMUX_BASEADDR);
+    EDMA_GetDefaultConfig(&config);
+    EDMA_Init(EXAMPLE_I2C_DMA_BASEADDR, &config);
 
     /*  set master priority lower than slave */
     NVIC_EnableIRQ(DMA0_IRQn);
@@ -124,7 +131,6 @@ int main(void)
      * slaveConfig.addressingMode = kI2C_Address7bit;
      * slaveConfig.enableGeneralCall = false;
      * slaveConfig.enableWakeUp = false;
-     * slaveConfig.enableHighDrive = false;
      * slaveConfig.enableBaudRateCtl = false;
      * slaveConfig.enableSlave = true;
      */
@@ -134,7 +140,7 @@ int main(void)
     slaveConfig.slaveAddress = I2C_MASTER_SLAVE_ADDR_7BIT;
     slaveConfig.upperAddress = 0; /*  not used for this example */
 
-    I2C_SlaveInit(EXAMPLE_I2C_SLAVE_BASEADDR, &slaveConfig);
+    I2C_SlaveInit(EXAMPLE_I2C_SLAVE_BASEADDR, &slaveConfig, I2C_SLAVE_CLK_FREQ);
 
     for (uint32_t i = 0U; i < I2C_DATA_LENGTH; i++)
     {
@@ -164,7 +170,6 @@ int main(void)
 
     /*
      * masterConfig.baudRate_Bps = 100000U;
-     * masterConfig.enableHighDrive = false;
      * masterConfig.enableStopHold = false;
      * masterConfig.glitchFilterWidth = 0U;
      * masterConfig.enableMaster = true;
@@ -172,7 +177,7 @@ int main(void)
     I2C_MasterGetDefaultConfig(&masterConfig);
     masterConfig.baudRate_Bps = I2C_BAUDRATE;
 
-    sourceClock = CLOCK_GetFreq(I2C_MASTER_CLK_SRC);
+    sourceClock = I2C_MASTER_CLK_FREQ;
 
     I2C_MasterInit(EXAMPLE_I2C_MASTER_BASEADDR, &masterConfig, sourceClock);
 
@@ -187,7 +192,9 @@ int main(void)
     masterXfer.dataSize = I2C_DATA_LENGTH;
     masterXfer.flags = kI2C_TransferDefaultFlag;
 
-    DMAMGR_RequestChannel((dma_request_source_t)DMA_REQUEST_SRC, 0, &edmaHandle);
+    DMAMUX_SetSource(EXAMPLE_I2C_DMAMUX_BASEADDR, I2C_DMA_CHANNEL, DMA_REQUEST_SRC);
+    DMAMUX_EnableChannel(EXAMPLE_I2C_DMAMUX_BASEADDR, I2C_DMA_CHANNEL);
+    EDMA_CreateHandle(&edmaHandle, EXAMPLE_I2C_DMA_BASEADDR, I2C_DMA_CHANNEL);
 
     I2C_MasterCreateEDMAHandle(EXAMPLE_I2C_MASTER_BASEADDR, &g_m_dma_handle, NULL, NULL, &edmaHandle);
     I2C_MasterTransferEDMA(EXAMPLE_I2C_MASTER_BASEADDR, &g_m_dma_handle, &masterXfer);

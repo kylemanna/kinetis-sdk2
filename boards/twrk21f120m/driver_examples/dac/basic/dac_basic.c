@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2013 - 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -37,7 +37,7 @@
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
-#define DEMO_DAC_INSTANCE DAC0
+#define DEMO_DAC_BASEADDR DAC0
 
 /*******************************************************************************
  * Prototypes
@@ -70,8 +70,9 @@ int main(void)
      * dacConfigStruct.enableLowPowerMode = false;
      */
     DAC_GetDefaultConfig(&dacConfigStruct);
-    DAC_Init(DEMO_DAC_INSTANCE, &dacConfigStruct);
-    DAC_SetBufferReadPointer(DEMO_DAC_INSTANCE, 0U); /* Make sure the read pointer to the start. */
+    DAC_Init(DEMO_DAC_BASEADDR, &dacConfigStruct);
+    DAC_Enable(DEMO_DAC_BASEADDR, true);             /* Enable output. */
+    DAC_SetBufferReadPointer(DEMO_DAC_BASEADDR, 0U); /* Make sure the read pointer to the start. */
                                                      /*
                                                      * The buffer is not enabled, so the read pointer can not move automatically. However, the buffer's read pointer
                                                      * and itemss can be written manually by user.
@@ -87,7 +88,7 @@ int main(void)
             PRINTF("Your value is output of range.\r\n");
             continue;
         }
-        DAC_SetBufferValue(DEMO_DAC_INSTANCE, 0U, dacValue);
+        DAC_SetBufferValue(DEMO_DAC_BASEADDR, 0U, dacValue);
         PRINTF("DAC out: %d\r\n", dacValue);
         /*
         * The value in the first item would be converted. User can measure the output voltage from DAC_OUTx pin.

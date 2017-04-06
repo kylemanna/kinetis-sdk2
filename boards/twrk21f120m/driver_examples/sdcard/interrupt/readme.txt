@@ -7,11 +7,11 @@ show how to use interrupt based transfer API in SDHC driver in SDK software to a
 
 Toolchain supported
 ===================
-- IAR embedded Workbench 7.50.1
-- Keil MDK 5.17
-- GCC ARM Embedded 2015-4.9-q3
-- Kinetis Development Studio IDE 3.0.0
-- Atollic TrueSTUDIO 5.4.0
+- IAR embedded Workbench 7.80.4
+- Keil MDK 5.21a
+- GCC ARM Embedded 2016-5.4-q3
+- Kinetis Development Studio IDE 3.2.0
+- MCUXpresso0.8
 
 Hardware requirements
 =====================
@@ -22,7 +22,8 @@ Hardware requirements
 Board settings
 ==============
 The SDCARD Interrupt example is configured to use SDHC0 with PTE0, PTE1, PTE2, PTE3, PTE4, PTE5 pins
-and use PTD10 pin as card detection pin.
+and use PTD10 pin as card detection pin. It doesn't detetet write protect switch state so don't open
+the write protect switch on the SD card socket.
 
 Prepare the Demo
 ================
@@ -56,8 +57,6 @@ Erase multiple data blocks......
 
 Input 'q' to quit read/write/erase process.
 Input other char to read/write/erase data blocks again.
-
 Customization options
 =====================
-
 

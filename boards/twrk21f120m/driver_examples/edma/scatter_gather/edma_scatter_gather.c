@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -77,6 +77,7 @@ int main(void)
     uint32_t i = 0;
     edma_transfer_config_t transferConfig;
     edma_tcd_t *tcdMemoryPoolPtr;
+    edma_tcd_t *tempPtr;
     edma_config_t userConfig;
 
     BOARD_InitPins();
@@ -107,6 +108,8 @@ int main(void)
     EDMA_ResetChannel(g_EDMA_Handle.base, g_EDMA_Handle.channel);
     /* Allocate TCD memory poll */
     tcdMemoryPoolPtr = (edma_tcd_t *)malloc(sizeof(edma_tcd_t) * (TCD_QUEUE_SIZE + 1));
+    /* Use a temporary pointer to store the address */
+    tempPtr = tcdMemoryPoolPtr;
     if (tcdMemoryPoolPtr != NULL)
     {
         tcdMemoryPoolPtr = (edma_tcd_t *)((uint32_t)(tcdMemoryPoolPtr + 1) & (~0x1FU));
@@ -132,6 +135,8 @@ int main(void)
     {
         PRINTF("%d\t", destAddr[i]);
     }
+    /* Free the memory space allocated */
+    free(tempPtr);
     while (1)
     {
     }

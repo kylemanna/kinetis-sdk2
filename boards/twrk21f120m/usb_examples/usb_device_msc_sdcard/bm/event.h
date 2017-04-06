@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -27,12 +27,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 #ifndef _EVENT_H_
 #define _EVENT_H_
 
 #include "fsl_common.h"
-#include "fsl_sdhc.h"
 
 /*******************************************************************************
  * Definitions
@@ -64,7 +62,7 @@ void EVENT_InitTimer(void);
 /* Callback function for SDHC */
 
 /*!
- * @brief Creates event.
+ * @brief Create event.
  * @param eventType The event type
  * @retval true Create event successfully.
  * @retval false Create event failed.
@@ -101,4 +99,4 @@ void EVENT_Delete(event_t eventType);
 }
 #endif
 
-#endif /* _EVENT_H_ */
+#endif /* _EVENT_H_*/

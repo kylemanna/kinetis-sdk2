@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -38,6 +38,7 @@
  ******************************************************************************/
 #define DEMO_UART UART5
 #define DEMO_UART_CLKSRC kCLOCK_BusClk
+#define DEMO_UART_CLK_FREQ CLOCK_GetFreq(kCLOCK_BusClk)
 #define DEMO_UART_IRQn UART5_RX_TX_IRQn
 #define DEMO_UART_IRQHandler UART5_RX_TX_IRQHandler
 
@@ -72,6 +73,25 @@ volatile uint16_t rxIndex; /* Index of the memory to save new arrived data. */
  * Code
  ******************************************************************************/
 
+void DEMO_UART_IRQHandler(void)
+{
+    uint8_t data;
+
+    /* If new data arrived. */
+    if ((kUART_RxDataRegFullFlag | kUART_RxOverrunFlag) & UART_GetStatusFlags(DEMO_UART))
+    {
+        data = UART_ReadByte(DEMO_UART);
+
+        /* If ring buffer is not full, add data to ring buffer. */
+        if (((rxIndex + 1) % DEMO_RING_BUFFER_SIZE) != txIndex)
+        {
+            demoRingBuffer[rxIndex] = data;
+            rxIndex++;
+            rxIndex %= DEMO_RING_BUFFER_SIZE;
+        }
+    }
+}
+
 /*!
  * @brief Main function
  */
@@ -96,7 +116,7 @@ int main(void)
     config.enableTx = true;
     config.enableRx = true;
 
-    UART_Init(DEMO_UART, &config, CLOCK_GetFreq(DEMO_UART_CLKSRC));
+    UART_Init(DEMO_UART, &config, DEMO_UART_CLK_FREQ);
 
     /* Send g_tipString out. */
     UART_WriteBlocking(DEMO_UART, g_tipString, sizeof(g_tipString) / sizeof(g_tipString[0]));
@@ -113,25 +133,6 @@ int main(void)
             UART_WriteByte(DEMO_UART, demoRingBuffer[txIndex]);
             txIndex++;
             txIndex %= DEMO_RING_BUFFER_SIZE;
-        }
-    }
-}
-
-void DEMO_UART_IRQHandler(void)
-{
-    uint8_t data;
-
-    /* If new data arrived. */
-    if ((kUART_RxDataRegFullFlag | kUART_RxOverrunFlag) & UART_GetStatusFlags(DEMO_UART))
-    {
-        data = UART_ReadByte(DEMO_UART);
-
-        /* If ring buffer is not full, add data to ring buffer. */
-        if (((rxIndex + 1) % DEMO_RING_BUFFER_SIZE) != txIndex)
-        {
-            demoRingBuffer[rxIndex] = data;
-            rxIndex++;
-            rxIndex %= DEMO_RING_BUFFER_SIZE;
         }
     }
 }

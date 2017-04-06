@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -72,6 +72,7 @@
 #define DEBUG_CONSOLE_TX_GPIO GPIOD
 #define DEBUG_CONSOLE_TX_PIN 9
 #define DEBUG_CONSOLE_TX_PINMUX kPORT_MuxAlt3
+#define CORE_CLK_FREQ CLOCK_GetFreq(kCLOCK_CoreSysClk)
 
 /*******************************************************************************
  * Prototypes
@@ -108,6 +109,54 @@ static app_wakeup_source_t s_wakeupSource; /* Wakeup source.                 */
 /*******************************************************************************
  * Code
  ******************************************************************************/
+
+void APP_SetClockVlpr(void)
+{
+    const sim_clock_config_t simConfig = {
+        .pllFllSel = 0U,        /* PLLFLLSEL select FLL. */
+        .er32kSrc = 2U,         /* ERCLK32K selection, use RTC. */
+        .clkdiv1 = 0x00030000U, /* SIM_CLKDIV1. */
+    };
+
+    CLOCK_SetSimSafeDivs();
+    CLOCK_SetInternalRefClkConfig(kMCG_IrclkEnable, kMCG_IrcFast, 0U);
+
+    /* MCG works in PEE mode now, will switch to BLPI mode. */
+
+    CLOCK_ExternalModeToFbeModeQuick();  /* Enter FBE. */
+    CLOCK_SetFbiMode(kMCG_Dmx32Default, kMCG_DrsLow, NULL); /* Enter FBI. */
+    CLOCK_SetLowPowerEnable(true);       /* Enter BLPI. */
+
+    CLOCK_SetSimConfig(&simConfig);
+}
+
+void APP_SetClockRunFromVlpr(void)
+{
+    const sim_clock_config_t simConfig = {
+        .pllFllSel = 1U,        /* PLLFLLSEL select PLL. */
+        .er32kSrc = 2U,         /* ERCLK32K selection, use RTC. */
+        .clkdiv1 = 0x01440000U, /* SIM_CLKDIV1. */
+    };
+
+    const mcg_pll_config_t pll0Config = {
+        .enableMode = 0U, .prdiv = 0x1U, .vdiv = 0x6U,
+    };
+
+    CLOCK_SetSimSafeDivs();
+
+    /* Currently in BLPI mode, will switch to PEE mode. */
+    /* Enter FBI. */
+    CLOCK_SetLowPowerEnable(false);
+    /* Enter FBE. */
+    CLOCK_SetFbeMode(3U, kMCG_Dmx32Default, kMCG_DrsLow, NULL);
+    /* Enter PBE. */
+    CLOCK_SetPbeMode(kMCG_PllClkSelPll0, &pll0Config);
+    /* Enter PEE. */
+    CLOCK_SetPeeMode();
+
+    CLOCK_SetSimConfig(&simConfig);
+}
+
 static void APP_InitDebugConsole(void)
 {
     uint32_t uartClkSrcFreq;
@@ -388,7 +437,7 @@ bool APP_CheckPowerMode(smc_power_state_t curPowerState, app_power_mode_t target
         case kSMC_PowerStateVlpr:
             if ((kAPP_PowerModeWait == targetPowerMode) || (kAPP_PowerModeStop == targetPowerMode))
             {
-                PRINTF("Could not enter VLPW mode from RUN mode.\r\n");
+                PRINTF("Could not enter HSRUN/STOP/WAIT modes from VLPR mode.\r\n");
                 modeValid = false;
             }
             break;
@@ -448,43 +497,61 @@ void APP_PowerModeSwitch(smc_power_state_t curPowerState, app_power_mode_t targe
             break;
 
         case kAPP_PowerModeWait:
+            SMC_PreEnterWaitModes();
             SMC_SetPowerModeWait(SMC);
+            SMC_PostExitWaitModes();
             break;
 
         case kAPP_PowerModeStop:
+            SMC_PreEnterStopModes();
             SMC_SetPowerModeStop(SMC, kSMC_PartialStop);
+            SMC_PostExitStopModes();
             break;
 
         case kAPP_PowerModeVlpw:
+            SMC_PreEnterWaitModes();
             SMC_SetPowerModeVlpw(SMC);
+            SMC_PostExitWaitModes();
             break;
 
         case kAPP_PowerModeVlps:
+            SMC_PreEnterStopModes();
             SMC_SetPowerModeVlps(SMC);
+            SMC_PostExitStopModes();
             break;
 
         case kAPP_PowerModeLls:
+            SMC_PreEnterStopModes();
             SMC_SetPowerModeLls(SMC);
+            SMC_PostExitStopModes();
             break;
 
         case kAPP_PowerModeVlls0:
             vlls_config.subMode = kSMC_StopSub0;
+            SMC_PreEnterStopModes();
             SMC_SetPowerModeVlls(SMC, &vlls_config);
+            SMC_PostExitStopModes();
             break;
 
         case kAPP_PowerModeVlls1:
             vlls_config.subMode = kSMC_StopSub1;
+            SMC_PreEnterStopModes();
             SMC_SetPowerModeVlls(SMC, &vlls_config);
+            SMC_PostExitStopModes();
             break;
 
         case kAPP_PowerModeVlls2:
             vlls_config.subMode = kSMC_StopSub2;
+            SMC_PreEnterStopModes();
             SMC_SetPowerModeVlls(SMC, &vlls_config);
+            SMC_PostExitStopModes();
             break;
 
         case kAPP_PowerModeVlls3:
             vlls_config.subMode = kSMC_StopSub3;
+            SMC_PreEnterStopModes();
             SMC_SetPowerModeVlls(SMC, &vlls_config);
+            SMC_PostExitStopModes();
             break;
 
         default:

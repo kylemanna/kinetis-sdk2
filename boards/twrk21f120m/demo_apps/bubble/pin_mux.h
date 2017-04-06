@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -31,24 +31,89 @@
 #ifndef _PIN_MUX_H_
 #define _PIN_MUX_H_
 
-#if defined(__cplusplus)
-extern "C" {
-#endif /* __cplusplus */
+
+/*******************************************************************************
+ * Definitions
+ ******************************************************************************/
+
+/*! @brief Direction type  */
+typedef enum _pin_mux_direction
+{
+  kPIN_MUX_DirectionInput = 0U,         /* Input direction */
+  kPIN_MUX_DirectionOutput = 1U,        /* Output direction */
+  kPIN_MUX_DirectionInputOrOutput = 2U  /* Input or output direction */
+} pin_mux_direction_t;
 
 /*!
- * @brief configure all pins for this demo/example
+ * @addtogroup pin_mux
+ * @{
+ */
+
+/*******************************************************************************
+ * API
+ ******************************************************************************/
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
+/* PORTD8 (coord A10), J14[A43]/U2[3]/UART5_RX */
+#define BOARD_INITPINS_DEBUG_UART_RX_PERIPHERAL                            UART5   /*!< Device name: UART5 */
+#define BOARD_INITPINS_DEBUG_UART_RX_SIGNAL                                   RX   /*!< UART5 signal: RX */
+#define BOARD_INITPINS_DEBUG_UART_RX_PIN_NAME                           UART5_RX   /*!< Pin name */
+#define BOARD_INITPINS_DEBUG_UART_RX_LABEL             "J14[A43]/U2[3]/UART5_RX"   /*!< Label */
+#define BOARD_INITPINS_DEBUG_UART_RX_NAME                        "DEBUG_UART_RX"   /*!< Identifier name */
+
+/* PORTD9 (coord A9), J14[A44]/UART5_TX */
+#define BOARD_INITPINS_DEBUG_UART_TX_PERIPHERAL                            UART5   /*!< Device name: UART5 */
+#define BOARD_INITPINS_DEBUG_UART_TX_SIGNAL                                   TX   /*!< UART5 signal: TX */
+#define BOARD_INITPINS_DEBUG_UART_TX_PIN_NAME                           UART5_TX   /*!< Pin name */
+#define BOARD_INITPINS_DEBUG_UART_TX_LABEL                   "J14[A44]/UART5_TX"   /*!< Label */
+#define BOARD_INITPINS_DEBUG_UART_TX_NAME                        "DEBUG_UART_TX"   /*!< Identifier name */
+
+/* PORTD4 (coord A3), J14[B47]/J14[A78]/J15[1]/LED_J_PTD4 */
+#define BOARD_INITPINS_LED_GREEN_PERIPHERAL                                 FTM0   /*!< Device name: FTM0 */
+#define BOARD_INITPINS_LED_GREEN_SIGNAL                                       CH   /*!< FTM0 signal: CH */
+#define BOARD_INITPINS_LED_GREEN_CHANNEL                                       4   /*!< FTM0 channel: 4 */
+#define BOARD_INITPINS_LED_GREEN_PIN_NAME                               FTM0_CH4   /*!< Pin name */
+#define BOARD_INITPINS_LED_GREEN_LABEL     "J14[B47]/J14[A78]/J15[1]/LED_J_PTD4"   /*!< Label */
+#define BOARD_INITPINS_LED_GREEN_NAME                                "LED_GREEN"   /*!< Identifier name */
+
+/* PORTD5 (coord A2), J14[A79]/J15[3]/LED_J_PTD5 */
+#define BOARD_INITPINS_LED_YELLOW_PERIPHERAL                                FTM0   /*!< Device name: FTM0 */
+#define BOARD_INITPINS_LED_YELLOW_SIGNAL                                      CH   /*!< FTM0 signal: CH */
+#define BOARD_INITPINS_LED_YELLOW_CHANNEL                                      5   /*!< FTM0 channel: 5 */
+#define BOARD_INITPINS_LED_YELLOW_PIN_NAME                              FTM0_CH5   /*!< Pin name */
+#define BOARD_INITPINS_LED_YELLOW_LABEL             "J14[A79]/J15[3]/LED_J_PTD5"   /*!< Label */
+#define BOARD_INITPINS_LED_YELLOW_NAME                              "LED_YELLOW"   /*!< Identifier name */
+
+/*!
+ * @brief Configures pin routing and optionally pin electrical features.
  *
  */
 void BOARD_InitPins(void);
 
+/* PORTC11 (coord C5), J3[4]/J14[A8]/J14[A60]/J14[B51]/J14[B71]/U7[6]/I2C1_SDA */
+#define BOARD_I2C_CONFIGUREPINS_ACCL_SDA_PERIPHERAL                         I2C1   /*!< Device name: I2C1 */
+#define BOARD_I2C_CONFIGUREPINS_ACCL_SDA_SIGNAL                              SDA   /*!< I2C1 signal: SDA */
+#define BOARD_I2C_CONFIGUREPINS_ACCL_SDA_PIN_NAME                       I2C1_SDA   /*!< Pin name */
+#define BOARD_I2C_CONFIGUREPINS_ACCL_SDA_LABEL "J3[4]/J14[A8]/J14[A60]/J14[B51]/J14[B71]/U7[6]/I2C1_SDA" /*!< Label */
+#define BOARD_I2C_CONFIGUREPINS_ACCL_SDA_NAME                         "ACCL_SDA"   /*!< Identifier name */
+
 /*!
- * @brief Release I2C bus
  *
  */
-void BOARD_I2C_ReleaseBus(void);
+void BOARD_I2C_ConfigurePins(void);
 
 #if defined(__cplusplus)
 }
-#endif /* __cplusplus */
+#endif
 
+/*!
+ * @}
+ */
 #endif /* _PIN_MUX_H_ */
+
+/*******************************************************************************
+ * EOF
+ ******************************************************************************/

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -36,17 +36,17 @@
 #define USB_HOST_CDC_SERIAL_LF '\n'
 /*! @brief buffer for size for send and receive data */
 /* host example will send the buffer's data to device cdc if the data numbers in the buffer reach
- * USB_HOST_SEND_RECV_PER_TIME or the data is CR or LF*/
+ * USB_HOST_SEND_RECV_PER_TIME or the time reach USB_HOST_UART_RECV_TIMEOUT_THRSHOLD*/
 /*the data in the buffer will format a data packet and be transfed on the usb bus, the bigger the
  * USB_HOST_SEND_RECV_PER_TIME value is ,the bigger the packet on the */
 /*usb bus will be */
-/*the deafule value is 8 ,becuse this could save ram,  but the data transfer efficiency will be lower compared with 64
+/*the deafule value is 32 ,becuse this could save ram,  but the data transfer efficiency will be lower compared with 64
  * byte size buffer. */
-#define USB_HOST_SEND_RECV_PER_TIME 8U
+#define USB_HOST_SEND_RECV_PER_TIME 32U
 /*! @brief whether device support hardware flow control */
 #define USB_HOST_UART_SUPPORT_HW_FLOW 1U
 /*! @brief buffer number used to data transfer  */
-#define USB_HOST_CDC_BUFFER_NUM 8U
+#define USB_HOST_CDC_BUFFER_NUM 4U
 /*! @brief if the data number is not multiple of USB_HOST_SEND_RECV_PER_TIME, the remained data will store in data
  * buffer*/
 /*! if the g_UartActive number is bigger than this thrshold , task will output the remained data in buffer*/
@@ -54,9 +54,9 @@
 
 typedef struct _usb_uart_buffer_struct
 {
-    struct _usb_uart_buffer_struct *next;
     uint8_t buffer[USB_HOST_SEND_RECV_PER_TIME];
     uint32_t dataLength;
+    struct _usb_uart_buffer_struct *next;
 } usb_uart_buffer_struct_t;
 
 typedef struct _cdc_instance_struct

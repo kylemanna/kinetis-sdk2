@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -151,10 +151,10 @@
 #define USB_CDC_VCOM_CIC_INTERFACE_INDEX (0)
 #define USB_CDC_VCOM_DIC_INTERFACE_INDEX (1)
 #define USB_CDC_VCOM_CIC_ENDPOINT_COUNT (1)
-#define USB_CDC_VCOM_CIC_INTERRUPT_IN_ENDPOINT (5)
+#define USB_CDC_VCOM_CIC_INTERRUPT_IN_ENDPOINT (4)
 #define USB_CDC_VCOM_DIC_ENDPOINT_COUNT (2)
 #define USB_CDC_VCOM_DIC_BULK_IN_ENDPOINT (3)
-#define USB_CDC_VCOM_DIC_BULK_OUT_ENDPOINT (4)
+#define USB_CDC_VCOM_DIC_BULK_OUT_ENDPOINT (3)
 
 #define HS_CDC_VCOM_INTERRUPT_IN_PACKET_SIZE (16)
 #define FS_CDC_VCOM_INTERRUPT_IN_PACKET_SIZE (16)
@@ -162,16 +162,16 @@
 #define FS_CDC_VCOM_INTERRUPT_IN_INTERVAL (0x08)
 
 /* Packet size. */
-#define HS_CDC_VCOM_BULK_IN_PACKET_SIZE (64)
+#define HS_CDC_VCOM_BULK_IN_PACKET_SIZE (512)
 #define FS_CDC_VCOM_BULK_IN_PACKET_SIZE (64)
-#define HS_CDC_VCOM_BULK_OUT_PACKET_SIZE (64)
+#define HS_CDC_VCOM_BULK_OUT_PACKET_SIZE (512)
 #define FS_CDC_VCOM_BULK_OUT_PACKET_SIZE (64)
 
 /* String descriptor length. */
 #define USB_DESCRIPTOR_LENGTH_STRING0 (4)
-#define USB_DESCRIPTOR_LENGTH_STRING1 (58)
+#define USB_DESCRIPTOR_LENGTH_STRING1 (38)
 #define USB_DESCRIPTOR_LENGTH_STRING2 (38)
-#define USB_DESCRIPTOR_LENGTH_STRING3 (42)
+#define USB_DESCRIPTOR_LENGTH_STRING3 (34)
 #define USB_DESCRIPTOR_LENGTH_STRING4 (36)
 
 #define USB_DESCRIPTOR_TYPE_CDC_CS_INTERFACE (0x24)
@@ -203,13 +203,13 @@ extern usb_status_t USB_DeviceCallback(usb_device_handle handle, uint32_t event,
 /*!
  * @brief USB device set speed function.
  *
- * This function sets the speed of the USB devcie.
+ * This function sets the speed of the USB device.
  *
  * Due to the difference of HS and FS descriptors, the device descriptors and configurations need to be updated to match
  * current speed.
  * As the default, the device descriptors and configurations are configured by using FS parameters for both EHCI and
  * KHCI.
- * When the EHCI is enabled, the application needs to call this fucntion to update device by using current speed.
+ * When the EHCI is enabled, the application needs to call this function to update device by using current speed.
  * The updated information includes endpoint max packet size, endpoint interval, etc.
  *
  * @param handle The USB device handle.

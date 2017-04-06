@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -92,8 +92,6 @@ static void USB_HostMsdCommandTest(usb_host_msd_command_instance_t *msdCommandIn
  ******************************************************************************/
 extern usb_host_handle g_HostHandle;                        /* global host handle */
 usb_host_msd_command_instance_t g_MsdCommandInstance = {0}; /* global msd command instance */
-/* control transfer callback status */
-volatile usb_status_t controlStatus;
 /* command callback status */
 volatile usb_status_t ufiStatus;
 
@@ -123,7 +121,6 @@ static void USB_HostMsdControlCallback(void *param, uint8_t *data, uint32_t data
         msdCommandInstance->runWaitState = kRunIdle;
         msdCommandInstance->runState = kRunMassStorageTest;
     }
-    controlStatus = status;
 }
 
 static void msd_command_test_done(usb_host_msd_command_instance_t *msdCommandInstance)
@@ -139,7 +136,7 @@ static void USB_HostMsdCommandTest(usb_host_msd_command_instance_t *msdCommandIn
     uint32_t blockSize = 512;
     uint8_t maxLunNumber;
     uint32_t address;
-    
+
     if (msdCommandInstance->commandSemaphore == NULL)
     {
         msdCommandInstance->commandSemaphore = xSemaphoreCreateCounting(0x01U, 0x00U);

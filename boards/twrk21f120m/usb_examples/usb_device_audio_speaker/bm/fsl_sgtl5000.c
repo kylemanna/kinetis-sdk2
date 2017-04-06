@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -126,7 +126,7 @@ void SGTL_Init(sgtl_handle_t *handle, sgtl_config_t *config)
     SGTL_ModifyReg(handle, CHIP_ANA_CTRL, 0xFFFEU, 0x0000U);
 
     /* Delay for some seconds */
-    for (i = 0; i < 1000000; i ++)
+    for (i = 0; i < 3000000; i++)
     {
         __ASM("nop");
     }
@@ -563,7 +563,7 @@ status_t SGTL_ConfigDataFormat(sgtl_handle_t *handle, uint32_t mclk, uint32_t sa
     switch (bits)
     {
         case 16:
-            SGTL_ModifyReg(handle, CHIP_I2S_CTRL, SGTL5000_I2S_DLEN_CLR_MASK, SGTL5000_I2S_DLEN_32);
+            SGTL_ModifyReg(handle, CHIP_I2S_CTRL, SGTL5000_I2S_DLEN_CLR_MASK, SGTL5000_I2S_DLEN_16);
             break;
         case 20:
             SGTL_ModifyReg(handle, CHIP_I2S_CTRL, SGTL5000_I2S_DLEN_CLR_MASK, SGTL5000_I2S_DLEN_20);
@@ -591,6 +591,16 @@ status_t SGTL_WriteReg(sgtl_handle_t *handle, uint16_t reg, uint16_t val)
     buff[0] = (val & 0xFF00U) >> 8U;
     buff[1] = val & 0xFF;
 
+#if defined(FSL_FEATURE_SOC_LPI2C_COUNT) && (FSL_FEATURE_SOC_LPI2C_COUNT)
+    uint8_t data[4] = {0};
+    data[0] = (reg & 0xFF00U) >> 8U;
+    data[1] = reg & 0xFFU;
+    data[2] = buff[0];
+    data[3] = buff[1];
+    retval = LPI2C_MasterStart(handle->base, SGTL5000_I2C_ADDR, kLPI2C_Write);
+    retval = LPI2C_MasterSend(handle->base, data, 4);
+    retval = LPI2C_MasterStop(handle->base);
+#else
     /* Set I2C xfer structure */
     handle->xfer.direction = kI2C_Write;
     handle->xfer.subaddress = (uint32_t)reg;
@@ -599,6 +609,7 @@ status_t SGTL_WriteReg(sgtl_handle_t *handle, uint16_t reg, uint16_t val)
     handle->xfer.dataSize = 2U;
 
     retval = I2C_MasterTransferBlocking(handle->base, &handle->xfer);
+#endif
 
     return retval;
 }
@@ -608,6 +619,16 @@ status_t SGTL_ReadReg(sgtl_handle_t *handle, uint16_t reg, uint16_t *val)
     uint8_t data[2];
     status_t retval = 0;
 
+#if defined(FSL_FEATURE_SOC_LPI2C_COUNT) && (FSL_FEATURE_SOC_LPI2C_COUNT)
+    uint8_t buff[2] = {0};
+    buff[0] = (reg & 0xFF00U) >> 8U;
+    buff[1] = reg & 0xFFU;
+    retval = LPI2C_MasterStart(handle->base, SGTL5000_I2C_ADDR, kLPI2C_Write);
+    retval = LPI2C_MasterSend(handle->base, buff, 2);
+    retval = LPI2C_MasterStart(handle->base, SGTL5000_I2C_ADDR, kLPI2C_Read);
+    retval = LPI2C_MasterReceive(handle->base, data, 2);
+    retval = LPI2C_MasterStop(handle->base);
+#else
     /* Configure I2C xfer */
     handle->xfer.direction = kI2C_Read;
     handle->xfer.subaddress = (uint32_t)reg;
@@ -616,6 +637,7 @@ status_t SGTL_ReadReg(sgtl_handle_t *handle, uint16_t reg, uint16_t *val)
     handle->xfer.dataSize = 2U;
 
     retval = I2C_MasterTransferBlocking(handle->base, &handle->xfer);
+#endif
 
     /* Handle the return data */
     *val = (uint16_t)(((uint32_t)data[0] << 8U) | (uint32_t)data[1]);

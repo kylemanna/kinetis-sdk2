@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -151,8 +151,8 @@ uint8_t g_UsbDeviceDescriptor[USB_DESCRIPTOR_LENGTH_DEVICE] = {
     USB_DEVICE_PROTOCOL,                                 /* Protocol code (assigned by the USB-IF). */
     USB_CONTROL_MAX_PACKET_SIZE,                         /* Maximum packet size for endpoint zero
                                                             (only 8, 16, 32, or 64 are valid) */
-    0xA2U, 0x15U,                                        /* Vendor ID (assigned by the USB-IF) */
-    0x7EU, 0x00U,                                        /* Product ID (assigned by the manufacturer) */
+    0xC9U, 0x1FU,                                        /* Vendor ID (assigned by the USB-IF) */
+    0xA0U, 0x00U,                                        /* Product ID (assigned by the manufacturer) */
     USB_SHORT_GET_LOW(USB_DEVICE_DEMO_BCD_VERSION),
     USB_SHORT_GET_HIGH(USB_DEVICE_DEMO_BCD_VERSION), /* Device release number in binary-coded decimal */
     0x01U,                                           /* Index of string descriptor describing manufacturer */
@@ -324,7 +324,7 @@ uint8_t g_UsbDeviceHidKeyboardReportDescriptor[USB_DESCRIPTOR_LENGTH_HID_KEYBOAR
     0x95U, 0x05U, /* Report count (5U) */
     0x75U, 0x01U, /* Report Size (1U) */
 
-    0x05U, 0x01U, /* Usage Page (Page# for LEDs) */
+    0x05U, 0x08U, /* Usage Page (Page# for LEDs) */
     0x19U, 0x01U, /* Usage Minimum (1U) */
     0x29U, 0x05U, /* Usage Maximum (5U) */
     0x91U, 0x02U, /* Output (Data, Variable, Absolute) LED report */
@@ -351,23 +351,11 @@ uint8_t g_UsbDeviceString0[USB_DESCRIPTOR_LENGTH_STRING0] = {
 uint8_t g_UsbDeviceString1[USB_DESCRIPTOR_LENGTH_STRING1] = {
     sizeof(g_UsbDeviceString1),
     USB_DESCRIPTOR_TYPE_STRING,
-    'F',
+    'N',
     0x00U,
-    'R',
+    'X',
     0x00U,
-    'E',
-    0x00U,
-    'E',
-    0x00U,
-    'S',
-    0x00U,
-    'C',
-    0x00U,
-    'A',
-    0x00U,
-    'L',
-    0x00U,
-    'E',
+    'P',
     0x00U,
     ' ',
     0x00U,
@@ -397,15 +385,7 @@ uint8_t g_UsbDeviceString1[USB_DESCRIPTOR_LENGTH_STRING1] = {
     0x00U,
     'R',
     0x00U,
-    ' ',
-    0x00U,
-    'I',
-    0x00U,
-    'N',
-    0x00U,
-    'C',
-    0x00U,
-    '.',
+    'S',
     0x00U,
 };
 
@@ -583,7 +563,7 @@ usb_status_t USB_DeviceGetStringDescriptor(usb_device_handle handle,
         uint8_t languageId = 0U;
         uint8_t languageIndex = USB_DEVICE_STRING_COUNT;
 
-        for (; languageId < USB_DEVICE_STRING_COUNT; languageId++)
+        for (; languageId < USB_DEVICE_LANGUAGE_COUNT; languageId++)
         {
             if (stringDescriptor->languageId == g_UsbDeviceLanguageList.languageList[languageId].languageId)
             {

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -42,11 +42,14 @@
 
 /* usb descritpor length */
 #if USBCFG_AUDIO_CLASS_2_0
-#define USB_DESCRIPTOR_LENGTH_CONFIGURATION_ALL (141)
+#define USB_DESCRIPTOR_LENGTH_CONFIGURATION_ALL (148)
 #else
-#define USB_DESCRIPTOR_LENGTH_CONFIGURATION_ALL (118)
+#define USB_DESCRIPTOR_LENGTH_CONFIGURATION_ALL (127)
 #endif
 #define USB_ENDPOINT_AUDIO_DESCRIPTOR_LENGTH (9)
+#define USB_AUDIO_CLASS_SPECIFIC_ENDPOINT_LENGTH (8)
+#define USB_AUDIO_STANDARD_AS_ISO_DATA_ENDPOINT_LENGTH (7)
+#define USB_AUDIO_STANDARD_AS_ISO_FEEDBACK_ENDPOINT_LENGTH (7)
 #define USB_AUDIO_CONTROL_INTERFACE_HEADER_LENGTH (9)
 #define USB_DESCRIPTOR_LENGTH_AC_INTERRUPT_ENDPOINT (9)
 #define USB_AUDIO_INPUT_TERMINAL_ONLY_DESC_SIZE (12)
@@ -67,11 +70,12 @@
 #define USB_AUDIO_CONTROL_INTERFACE_INDEX (0)
 #define USB_AUDIO_STREAM_INTERFACE_INDEX (1)
 
-#define USB_AUDIO_STREAM_ENDPOINT_COUNT (1)
+#define USB_AUDIO_STREAM_ENDPOINT_COUNT (2)
 #define USB_AUDIO_CONTROL_ENDPOINT_COUNT (1)
 
 #define USB_AUDIO_STREAM_ENDPOINT (2)
 #define USB_AUDIO_CONTROL_ENDPOINT (1)
+#define USB_AUDIO_FEEDBACK_ENDPOINT (2)
 
 #define USB_AUDIO_SPEAKER_INTERFACE_COUNT \
     (USB_AUDIO_SPEAKER_CONTROL_INTERFACE_COUNT + USB_AUDIO_SPEAKER_STREAM_INTERFACE_COUNT)
@@ -90,17 +94,21 @@
 /* Packet size and interval. */
 #define HS_INTERRUPT_IN_PACKET_SIZE (8)
 #define FS_INTERRUPT_IN_PACKET_SIZE (8)
-#define HS_ISO_OUT_ENDP_PACKET_SIZE (64)
+#define HS_ISO_OUT_ENDP_PACKET_SIZE (64) /* This should be changed to 192 if sampling rate is 48k */
 #define FS_ISO_OUT_ENDP_PACKET_SIZE (64)
+#define HS_ISO_FEEDBACK_ENDP_PACKET_SIZE (3)
+#define FS_ISO_FEEDBACK_ENDP_PACKET_SIZE (3)
 #define HS_ISO_OUT_ENDP_INTERVAL (0x04)
+#define HS_ISO_IN_ENDP_INTERVAL (0x04)
 #define FS_ISO_OUT_ENDP_INTERVAL (0x01)
+#define FS_ISO_IN_ENDP_INTERVAL (0x01)
 #define ISO_OUT_ENDP_INTERVAL (0x01)
 #define HS_INTERRUPT_IN_INTERVAL (0x07U) /* 2^(7-1) = 8ms */
 #define FS_INTERRUPT_IN_INTERVAL (0x08U)
 
 /* String descriptor length. */
 #define USB_DESCRIPTOR_LENGTH_STRING0 (4)
-#define USB_DESCRIPTOR_LENGTH_STRING1 (58)
+#define USB_DESCRIPTOR_LENGTH_STRING1 (38)
 #define USB_DESCRIPTOR_LENGTH_STRING2 (30)
 
 /* Class code. */
@@ -135,7 +143,7 @@
 /*!
  * @brief USB device set speed function.
  *
- * This function sets the speed of the USB devcie.
+ * This function sets the speed of the USB device.
  *
  * Due to the difference of HS and FS descriptors, the device descriptors and configurations need to be updated to match
  * current speed.

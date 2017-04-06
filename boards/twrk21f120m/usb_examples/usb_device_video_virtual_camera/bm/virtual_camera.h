@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -41,6 +41,12 @@
 #if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0U)
 #define CONTROLLER_ID kUSB_ControllerKhci0
 #endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+#define CONTROLLER_ID kUSB_ControllerLpcIp3511Fs0
+#endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511HS) && (USB_DEVICE_CONFIG_LPCIP3511HS > 0U)
+#define CONTROLLER_ID kUSB_ControllerLpcIp3511Hs0
+#endif
 
 #define USB_DEVICE_INTERRUPT_PRIORITY (3U)
 
@@ -49,7 +55,7 @@ typedef struct _usb_video_virtual_camera_struct
     usb_device_handle deviceHandle;
     class_handle_t videoHandle;
     uint32_t currentMaxPacketSize;
-    uint8_t imageBuffer[HS_STREAM_IN_PACKET_SIZE];
+    uint8_t *imageBuffer;
     uint32_t imageBufferLength;
     usb_device_video_probe_and_commit_controls_struct_t probeStruct;
     usb_device_video_probe_and_commit_controls_struct_t commitStruct;

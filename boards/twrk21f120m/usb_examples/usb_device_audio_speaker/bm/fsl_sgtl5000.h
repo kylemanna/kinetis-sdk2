@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -31,14 +31,18 @@
 #ifndef _FSL_SGTL5000_H_
 #define _FSL_SGTL5000_H_
 
+#include "fsl_common.h"
+#if defined(FSL_FEATURE_SOC_LPI2C_COUNT) && (FSL_FEATURE_SOC_LPI2C_COUNT)
+#include "fsl_lpi2c.h"
+#else
 #include "fsl_i2c.h"
+#endif
 
 /*!
  * @addtogroup sgtl5000
  * @{
  */
 
-/*! @file */
 
 /*******************************************************************************
  * Definitions
@@ -802,9 +806,16 @@ typedef enum _sgtl_protocol
 /*! @brief sgtl configure definition. This structure should be global.*/
 typedef struct _sgtl_handle
 {
-    I2C_Type *base;                 /*!< I2C base. */
-    i2c_master_handle_t *i2cHandle; /*!< I2C master transfer context */
-    i2c_master_transfer_t xfer;     /*!< I2C master xfer */
+#if defined(FSL_FEATURE_SOC_LPI2C_COUNT) && (FSL_FEATURE_SOC_LPI2C_COUNT)
+    LPI2C_Type *base;
+    lpi2c_master_transfer_t xfer;
+    lpi2c_master_handle_t *i2cHandle;
+#else
+    /* I2C relevant definition. */
+    I2C_Type *base;                 /*!< I2C instance. */
+    i2c_master_transfer_t xfer;     /*!< I2C device setting */
+    i2c_master_handle_t *i2cHandle; /*!< I2C internal state space. */
+#endif
 } sgtl_handle_t;
 
 /*! @brief Initailize structure of sgtl5000 */

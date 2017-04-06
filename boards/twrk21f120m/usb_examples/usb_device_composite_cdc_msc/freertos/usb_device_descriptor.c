@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -148,9 +148,9 @@ uint8_t g_UsbDeviceDescriptor[USB_DESCRIPTOR_LENGTH_DEVICE] = {
     /* Maximum packet size for endpoint zero (only 8, 16, 32, or 64 are valid) */
     USB_CONTROL_MAX_PACKET_SIZE,
     /* Vendor ID (assigned by the USB-IF) */
-    0xA2, 0x15,
+    0xC9U, 0x1FU,
     /* Product ID (assigned by the manufacturer) */
-    0x00, 0x08,
+    0x9E, 0x00,
     /* Device release number in binary-coded decimal */
     USB_SHORT_GET_LOW(USB_DEVICE_DEMO_BCD_VERSION), USB_SHORT_GET_HIGH(USB_DEVICE_DEMO_BCD_VERSION),
     /* Index of string descriptor describing manufacturer */
@@ -158,7 +158,7 @@ uint8_t g_UsbDeviceDescriptor[USB_DESCRIPTOR_LENGTH_DEVICE] = {
     /* Index of string descriptor describing product */
     0x02,
     /* Index of string descriptor describing the device's serial number */
-    0x00,
+    0x03,
     /* Number of possible configurations */
     USB_DEVICE_CONFIGURATION_COUNT,
 };
@@ -273,64 +273,46 @@ uint8_t g_UsbDeviceConfigurationDescriptor[USB_DESCRIPTOR_LENGTH_CONFIGURATION_A
 uint8_t g_UsbDeviceString0[USB_DESCRIPTOR_LENGTH_STRING0] = {sizeof(g_UsbDeviceString0), USB_DESCRIPTOR_TYPE_STRING,
                                                              0x09, 0x04};
 
-uint8_t g_UsbDeviceString1[USB_DESCRIPTOR_LENGTH_STRING1] = {sizeof(g_UsbDeviceString1),
-                                                             USB_DESCRIPTOR_TYPE_STRING,
-                                                             'F',
-                                                             0,
-                                                             'R',
-                                                             0,
-                                                             'E',
-                                                             0,
-                                                             'E',
-                                                             0,
-                                                             'S',
-                                                             0,
-                                                             'C',
-                                                             0,
-                                                             'A',
-                                                             0,
-                                                             'L',
-                                                             0,
-                                                             'E',
-                                                             0,
-                                                             ' ',
-                                                             0,
-                                                             'S',
-                                                             0,
-                                                             'E',
-                                                             0,
-                                                             'M',
-                                                             0,
-                                                             'I',
-                                                             0,
-                                                             'C',
-                                                             0,
-                                                             'O',
-                                                             0,
-                                                             'N',
-                                                             0,
-                                                             'D',
-                                                             0,
-                                                             'U',
-                                                             0,
-                                                             'C',
-                                                             0,
-                                                             'T',
-                                                             0,
-                                                             'O',
-                                                             0,
-                                                             'R',
-                                                             0,
-                                                             ' ',
-                                                             0,
-                                                             'I',
-                                                             0,
-                                                             'N',
-                                                             0,
-                                                             'C',
-                                                             0,
-                                                             '.',
-                                                             0};
+uint8_t g_UsbDeviceString1[USB_DESCRIPTOR_LENGTH_STRING1] = {
+    sizeof(g_UsbDeviceString1),
+    USB_DESCRIPTOR_TYPE_STRING,
+    'N',
+    0x00U,
+    'X',
+    0x00U,
+    'P',
+    0x00U,
+    ' ',
+    0x00U,
+    'S',
+    0x00U,
+    'E',
+    0x00U,
+    'M',
+    0x00U,
+    'I',
+    0x00U,
+    'C',
+    0x00U,
+    'O',
+    0x00U,
+    'N',
+    0x00U,
+    'D',
+    0x00U,
+    'U',
+    0x00U,
+    'C',
+    0x00U,
+    'T',
+    0x00U,
+    'O',
+    0x00U,
+    'R',
+    0x00U,
+    'S',
+    0x00U,
+};
 
 uint8_t g_UsbDeviceString2[USB_DESCRIPTOR_LENGTH_STRING2] = {sizeof(g_UsbDeviceString2),
                                                              USB_DESCRIPTOR_TYPE_STRING,
@@ -373,46 +355,38 @@ uint8_t g_UsbDeviceString2[USB_DESCRIPTOR_LENGTH_STRING2] = {sizeof(g_UsbDeviceS
 
 uint8_t g_UsbDeviceString3[USB_DESCRIPTOR_LENGTH_STRING3] = {sizeof(g_UsbDeviceString3),
                                                              USB_DESCRIPTOR_TYPE_STRING,
-                                                             'M',
-                                                             0,
-                                                             'C',
-                                                             0,
-                                                             'U',
-                                                             0,
-                                                             ' ',
-                                                             0,
-                                                             'V',
-                                                             0,
-                                                             'I',
-                                                             0,
-                                                             'R',
-                                                             0,
-                                                             'T',
-                                                             0,
-                                                             'U',
-                                                             0,
+                                                             '0',
+                                                             0x00U,
+                                                             '1',
+                                                             0x00U,
+                                                             '2',
+                                                             0x00U,
+                                                             '3',
+                                                             0x00U,
+                                                             '4',
+                                                             0x00U,
+                                                             '5',
+                                                             0x00U,
+                                                             '6',
+                                                             0x00U,
+                                                             '7',
+                                                             0x00U,
+                                                             '8',
+                                                             0x00U,
+                                                             '9',
+                                                             0x00U,
                                                              'A',
-                                                             0,
-                                                             'L',
-                                                             0,
-                                                             ' ',
-                                                             0,
+                                                             0x00U,
+                                                             'B',
+                                                             0x00U,
                                                              'C',
-                                                             0,
-                                                             'O',
-                                                             0,
-                                                             'M',
-                                                             0,
-                                                             ' ',
-                                                             0,
+                                                             0x00U,
                                                              'D',
-                                                             0,
+                                                             0x00U,
                                                              'E',
-                                                             0,
-                                                             'M',
-                                                             0,
-                                                             'O',
-                                                             0};
+                                                             0x00U,
+                                                             'F',
+                                                             0x00U};
 
 uint8_t g_UsbDeviceString4[USB_DESCRIPTOR_LENGTH_STRING4] = {sizeof(g_UsbDeviceString4),
                                                              USB_DESCRIPTOR_TYPE_STRING,
@@ -473,7 +447,7 @@ usb_language_list_t g_UsbDeviceLanguageList = {
 /*!
  * @brief USB device get device descriptor function.
  *
- * This function gets the device descriptor of the USB devcie.
+ * This function gets the device descriptor of the USB device.
  *
  * @param handle The USB device handle.
  * @param deviceDescriptor The pointer to the device descriptor structure.
@@ -491,7 +465,7 @@ usb_status_t USB_DeviceGetDeviceDescriptor(usb_device_handle handle,
 /*!
  * @brief USB device get configuration descriptor function.
  *
- * This function gets the configuration descriptor of the USB devcie.
+ * This function gets the configuration descriptor of the USB device.
  *
  * @param handle The USB device handle.
  * @param configurationDescriptor The pointer to the configuration descriptor structure.
@@ -513,7 +487,7 @@ usb_status_t USB_DeviceGetConfigurationDescriptor(
 /*!
  * @brief USB device get string descriptor function.
  *
- * This function gets the string descriptor of the USB devcie.
+ * This function gets the string descriptor of the USB device.
  *
  * @param handle The USB device handle.
  * @param stringDescriptor Pointer to the string descriptor structure.
@@ -558,13 +532,13 @@ usb_status_t USB_DeviceGetStringDescriptor(usb_device_handle handle,
 /*!
  * @brief USB device set speed function.
  *
- * This function sets the speed of the USB devcie.
+ * This function sets the speed of the USB device.
  *
  * Due to the difference of HS and FS descriptors, the device descriptors and configurations need to be updated to match
  * current speed.
  * As the default, the device descriptors and configurations are configured by using FS parameters for both EHCI and
  * KHCI.
- * When the EHCI is enabled, the application needs to call this fucntion to update device by using current speed.
+ * When the EHCI is enabled, the application needs to call this function to update device by using current speed.
  * The updated information includes endpoint max packet size, endpoint interval, etc.
  *
  * @param handle The USB device handle.

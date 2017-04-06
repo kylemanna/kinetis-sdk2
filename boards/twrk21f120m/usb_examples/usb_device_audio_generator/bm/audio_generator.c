@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -34,7 +34,7 @@
 
 #include "usb_device_class.h"
 #include "usb_device_audio.h"
-
+#include "usb_audio_config.h"
 #include "usb_device_ch9.h"
 #include "usb_device_descriptor.h"
 
@@ -44,9 +44,9 @@
 #include "clock_config.h"
 #include "board.h"
 #include "fsl_debug_console.h"
-#if (defined(FSL_FEATURE_SOC_MPU_COUNT) && (FSL_FEATURE_SOC_MPU_COUNT > 0U))
-#include "fsl_mpu.h"
-#endif /* FSL_FEATURE_SOC_MPU_COUNT */
+#if (defined(FSL_FEATURE_SOC_SYSMPU_COUNT) && (FSL_FEATURE_SOC_SYSMPU_COUNT > 0U))
+#include "fsl_sysmpu.h"
+#endif /* FSL_FEATURE_SOC_SYSMPU_COUNT */
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -59,6 +59,9 @@
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
+/* USB clock source and frequency*/
+#define USB_FS_CLK_SRC kCLOCK_UsbSrcPll0
+#define USB_FS_CLK_FREQ CLOCK_GetFreq(kCLOCK_PllFllSelClk)
 
 /*******************************************************************************
  * Prototypes
@@ -66,24 +69,16 @@
 void BOARD_InitHardware(void);
 usb_status_t USB_DeviceAudioCallback(class_handle_t handle, uint32_t event, void *param);
 usb_status_t USB_DeviceCallback(usb_device_handle handle, uint32_t event, void *param);
+extern void USB_PrepareData(void);
+#if defined(AUDIO_DATA_SOURCE_DMIC) && (AUDIO_DATA_SOURCE_DMIC > 0U)
+extern void Board_DMIC_DMA_Init(void);
+#endif
 
 /*******************************************************************************
  * Variables
  ******************************************************************************/
-#if defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 0U)
-#define AUDIO_ENDPOINT_MAX_PACKET_SIZE \
-    (FS_ISO_IN_ENDP_PACKET_SIZE > HS_ISO_IN_ENDP_PACKET_SIZE ? FS_ISO_IN_ENDP_PACKET_SIZE : HS_ISO_IN_ENDP_PACKET_SIZE)
-#endif
-
-#if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0U)
-#define AUDIO_ENDPOINT_MAX_PACKET_SIZE (FS_ISO_IN_ENDP_PACKET_SIZE)
-#endif
-
 /* Audio data information */
-uint32_t audioPosition = 0U;
-extern const unsigned char wavData[];
-extern const uint16_t wavSize;
-static uint8_t s_wavBuff[AUDIO_ENDPOINT_MAX_PACKET_SIZE];
+extern uint8_t s_wavBuff[];
 
 extern usb_device_class_struct_t g_UsbDeviceAudioClass;
 
@@ -136,26 +131,6 @@ static usb_device_class_config_list_struct_t s_audioConfigList = {
 /*******************************************************************************
 * Code
 ******************************************************************************/
-/*!
- * @brief Audio wav data prepare function.
- *
- * This function prepare audio wav data before send.
- */
-void USB_PrepareData(void)
-{
-    uint8_t k;
-    /* copy audio wav data from flash to buffer */
-    for (k = 0U; k < AUDIO_ENDPOINT_MAX_PACKET_SIZE; k++)
-    {
-        if (audioPosition > (wavSize - 1U))
-        {
-            audioPosition = 0U;
-        }
-        s_wavBuff[k] = wavData[audioPosition];
-        audioPosition++;
-    }
-}
-
 /*!
  * @brief Audio class specific request function.
  *
@@ -517,7 +492,9 @@ usb_status_t USB_DeviceCallback(usb_device_handle handle, uint32_t event, void *
             /* The device BUS reset signal detected */
             s_audioGenerator.attach = 0U;
             error = kStatus_USB_Success;
-#if defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 0U)
+#if (defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 0U)) || \
+    (defined(USB_DEVICE_CONFIG_LPCIP3511HS) && (USB_DEVICE_CONFIG_LPCIP3511HS > 0U))
+            /* Get USB speed to configure the device, including max packet size and interval of the endpoints. */
             if (kStatus_USB_Success == USB_DeviceClassGetSpeed(CONTROLLER_ID, &s_audioGenerator.speed))
             {
                 USB_DeviceSetSpeed(handle, s_audioGenerator.speed);
@@ -618,11 +595,31 @@ void USBHS_IRQHandler(void)
 {
     USB_DeviceEhciIsrFunction(s_audioGenerator.deviceHandle);
 }
+#if defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 1U)
+#if defined(FSL_FEATURE_SOC_USBNC_COUNT) && (FSL_FEATURE_SOC_USBNC_COUNT > 1U)
+void USB1_IRQHandler(void)
+{
+    USB_DeviceEhciIsrFunction(s_audioGenerator.deviceHandle);
+}
+#endif
+#endif
 #endif
 #if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0U)
 void USB0_IRQHandler(void)
 {
     USB_DeviceKhciIsrFunction(s_audioGenerator.deviceHandle);
+}
+#endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+void USB0_IRQHandler(void)
+{
+    USB_DeviceLpcIp3511IsrFunction(s_audioGenerator.deviceHandle);
+}
+#endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511HS) && (USB_DEVICE_CONFIG_LPCIP3511HS > 0U)
+void USB1_IRQHandler(void)
+{
+    USB_DeviceLpcIp3511IsrFunction(s_audioGenerator.deviceHandle);
 }
 #endif
 
@@ -640,7 +637,22 @@ void APPInit(void)
     uint8_t ehciIrq[] = USBHS_IRQS;
     irqNo = ehciIrq[CONTROLLER_ID - kUSB_ControllerEhci0];
 
-    CLOCK_EnableUsbhs0Clock(kCLOCK_UsbSrcPll0, CLOCK_GetFreq(kCLOCK_PllFllSelClk));
+#if defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 1U)
+    if (CONTROLLER_ID == kUSB_ControllerEhci0)
+    {
+        CLOCK_EnableUsbhs0PhyPllClock(USB_HS_PHY_CLK_SRC, USB_HS_PHY_CLK_FREQ);
+        CLOCK_EnableUsbhs0Clock(USB_HS_CLK_SRC, USB_HS_CLK_FREQ);
+    }
+    else
+    {
+        CLOCK_EnableUsbhs1PhyPllClock(USB_HS_PHY_CLK_SRC, USB_HS_PHY_CLK_FREQ);
+        CLOCK_EnableUsbhs1Clock(USB_HS_CLK_SRC, USB_HS_CLK_FREQ);
+    }
+#else
+    CLOCK_EnableUsbhs0PhyPllClock(USB_HS_PHY_CLK_SRC, USB_HS_PHY_CLK_FREQ);
+    CLOCK_EnableUsbhs0Clock(USB_HS_CLK_SRC, USB_HS_CLK_FREQ);
+#endif
+
     USB_EhciPhyInit(CONTROLLER_ID, BOARD_XTAL0_CLK_HZ);
 #endif
 #if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0U)
@@ -648,15 +660,37 @@ void APPInit(void)
     irqNo = khciIrq[CONTROLLER_ID - kUSB_ControllerKhci0];
 
     SystemCoreClockUpdate();
-#if ((defined FSL_FEATURE_USB_KHCI_IRC48M_MODULE_CLOCK_ENABLED) && (FSL_FEATURE_USB_KHCI_IRC48M_MODULE_CLOCK_ENABLED))
-    CLOCK_EnableUsbfs0Clock(kCLOCK_UsbSrcIrc48M, 48000000U);
-#else
-    CLOCK_EnableUsbfs0Clock(kCLOCK_UsbSrcPll0, CLOCK_GetFreq(kCLOCK_PllFllSelClk));
-#endif /* FSL_FEATURE_USB_KHCI_IRC48M_MODULE_CLOCK_ENABLED */
+    CLOCK_EnableUsbfs0Clock(USB_FS_CLK_SRC, USB_FS_CLK_FREQ);
 #endif
-#if (defined(FSL_FEATURE_SOC_MPU_COUNT) && (FSL_FEATURE_SOC_MPU_COUNT > 0U))
-    MPU_Enable(MPU, 0);
-#endif /* FSL_FEATURE_SOC_MPU_COUNT */
+
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+    uint8_t usbDeviceIP3511Irq[] = USB_IRQS;
+    irqNo = usbDeviceIP3511Irq[CONTROLLER_ID - kUSB_ControllerLpcIp3511Fs0];
+
+    /* enable USB IP clock */
+    CLOCK_EnableUsbfs0DeviceClock(USB_FS_CLK_SRC, USB_FS_CLK_FREQ);
+#endif
+
+#if defined(USB_DEVICE_CONFIG_LPCIP3511HS) && (USB_DEVICE_CONFIG_LPCIP3511HS > 0U)
+    uint8_t usbDeviceIP3511Irq[] = USBHSD_IRQS;
+    irqNo = usbDeviceIP3511Irq[CONTROLLER_ID - kUSB_ControllerLpcIp3511Hs0];
+    /* enable USB IP clock */
+    CLOCK_EnableUsbhs0DeviceClock(USB_HS_CLK_SRC, USB_HS_CLK_FREQ);
+#endif
+
+#if (((defined(USB_DEVICE_CONFIG_LPCIP3511FS)) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)) || \
+     ((defined(USB_DEVICE_CONFIG_LPCIP3511HS)) && (USB_DEVICE_CONFIG_LPCIP3511HS > 0U)))
+#if defined(FSL_FEATURE_USBHSD_USB_RAM) && (FSL_FEATURE_USBHSD_USB_RAM)
+    for (int i = 0; i < FSL_FEATURE_USBHSD_USB_RAM; i++)
+    {
+        ((uint8_t *)FSL_FEATURE_USBHSD_USB_RAM_BASE_ADDRESS)[i] = 0x00U;
+    }
+#endif
+#endif
+
+#if (defined(FSL_FEATURE_SOC_SYSMPU_COUNT) && (FSL_FEATURE_SOC_SYSMPU_COUNT > 0U))
+    SYSMPU_Enable(SYSMPU, 0);
+#endif /* FSL_FEATURE_SOC_SYSMPU_COUNT */
 
 /*
  * If the SOC has USB KHCI dedicated RAM, the RAM memory needs to be clear after
@@ -683,8 +717,12 @@ void APPInit(void)
         s_audioGenerator.audioHandle = s_audioConfigList.config->classHandle;
     }
 
+#if defined(__GIC_PRIO_BITS)
+    GIC_SetPriority((IRQn_Type)irqNo, USB_DEVICE_INTERRUPT_PRIORITY);
+#else
     NVIC_SetPriority((IRQn_Type)irqNo, USB_DEVICE_INTERRUPT_PRIORITY);
-    NVIC_EnableIRQ((IRQn_Type)irqNo);
+#endif
+    EnableIRQ((IRQn_Type)irqNo);
 
     USB_DeviceRun(s_audioGenerator.deviceHandle);
 }
@@ -706,6 +744,10 @@ void main(void)
     BOARD_BootClockRUN();
     BOARD_InitDebugConsole();
 
+#if defined(AUDIO_DATA_SOURCE_DMIC) && (AUDIO_DATA_SOURCE_DMIC > 0U)
+    Board_DMIC_DMA_Init();
+#endif
+
     APPInit();
 
     while (1)
@@ -716,6 +758,12 @@ void main(void)
 #endif
 #if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0U)
         USB_DeviceKhciTaskFunction(s_audioGenerator.deviceHandle);
+#endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+        USB_DeviceLpcIp3511TaskFunction(s_audioGenerator.deviceHandle);
+#endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511HS) && (USB_DEVICE_CONFIG_LPCIP3511HS > 0U)
+        USB_DeviceLpcIp3511TaskFunction(s_audioGenerator.deviceHandle);
 #endif
 #endif
     }

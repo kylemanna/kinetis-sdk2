@@ -17,11 +17,11 @@ cycle to ensure the new mark/space counter is prepared before each end of modula
 
 Toolchain supported
 ===================
-- IAR embedded Workbench 7.50.1
-- Keil MDK 5.17
-- GCC ARM Embedded 2015-4.9-q3
-- Kinetis Development Studio IDE 3.0.0
-- Atollic TrueSTUDIO 5.4.0
+- IAR embedded Workbench 7.80.4
+- Keil MDK 5.21a
+- GCC ARM Embedded 2016-5.4-q3
+- Kinetis Development Studio IDE 3.2.0
+- MCUXpresso0.8
 
 Hardware requirements
 =====================
@@ -35,6 +35,7 @@ Board settings
 This CMT Example project does not call for any special hardware configurations.
 Although not required, the recommendation is to leave the development board's jumper settings
 and configurations in default state when running this example.
+
 Osciloscope needs configuring to easily capture the signal:
     - Trigger should be used to capture the output signal.
     - Set the voltage range to 1 voltage, and adjust the scale to make the smallest time unit to about 400 us.
@@ -55,20 +56,24 @@ Prepare the Demo
 Running the demo
 ================
 When the demo runs, the log would be seen on the OpenSDA terminal like:
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CMT Example Start.
+
 CMT DATA Modulate Finished.
+
 CMT Example End.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Note
+
 The example modulates 11 bit data is modulated and output as: 10001100011.
+
 The output waveform is captured on the oscilloscope like:
     - data order: 1 -> 0 -> 0 -> 0 -> 1 -> 1 -> 0 -> 0 -> 0 -> 1 -> 1
     - the period of the basic carrier generator signal is 25 microsecond
     - bit 1 is about four normal carrier signal period.
     - bit 0 is about one normal carrier signal period and three space carrier signal period.
-
 Customization options
 =====================
-
 

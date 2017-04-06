@@ -9,16 +9,16 @@ outputs the DAC output voltage through DAC output pin.
 
 Toolchain supported
 ===================
-- IAR embedded Workbench 7.50.1
-- Keil MDK 5.17
-- GCC ARM Embedded 2015-4.9-q3
-- Kinetis Development Studio IDE 3.0.0
-- Atollic TrueSTUDIO 5.4.0
+- IAR embedded Workbench 7.80.4
+- Keil MDK 5.21a
+- GCC ARM Embedded 2016-5.4-q3
+- Kinetis Development Studio IDE 3.2.0
+- MCUXpresso0.8
 
 Hardware requirements
 =====================
 - Mini/Micro USB cable
-- TWR-K21F120 board
+- TWR-K21F120M board
 - Personal Computer
 
 Board settings
@@ -41,13 +41,14 @@ Prepare the Demo
 Running the demo
 ================
 When the demo runs successfully, the log would be seen on the OpenSDA terminal like:
+
 DAC basic Example.
 Please input a value (0 - 4095) to output with DAC: 200
 Input value is 200
 DAC out: 200
+
 Then user can measure the DAC output pin to check responding voltage.
 
 Customization options
 =====================
-
 

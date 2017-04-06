@@ -1,19 +1,19 @@
 Overview
 ========
-The flexcan_loopback_functional exmalpe shows how to use the loopback test mode to debug your CAN Bus design:
+The flexcan_loopback_functional example shows how to use the loopback test mode to debug your CAN Bus design:
 
-To demonstrates this example, only one board is needed. The exmaple will config one FlexCAN Message
+To demonstrates this example, only one board is needed. The example will config one FlexCAN Message
 Buffer to Rx Message Buffer and the other FlexCAN Message Buffer to Tx Message Buffer with same ID.
-After that, the exmaple will send a CAN Message from the Tx Message Buffer to the Rx Message Buffer
-throuth internal loopback interconnector and print out the Message payload to terminal.
+After that, the example will send a CAN Message from the Tx Message Buffer to the Rx Message Buffer
+throuth internal loopback interconnect and print out the Message payload to terminal.
 
 Toolchain supported
 ===================
-- IAR embedded Workbench 7.50.1
-- Keil MDK 5.17
-- GCC ARM Embedded 2015-4.9-q3
-- Kinetis Development Studio IDE 3.0.0
-- Atollic TrueSTUDIO 5.4.0
+- IAR embedded Workbench 7.80.4
+- Keil MDK 5.21a
+- GCC ARM Embedded 2016-5.4-q3
+- Kinetis Development Studio IDE 3.2.0
+- MCUXpresso0.8
 
 Hardware requirements
 =====================
@@ -41,18 +41,28 @@ Prepare the Demo
 Running the demo
 ================
 When the example runs successfully, following information can be seen on the OpenSDA terminal:
+
 ~~~~~~~~~~~~~~~~~~~~~
+
 ==FlexCAN loopback example -- Start.==
+
+
 Send message from MB9 to MB8
+
 tx word0 = 0x11223344
+
 tx word1 = 0x55667788
+
+
 Receved message from MB8
+
 rx word0 = 0x11223344
+
 rx word1 = 0x55667788
+
+
 ==FlexCAN loopback example -- Finish.==
 ~~~~~~~~~~~~~~~~~~~~~
-
 Customization options
 =====================
-
 

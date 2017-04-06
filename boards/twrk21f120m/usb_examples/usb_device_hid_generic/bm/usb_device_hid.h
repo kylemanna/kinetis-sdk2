@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -58,6 +58,42 @@
 #define USB_DEVICE_HID_REQUEST_SET_IDLE (0x0AU)
 /*! @brief Request code to set protocol of HID class. */
 #define USB_DEVICE_HID_REQUEST_SET_PROTOCOL (0x0BU)
+
+#if (defined(USB_DEVICE_CHARGER_DETECT_ENABLE) && (USB_DEVICE_CHARGER_DETECT_ENABLE > 0U))
+/*! @brief The sequence initiation time for the dcd module. */
+#define USB_DEVICE_DCD_SEQ_INIT_TIME (1000U)
+/*! @brief The time period to debounce on DP signal. */
+#define USB_DEVICE_DCD_DBNC_MSEC (10U)
+/*! @brief The time period comparator enabled. */
+#define USB_DEVICE_DCD_VDPSRC_ON_MSEC (200U)
+/*! @brief The amount of time that the module waits after primary detection before start to secondary detection. */
+#define USB_DEVICE_DCD_TIME_WAIT_AFTER_PRI_DETECTION (40U)
+/*! @brief The amount of time the module enable the Vdm_src. */
+#define USB_DEVICE_DCD_TIME_DM_SRC_ON (10U)
+
+/*! @brief USB DCD charging port type */
+typedef enum _usb_device_dcd_port_type
+{
+    kUSB_DeviceDCDPortTypeNoPort = 0x0U,
+    kUSB_DeviceDCDPortTypeSDP,
+    kUSB_DeviceDCDPortTypeCDP,
+    kUSB_DeviceDCDPortTypeDCP,
+} usb_device_dcd_port_type_t;
+
+/*! @brief USB DCD charging detect status */
+typedef enum _usb_device_dcd_dev_status
+{
+    kUSB_DeviceDCDDevStatusVBUSDetect = 0x0U,
+    kUSB_DeviceDCDDevStatusDataContactDetect,
+    kUSB_DeviceDCDDevStatusChargingPortDetect,
+    kUSB_DeviceDCDDevStatusTimeOut,
+    kUSB_DeviceDCDDevStatusUnknownType,
+    kUSB_DeviceDCDDevStatusDetectFinish,
+    kUSB_DeviceDCDDevStatusComplete,
+    kUSB_DeviceDCDDevStatusAttached,
+    kUSB_DeviceDCDDevStatusDetached,
+} usb_device_dcd_dev_status_t;
+#endif
 
 /*! @brief Available common EVENT types in HID class callback */
 typedef enum _usb_device_hid_event
@@ -195,7 +231,8 @@ extern usb_status_t USB_DeviceHidEvent(void *handle, uint32_t event, void *param
  * Currently, only one transfer request can be supported for one specific endpoint.
  * If there is a specific requirement to support multiple transfer requests for a specific endpoint, the application
  * should implement a queue in the application level.
- * The subsequent transfer can begin only when the previous transfer is done (a notification is received through the endpoint
+ * The subsequent transfer can begin only when the previous transfer is done (a notification is received through the
+ * endpoint
  * callback).
  */
 extern usb_status_t USB_DeviceHidSend(class_handle_t handle, uint8_t ep, uint8_t *buffer, uint32_t length);
@@ -218,7 +255,8 @@ extern usb_status_t USB_DeviceHidSend(class_handle_t handle, uint8_t ep, uint8_t
  * Currently, only one transfer request can be supported for a specific endpoint.
  * If there is a specific requirement to support multiple transfer requests for a specific endpoint, the application
  * should implement a queue in the application level.
- * The subsequent transfer can begin only when the previous transfer is done (a notification is received through the endpoint
+ * The subsequent transfer can begin only when the previous transfer is done (a notification is received through the
+ * endpoint
  * callback).
  */
 extern usb_status_t USB_DeviceHidRecv(class_handle_t handle, uint8_t ep, uint8_t *buffer, uint32_t length);

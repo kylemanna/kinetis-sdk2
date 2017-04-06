@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -34,8 +34,8 @@ static void I2C_RTOS_Callback(I2C_Type *base, i2c_master_handle_t *drv_handle, s
 {
     i2c_rtos_handle_t *handle = (i2c_rtos_handle_t *)userData;
     BaseType_t reschedule;
-
-    xSemaphoreGiveFromISR(handle->sem, &reschedule);
+    handle->async_status = status;
+    xSemaphoreGiveFromISR(handle->semaphore, &reschedule);
     portYIELD_FROM_ISR(reschedule);
 }
 
@@ -55,15 +55,21 @@ status_t I2C_RTOS_Init(i2c_rtos_handle_t *handle,
     }
 
     memset(handle, 0, sizeof(i2c_rtos_handle_t));
-
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
+    handle->mutex = xSemaphoreCreateMutexStatic(&handle->mutexBuffer);
+#else
     handle->mutex = xSemaphoreCreateMutex();
+#endif
     if (handle->mutex == NULL)
     {
         return kStatus_Fail;
     }
-
-    handle->sem = xSemaphoreCreateBinary();
-    if (handle->sem == NULL)
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
+    handle->semaphore = xSemaphoreCreateBinaryStatic(&handle->semaphoreBuffer);
+#else
+    handle->semaphore = xSemaphoreCreateBinary();
+#endif
+    if (handle->semaphore == NULL)
     {
         vSemaphoreDelete(handle->mutex);
         return kStatus_Fail;
@@ -81,7 +87,7 @@ status_t I2C_RTOS_Deinit(i2c_rtos_handle_t *handle)
 {
     I2C_MasterDeinit(handle->base);
 
-    vSemaphoreDelete(handle->sem);
+    vSemaphoreDelete(handle->semaphore);
     vSemaphoreDelete(handle->mutex);
 
     return kStatus_Success;
@@ -105,7 +111,7 @@ status_t I2C_RTOS_Transfer(i2c_rtos_handle_t *handle, i2c_master_transfer_t *tra
     }
 
     /* Wait for transfer to finish */
-    xSemaphoreTake(handle->sem, portMAX_DELAY);
+    xSemaphoreTake(handle->semaphore, portMAX_DELAY);
 
     /* Unlock resource mutex */
     xSemaphoreGive(handle->mutex);

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -209,12 +209,12 @@
  * @{
  */
 /*! @brief Audio device class setup request set type */
-#define USB_DEVICE_AUDIO_SET_REQUSET_INTERFACE (0x21)
-#define USB_DEVICE_AUDIO_SET_REQUSET_ENDPOINT (0x22)
+#define USB_DEVICE_AUDIO_SET_REQUEST_INTERFACE (0x21)
+#define USB_DEVICE_AUDIO_SET_REQUEST_ENDPOINT (0x22)
 
 /*! @brief Audio device class setup request get type */
-#define USB_DEVICE_AUDIO_GET_REQUSET_INTERFACE (0xA1)
-#define USB_DEVICE_AUDIO_GET_REQUSET_ENDPOINT (0xA2)
+#define USB_DEVICE_AUDIO_GET_REQUEST_INTERFACE (0xA1)
+#define USB_DEVICE_AUDIO_GET_REQUEST_ENDPOINT (0xA2)
 /*! @}*/
 
 #if USBCFG_AUDIO_CLASS_2_0

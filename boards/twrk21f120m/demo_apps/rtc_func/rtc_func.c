@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -76,8 +76,8 @@ static void ReceiveFromConsole(char *buf, uint32_t size);
 /*******************************************************************************
  * Variables
  ******************************************************************************/
-static volatile uint8_t g_AlarmPending = 0U;
-static volatile bool g_SecsFlag = false;
+volatile uint8_t g_AlarmPending = 0U;
+volatile bool g_SecsFlag = false;
 
 static char g_StrMenu[] =
     "\r\n"
@@ -94,11 +94,34 @@ static char g_StrInvalid[] = "Invalid input format\r\n";
  * Code
  ******************************************************************************/
 
+/*!
+ * @brief Override the RTC IRQ handler.
+ */
+void RTC_IRQHandler(void)
+{
+    if (RTC_GetStatusFlags(RTC) & kRTC_AlarmFlag)
+    {
+        g_AlarmPending = 1U;
+
+        /* Clear alarm flag */
+        RTC_ClearStatusFlags(RTC, kRTC_AlarmInterruptEnable);
+    }
+}
+
+/*!
+ * @brief Override the RTC Second IRQ handler.
+ */
+void RTC_Seconds_IRQHandler(void)
+{
+    g_SecsFlag = true;
+}
+
 void BOARD_SetRtcClockSource(void)
 {
     /* Enable the RTC 32KHz oscillator */
     RTC->CR |= RTC_CR_OSCE_MASK;
 }
+
 static void CommandAlarm(uint8_t offsetSec)
 {
     rtc_datetime_t date;
@@ -201,28 +224,6 @@ static void ReceiveFromConsole(char *buf, uint32_t size)
         buf[i] = GETCHAR();
         PUTCHAR(buf[i]);
     }
-}
-
-/*!
- * @brief Override the RTC IRQ handler.
- */
-void RTC_IRQHandler(void)
-{
-    if (RTC_GetStatusFlags(RTC) & kRTC_AlarmFlag)
-    {
-        g_AlarmPending = 1U;
-
-        /* Clear alarm flag */
-        RTC_ClearStatusFlags(RTC, kRTC_AlarmInterruptEnable);
-    }
-}
-
-/*!
- * @brief Override the RTC Second IRQ handler.
- */
-void RTC_Seconds_IRQHandler(void)
-{
-    g_SecsFlag = true;
 }
 
 /*!

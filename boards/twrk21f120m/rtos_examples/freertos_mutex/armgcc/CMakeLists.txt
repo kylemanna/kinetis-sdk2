@@ -160,6 +160,74 @@ SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -mapcs")
 
 SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -std=gnu99")
 
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -mcpu=cortex-m4")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -mfloat-abi=hard")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -mfpu=fpv4-sp-d16")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -mthumb")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -MMD")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -MP")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-common")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ffunction-sections")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fdata-sections")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ffreestanding")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-builtin")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -mapcs")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-rtti")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-exceptions")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Os")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mcpu=cortex-m4")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mfloat-abi=hard")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mfpu=fpv4-sp-d16")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mthumb")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -MMD")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -MP")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-common")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ffunction-sections")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fdata-sections")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ffreestanding")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-builtin")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mapcs")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-rtti")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-exceptions")
+
 SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -mcpu=cortex-m4")
 
 SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -Wall")
@@ -169,6 +237,8 @@ SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -mfloat-ab
 SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -mfpu=fpv4-sp-d16")
 
 SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} --specs=nano.specs")
+
+SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} --specs=nosys.specs")
 
 SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -fno-common")
 
@@ -212,6 +282,8 @@ SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -mfpu=fpv4-sp-
 
 SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} --specs=nano.specs")
 
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} --specs=nosys.specs")
+
 SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fno-common")
 
 SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -ffunction-sections")
@@ -244,58 +316,36 @@ SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} muldefs")
 
 include_directories(${ProjDirPath}/..)
 
-include_directories(${ProjDirPath}/..)
+include_directories(${ProjDirPath}/../../..)
 
-include_directories(${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/portable/GCC/ARM_CM4F)
+include_directories(${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/portable/GCC/ARM_CM4F)
 
-include_directories(${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/include)
+include_directories(${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/include)
 
 include_directories(${ProjDirPath}/../../../../../CMSIS/Include)
 
 include_directories(${ProjDirPath}/../../../../../devices)
 
-include_directories(${ProjDirPath}/../../../../../devices/MK21FA12/drivers)
-
-include_directories(${ProjDirPath}/..)
-
-include_directories(${ProjDirPath}/../../../../../devices/MK21FA12/utilities)
-
-include_directories(${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source)
-
-include_directories(${ProjDirPath}/../../..)
-
-include_directories(${ProjDirPath}/../../../../../devices/MK21FA12)
-
-include_directories(${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/portable/GCC/ARM_CM4F)
-
-include_directories(${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/include)
-
-include_directories(${ProjDirPath}/../../../../../CMSIS/Include)
-
-include_directories(${ProjDirPath}/../../../../../devices)
+include_directories(${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source)
 
 include_directories(${ProjDirPath}/../../../../../devices/MK21FA12/drivers)
 
-include_directories(${ProjDirPath}/..)
-
 include_directories(${ProjDirPath}/../../../../../devices/MK21FA12/utilities)
-
-include_directories(${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source)
-
-include_directories(${ProjDirPath}/../../..)
 
 include_directories(${ProjDirPath}/../../../../../devices/MK21FA12)
 
 add_executable(freertos_mutex.elf 
 "${ProjDirPath}/../../../../../devices/MK21FA12/gcc/startup_MK21FA12.S"
-"${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/portable/GCC/ARM_CM4F/port.c"
-"${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/portable/GCC/ARM_CM4F/portmacro.h"
-"${ProjDirPath}/../../../../../devices/MK21FA12/utilities/fsl_sbrk.c"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/portable/GCC/ARM_CM4F/port.c"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/portable/GCC/ARM_CM4F/fsl_tickless_systick.c"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/portable/GCC/ARM_CM4F/fsl_tickless_generic.h"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/portable/GCC/ARM_CM4F/portmacro.h"
 "${ProjDirPath}/../../../../../devices/MK21FA12/drivers/fsl_uart.h"
 "${ProjDirPath}/../../../../../devices/MK21FA12/drivers/fsl_uart.c"
 "${ProjDirPath}/../../../../../devices/MK21FA12/drivers/fsl_port.h"
 "${ProjDirPath}/../../../../../devices/MK21FA12/drivers/fsl_clock.h"
 "${ProjDirPath}/../../../../../devices/MK21FA12/drivers/fsl_clock.c"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/portable/MemMang/heap_4.c"
 "${ProjDirPath}/../FreeRTOSConfig.h"
 "${ProjDirPath}/../freertos_mutex.c"
 "${ProjDirPath}/../pin_mux.c"
@@ -308,31 +358,34 @@ add_executable(freertos_mutex.elf
 "${ProjDirPath}/../../../../../devices/MK21FA12/utilities/fsl_debug_console.h"
 "${ProjDirPath}/../../../../../devices/MK21FA12/system_MK21FA12.c"
 "${ProjDirPath}/../../../../../devices/MK21FA12/system_MK21FA12.h"
-"${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/include/croutine.h"
-"${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/include/event_groups.h"
-"${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/include/FreeRTOS.h"
-"${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/include/list.h"
-"${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/include/mpu_wrappers.h"
-"${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/include/portable.h"
-"${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/include/projdefs.h"
-"${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/include/queue.h"
-"${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/include/semphr.h"
-"${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/include/StackMacros.h"
-"${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/include/task.h"
-"${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/include/timers.h"
-"${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/croutine.c"
-"${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/portable/MemMang/heap_4.c"
-"${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/list.c"
-"${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/queue.c"
-"${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/tasks.c"
-"${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/timers.c"
-"${ProjDirPath}/../../../../../rtos/freertos_8.2.3/Source/event_groups.c"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/include/croutine.h"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/include/event_groups.h"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/include/FreeRTOS.h"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/include/list.h"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/include/mpu_wrappers.h"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/include/portable.h"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/include/projdefs.h"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/include/queue.h"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/include/semphr.h"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/include/StackMacros.h"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/include/task.h"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/include/timers.h"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/include/deprecated_definitions.h"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/include/freertos_tasks_c_additions.h"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/croutine.c"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/list.c"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/queue.c"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/tasks.c"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/timers.c"
+"${ProjDirPath}/../../../../../rtos/freertos_9.0.0/Source/event_groups.c"
 "${ProjDirPath}/../../../../../devices/MK21FA12/drivers/fsl_gpio.h"
 "${ProjDirPath}/../../../../../devices/MK21FA12/drivers/fsl_gpio.c"
 "${ProjDirPath}/../clock_config.c"
 "${ProjDirPath}/../clock_config.h"
 "${ProjDirPath}/../../../../../devices/MK21FA12/drivers/fsl_smc.h"
 "${ProjDirPath}/../../../../../devices/MK21FA12/drivers/fsl_smc.c"
+"${ProjDirPath}/../../../../../devices/MK21FA12/drivers/fsl_flash.c"
+"${ProjDirPath}/../../../../../devices/MK21FA12/drivers/fsl_flash.h"
 )
 
 

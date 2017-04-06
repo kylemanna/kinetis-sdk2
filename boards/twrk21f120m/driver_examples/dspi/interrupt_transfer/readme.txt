@@ -1,19 +1,20 @@
 Overview
 ========
-The dspi_interrupt example shows how to use DSPI driver in interrupt way:
+The dspi_interrupt_transfer example shows how to use DSPI driver in interrupt way:
 
-In this example , one dspi instance used as DSPI master and another dspi instance used as DSPI slave .
+In this example , one dspi instance used as DSPI master and another dspi instance used as DSPI slave in the same board.
+This example uses the transactional API in DSPI driver.
 
 1. DSPI master send/received data to/from DSPI slave in interrupt . (DSPI Slave using interrupt to receive/send the data)
 
 
 Toolchain supported
 ===================
-- IAR embedded Workbench 7.50.1
-- Keil MDK 5.17
-- GCC ARM Embedded 2015-4.9-q3
-- Kinetis Development Studio IDE 3.0.0
-- Atollic TrueSTUDIO 5.4.0
+- IAR embedded Workbench 7.80.4
+- Keil MDK 5.21a
+- GCC ARM Embedded 2016-5.4-q3
+- Kinetis Development Studio IDE 3.2.0
+- MCUXpresso0.8
 
 Hardware requirements
 =====================
@@ -64,8 +65,6 @@ DSPI_master -- DSPI_slave
 This is DSPI slave call back .
 
 DSPI transfer all data matched!
-
 Customization options
 =====================
-
 

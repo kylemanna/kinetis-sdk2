@@ -77,13 +77,13 @@ extern "C" {
 #endif
 
 #ifndef configSYSTICK_CLOCK_HZ
-    #define configSYSTICK_CLOCK_HZ configCPU_CLOCK_HZ
-    /* Ensure the SysTick is clocked at the same frequency as the core. */
-    #define portNVIC_SYSTICK_CLK_BIT    ( 1UL << 2UL )
+	#define configSYSTICK_CLOCK_HZ			configCPU_CLOCK_HZ
+	/* Ensure the SysTick is clocked at the same frequency as the core. */
+	#define portNVIC_SYSTICK_CLK_BIT		( 1UL << 2UL )
 #else
-    /* The way the SysTick is clocked is not modified in case it is not the same
-    as the core. */
-    #define portNVIC_SYSTICK_CLK_BIT    ( 0 )
+	/* The way the SysTick is clocked is not modified in case it is not the same
+	as the core. */
+	#define portNVIC_SYSTICK_CLK_BIT		( 0 )
 #endif
 /* Constants required to manipulate the core.  Registers first... */
 #define portNVIC_SYSTICK_CTRL_REG			( * ( ( volatile uint32_t * ) 0xe000e010 ) )
@@ -92,22 +92,22 @@ extern "C" {
 #define portNVIC_SYSPRI2_REG				( * ( ( volatile uint32_t * ) 0xe000ed20 ) )
 
 /* ...then bits in the registers. */
-#define portNVIC_SYSTICK_INT_BIT            ( 1UL << 1UL )
-#define portNVIC_SYSTICK_ENABLE_BIT         ( 1UL << 0UL )
-#define portNVIC_SYSTICK_COUNT_FLAG_BIT     ( 1UL << 16UL )
-#define portNVIC_PENDSVCLEAR_BIT            ( 1UL << 27UL )
-#define portNVIC_PEND_SYSTICK_CLEAR_BIT     ( 1UL << 25UL )
+#define portNVIC_SYSTICK_INT_BIT			( 1UL << 1UL )
+#define portNVIC_SYSTICK_ENABLE_BIT			( 1UL << 0UL )
+#define portNVIC_SYSTICK_COUNT_FLAG_BIT		( 1UL << 16UL )
+#define portNVIC_PENDSVCLEAR_BIT			( 1UL << 27UL )
+#define portNVIC_PEND_SYSTICK_CLEAR_BIT		( 1UL << 25UL )
 
 /* The systick is a 24-bit counter. */
-#define portMAX_24_BIT_NUMBER                ( 0xffffffUL )
+#define portMAX_24_BIT_NUMBER				( 0xffffffUL )
 
 /* The LPTMR is a 16-bit counter. */
-#define portMAX_16_BIT_NUMBER                ( 0xffffUL )
+#define portMAX_16_BIT_NUMBER				( 0xffffUL )
 
 /* A fiddle factor to estimate the number of SysTick counts that would have
 occurred while the SysTick counter is stopped during tickless idle
 calculations. */
-#define portMISSED_COUNTS_FACTOR            ( 45UL )
+#define portMISSED_COUNTS_FACTOR			( 45UL )
 
 /*
  * Setup the timer to generate the tick interrupts.

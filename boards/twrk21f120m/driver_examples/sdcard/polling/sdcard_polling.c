@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -29,24 +29,17 @@
  */
 
 #include <stdio.h>
-#include "fsl_port.h"
-#include "fsl_gpio.h"
-#include "fsl_uart.h"
-#include "fsl_sdhc.h"
 #include "fsl_card.h"
 #include "fsl_debug_console.h"
 #include "board.h"
-#include "event.h"
 
-#include "fsl_mpu.h"
+#include "fsl_sysmpu.h"
 #include "pin_mux.h"
 #include "clock_config.h"
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
 
-/*! @brief The maximum timeout time for the data event */
-#define EVENT_TIMEOUT_CARD_DETECT (~0U)
 
 /*! @brief Data block count accessed in card */
 #define DATA_BLOCK_COUNT (5U)
@@ -55,49 +48,15 @@
 /*! @brief Data buffer size */
 #define DATA_BUFFER_SIZE (FSL_SDMMC_DEFAULT_BLOCK_SIZE * DATA_BLOCK_COUNT)
 
-/*! @brief ADMA table length united as word
- *
- * One ADMA1 table item occupy one word which can transfer maximum 0xFFFFU bytes one time.
- * One ADMA2 table item occupy two words which can transfer maximum 0xFFFFU bytes one time.
- * The more data to be transferred in one time, the bigger value of SDHC_ADMA_TABLE_WORDS need to be set.
- */
-#define SDHC_ADMA_TABLE_WORDS (8U)
-
 /*******************************************************************************
  * Prototypes
  ******************************************************************************/
-/*!
- * @brief Card detect interrupt handler
- */
-void DetectCardByGpio(void);
-
-/*!
- * @brief Delay some time.
- *
- * @param milliseconds Time united in milliseconds.
- */
-void Delay(uint32_t milliseconds);
-
-/*!
- * @brief User defined SDHC transfer function
- *
- * @param base SDHC peripheral base address.
- * @param content Transfer content.
- * @retval kStatus_Fail Transfer failed.
- * @retval kStatus_Success Transfer successfully.
- */
-status_t SDHC_TransferFunction(SDHC_Type *base, sdhc_transfer_t *content);
 
 /*******************************************************************************
  * Variables
  ******************************************************************************/
-/*! @brief SDHC ADMA table. */
-uint32_t g_sdhcAdmaTable[SDHC_ADMA_TABLE_WORDS];
-
 /*! @brief Card descriptor */
 sd_card_t g_sd;
-/*! @brief Card detect flag */
-static volatile uint32_t g_sdInsertedFlag;
 
 /*! @brief Data written to the card */
 uint8_t g_dataWrite[DATA_BUFFER_SIZE];
@@ -107,68 +66,6 @@ uint8_t g_dataRead[DATA_BUFFER_SIZE];
 /*******************************************************************************
  * Code
  ******************************************************************************/
-/* Card detect interrupt handler. */
-void DetectCardByGpio(void)
-{
-    if (GPIO_ReadPinInput(BOARD_SDHC_CD_GPIO_BASE, BOARD_SDHC_CD_GPIO_PIN))
-#if defined BOARD_SDHC_CD_LOGIC_RISING
-    {
-        g_sdInsertedFlag = 1U;
-    }
-    else
-    {
-        g_sdInsertedFlag = 0U;
-    }
-#else
-    {
-        g_sdInsertedFlag = 0U;
-    }
-    else
-    {
-        g_sdInsertedFlag = 1U;
-    }
-#endif
-}
-
-/* Card detect pin port interrupt handler. */
-void BOARD_SDHC_CD_PORT_IRQ_HANDLER(void)
-{
-    if (PORT_GetPinsInterruptFlags(BOARD_SDHC_CD_PORT_BASE) == (1U << BOARD_SDHC_CD_GPIO_PIN))
-    {
-        DetectCardByGpio();
-    }
-    /* Clear interrupt flag.*/
-    PORT_ClearPinsInterruptFlags(BOARD_SDHC_CD_PORT_BASE, ~0U);
-    EVENT_Notify(kEVENT_CardDetect);
-}
-
-/* Delay some time united in milliseconds. */
-void Delay(uint32_t milliseconds)
-{
-    uint32_t i;
-    uint32_t j;
-
-    for (i = 0; i < milliseconds; i++)
-    {
-        for (j = 0; j < 20000U; j++)
-        {
-            __asm("NOP");
-        }
-    }
-}
-
-/* User defined transfer function. */
-status_t SDHC_TransferFunction(SDHC_Type *base, sdhc_transfer_t *content)
-{
-    status_t error = kStatus_Success;
-
-    if (kStatus_Success != SDHC_TransferBlocking(base, g_sdhcAdmaTable, SDHC_ADMA_TABLE_WORDS, content))
-    {
-        error = kStatus_Fail;
-    }
-
-    return error;
-}
 
 /*!
  * @brief Main function
@@ -176,7 +73,6 @@ status_t SDHC_TransferFunction(SDHC_Type *base, sdhc_transfer_t *content)
 int main(void)
 {
     sd_card_t *card = &g_sd;
-    sdhc_config_t *sdhcConfig = &(g_sd.host.config);
     bool isReadOnly;
     bool failedFlag = false;
     char ch = '0';
@@ -184,48 +80,11 @@ int main(void)
     BOARD_InitPins();
     BOARD_BootClockRUN();
     BOARD_InitDebugConsole();
-    MPU_Enable(MPU, false);
-    EVENT_InitTimer();
-
-    if (!EVENT_Create(kEVENT_CardDetect))
-    {
-        return -1;
-    }
-
-    /* Card detection pin will generate interrupt on either eage */
-    PORT_SetPinInterruptConfig(BOARD_SDHC_CD_PORT_BASE, BOARD_SDHC_CD_GPIO_PIN, kPORT_InterruptEitherEdge);
-    /* Open card detection pin NVIC. */
-    NVIC_EnableIRQ(BOARD_SDHC_CD_PORT_IRQ);
-
-    DetectCardByGpio();
-    PRINTF("\r\nPlease insert a card into board.\r\n");
-    if (!g_sdInsertedFlag)
-    {
-        /* Wait card inserted. */
-        do
-        {
-            if (!EVENT_Wait(kEVENT_CardDetect, EVENT_TIMEOUT_CARD_DETECT))
-            {
-                return -1;
-            }
-        } while (!g_sdInsertedFlag);
-    }
-    PRINTF("Detected SD card inserted.\r\n");
-    /* Delat some time to make card stable. */
-    Delay(1000U);
-
-    /* Initialize SDHC. */
-    sdhcConfig->cardDetectDat3 = false;
-    sdhcConfig->endianMode = kSDHC_EndianModeLittle;
-    sdhcConfig->dmaMode = kSDHC_DmaModeAdma2;
-    sdhcConfig->readWatermarkLevel = 0x80U;
-    sdhcConfig->writeWatermarkLevel = 0x80U;
-    SDHC_Init(BOARD_SDHC_BASEADDR, sdhcConfig);
+    SYSMPU_Enable(SYSMPU, false);
 
     /* Save host information. */
-    card->host.base = BOARD_SDHC_BASEADDR;
-    card->host.sourceClock_Hz = CLOCK_GetFreq(BOARD_SDHC_CLKSRC);
-    card->host.transfer = SDHC_TransferFunction;
+    card->host.base = SD_HOST_BASEADDR;
+    card->host.sourceClock_Hz = SD_HOST_CLK_FREQ;
 
     /* Init card. */
     if (SD_Init(card))
@@ -347,7 +206,6 @@ int main(void)
     }
     PRINTF("\r\nThe example will not read/write data blocks again.\r\n");
 
-    EVENT_Delete(kEVENT_CardDetect);
     SD_Deinit(card);
 
     while (true)

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -44,60 +44,102 @@
 #include "fsl_debug_console.h"
 #include <stdio.h>
 #include <stdlib.h>
-#if (defined(FSL_FEATURE_SOC_MPU_COUNT) && (FSL_FEATURE_SOC_MPU_COUNT > 0U))
-#include "fsl_mpu.h"
-#endif /* FSL_FEATURE_SOC_MPU_COUNT */
-#include "app.h"
+#if (defined(FSL_FEATURE_SOC_SYSMPU_COUNT) && (FSL_FEATURE_SOC_SYSMPU_COUNT > 0U))
+#include "fsl_sysmpu.h"
+#endif /* FSL_FEATURE_SOC_SYSMPU_COUNT */
+#if defined(USING_I2S)
+#include "fsl_i2s.h"
+#elif defined(USING_SAI)
 #include "fsl_sai.h"
+#endif
 
 #if defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 0U)
 #include "usb_phy.h"
 #endif
 
+#include "fsl_sgtl5000.h"
 #include "pin_mux.h"
+#include "fsl_gpio.h"
+#include "fsl_port.h"
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
-#define OVER_SAMPLE_RATE (384U)
-#define SGTL_ON_BOARD_OSCILLATOR_FREQUENCY (24576000)
+#define DEMO_SAI I2S0
+#define DEMO_I2C I2C1
+#define DEMO_SAI_CLKSRC kCLOCK_CoreSysClk
+#define DEMO_I2C_CLKSRC kCLOCK_BusClk
+#define EXAMPLE_DMA DMA0
+#define EXAMPLE_CHANNEL (0U)
+#define EXAMPLE_SAI_TX_SOURCE kDmaRequestMux0I2S0Tx
+#define AUDIO_DATA_WHOLE_BUFFER_LENGTH (32)
+#define AUDIO_DATA_DISCARD_BUFFER_LENGTH (28)
+#define DEMO_SAI_IRQ I2S0_Tx_IRQn
+#define I2S_ClearFIFOError_IRQHandler I2S0_Tx_IRQHandler
+#define BOARD_DMA_INTERRUPT DMA0_IRQn
+#define DEMO_SAI_BITWIDTH (kSAI_WordWidth16bits)
+#define SAI_TxIRQHandler I2S0_Tx_IRQHandler
+#define DEMO_I2C_CLK_FREQ CLOCK_GetFreq(kCLOCK_BusClk)
+
+#define I2C_RELEASE_SDA_PORT PORTC
+#define I2C_RELEASE_SCL_PORT PORTC
+#define I2C_RELEASE_SDA_GPIO GPIOC
+#define I2C_RELEASE_SDA_PIN 11U
+#define I2C_RELEASE_SCL_GPIO GPIOC
+#define I2C_RELEASE_SCL_PIN 10U
+#define I2C_RELEASE_BUS_COUNT 100U
+/* USB clock source and frequency*/
+#define USB_FS_CLK_SRC kCLOCK_UsbSrcPll0
+#define USB_FS_CLK_FREQ CLOCK_GetFreq(kCLOCK_PllFllSelClk)
+#define AUDIO_DATA_THRESHOLD (FS_ISO_OUT_ENDP_PACKET_SIZE * 2)
 /*******************************************************************************
  * Prototypes
  ******************************************************************************/
+void BOARD_I2C_ReleaseBus(void);
 void BOARD_InitHardware(void);
 usb_status_t USB_DeviceAudioCallback(class_handle_t handle, uint32_t event, void *param);
 usb_status_t USB_DeviceCallback(usb_device_handle handle, uint32_t event, void *param);
+#if defined(FSL_FEATURE_SOC_LPI2C_COUNT) && (FSL_FEATURE_SOC_LPI2C_COUNT)
+extern void BOARD_LPI2C_Init(uint32_t boardI2CClock, LPI2C_Type *LPI2CBase);
+extern void BOARD_Codec_Init(LPI2C_Type *LPI2CBase);
+#else
+extern void BOARD_I2C_Init(uint32_t boardI2CClock, I2C_Type *I2CBase);
+extern void BOARD_Codec_Init(I2C_Type *I2CBase);
+#endif
+#if defined(USING_CODEC_DA7212)
+extern void BOARD_SAI_TxInit(I2S_Type *SAIBase, uint32_t saiClockFreq);
+#else
+extern void BOARD_SAI_TxInit(I2S_Type *SAIBase);
+#endif
+extern void BOARD_SAI_TransferTxSetFormat(I2S_Type *SAIBase);
+#if defined(USING_I2S)
+extern void BOARD_I2S_Enable(I2S_Type *SAIBase);
+#endif
 
 /*******************************************************************************
  * Variables
  ******************************************************************************/
-sai_handle_t txHandle = {0};
-#if defined(DEMO_CODEC_WM8960)
-wm8960_handle_t codecHandle = {0};
-#else
-sgtl_handle_t codecHandle = {0};
-#endif
-
-#if defined(FSL_FEATURE_SOC_LPI2C_COUNT) && (FSL_FEATURE_SOC_LPI2C_COUNT)
-lpi2c_master_handle_t i2cHandle = {0};
-#else
-i2c_master_handle_t i2cHandle = {{0, 0, kI2C_Write, 0, 0, NULL, 0}, 0, 0, NULL, NULL};
-#endif
-
-uint8_t audioDataBuff[FS_ISO_OUT_ENDP_PACKET_SIZE * AUDIO_DATA_WHOLE_BUFFER_LENGTH];
-uint8_t audioDataDiscardBuff[FS_ISO_OUT_ENDP_PACKET_SIZE];
-volatile uint32_t dataSend = 0;
+USB_DATA_ALIGNMENT uint8_t audioDataBuff[AUDIO_DATA_WHOLE_BUFFER_LENGTH][FS_ISO_OUT_ENDP_PACKET_SIZE * 2];
+uint8_t audioBuffLength[AUDIO_DATA_WHOLE_BUFFER_LENGTH] = {0};
+/*uint8_t audioFeedBackBuffer[3] = {0xF0U, 0x00U, 0x04U}; //noise comes every time the recv buffer exceeds the send
+ * buffer */
+USB_DATA_ALIGNMENT uint8_t audioFeedBackBuffer[3] = {0x00U, 0x00U, 0x04U};
 volatile uint32_t startSai = 0;
-volatile uint32_t audioBufferIsFull = 0;
-uint32_t audioTempBuffer;
+volatile uint32_t audioTempBuffer;
 uint16_t epPacketSize = FS_ISO_OUT_ENDP_PACKET_SIZE;
-sai_transfer_t xfer;
 extern usb_device_class_struct_t g_UsbDeviceAudioClass;
 volatile uint32_t sendCount = 0;
 volatile uint32_t recvCount = 0;
-volatile uint32_t dataRead = 0;
+volatile int32_t prevSendCountInterval = ((AUDIO_DATA_WHOLE_BUFFER_LENGTH / 2) * (FS_ISO_OUT_ENDP_PACKET_SIZE));
+volatile uint32_t tdReadNumber = 0;
+volatile uint32_t tdWriteNumber = 0;
+volatile uint32_t dataSendCountInterval = 0;
 xTaskHandle g_saiSendTaskHandle;
-xSemaphoreHandle g_saiSendSemaphore = NULL; 
+xSemaphoreHandle g_saiSendSemaphore = NULL;
 portBASE_TYPE taskToWake = pdFALSE;
+volatile uint32_t dataSend = 0;
+volatile bool isFinished = false;
+volatile int32_t prevSendCount =
+    -(AUDIO_DATA_WHOLE_BUFFER_LENGTH / 2 * (FS_ISO_OUT_ENDP_PACKET_SIZE / (DEMO_SAI_BITWIDTH / 8U)));
 
 /* Default value of audio generator device struct */
 usb_audio_speaker_struct_t s_audioSpeaker = {
@@ -134,7 +176,7 @@ usb_audio_speaker_struct_t s_audioSpeaker = {
     .maxSamplingFrequency = {0x00U, 0x00U, 0x01U},
     .resSamplingFrequency = {0x00U, 0x00U, 0x01U},
 #if USBCFG_AUDIO_CLASS_2_0
-    .curSampleFrequency = 16000U,
+    .curSampleFrequency = 16000U, /* This should be changed to 48000 if sampling rate is 48k */
     .curClockValid = 1U,
     .controlRange = {1U, 16000U, 16000U, 0U},
 #endif
@@ -155,96 +197,208 @@ static usb_device_class_config_list_struct_t s_audioConfigList = {
 /*******************************************************************************
 * Code
 ******************************************************************************/
-static void callback(I2S_Type *base, sai_handle_t *handle, status_t status, void *userData)
+
+static void i2c_release_bus_delay(void)
 {
-    if (status == kStatus_SAI_TxIdle)
+    uint32_t i = 0;
+    for (i = 0; i < I2C_RELEASE_BUS_COUNT; i++)
     {
-        if (__get_IPSR())
+        __NOP();
+    }
+}
+
+void BOARD_I2C_ReleaseBus(void)
+{
+    uint8_t i = 0;
+    gpio_pin_config_t pin_config;
+    port_pin_config_t i2c_pin_config = {0};
+
+    /* Config pin mux as gpio */
+    i2c_pin_config.pullSelect = kPORT_PullUp;
+    i2c_pin_config.mux = kPORT_MuxAsGpio;
+
+    pin_config.pinDirection = kGPIO_DigitalOutput;
+    pin_config.outputLogic = 1U;
+    CLOCK_EnableClock(kCLOCK_PortC);
+    PORT_SetPinConfig(I2C_RELEASE_SCL_PORT, I2C_RELEASE_SCL_PIN, &i2c_pin_config);
+    PORT_SetPinConfig(I2C_RELEASE_SCL_PORT, I2C_RELEASE_SDA_PIN, &i2c_pin_config);
+
+    GPIO_PinInit(I2C_RELEASE_SCL_GPIO, I2C_RELEASE_SCL_PIN, &pin_config);
+    GPIO_PinInit(I2C_RELEASE_SDA_GPIO, I2C_RELEASE_SDA_PIN, &pin_config);
+
+    /* Drive SDA low first to simulate a start */
+    GPIO_WritePinOutput(I2C_RELEASE_SDA_GPIO, I2C_RELEASE_SDA_PIN, 0U);
+    i2c_release_bus_delay();
+
+    /* Send 9 pulses on SCL and keep SDA low */
+    for (i = 0; i < 9; i++)
+    {
+        GPIO_WritePinOutput(I2C_RELEASE_SCL_GPIO, I2C_RELEASE_SCL_PIN, 0U);
+        i2c_release_bus_delay();
+
+        GPIO_WritePinOutput(I2C_RELEASE_SDA_GPIO, I2C_RELEASE_SDA_PIN, 1U);
+        i2c_release_bus_delay();
+
+        GPIO_WritePinOutput(I2C_RELEASE_SCL_GPIO, I2C_RELEASE_SCL_PIN, 1U);
+        i2c_release_bus_delay();
+        i2c_release_bus_delay();
+    }
+
+    /* Send stop */
+    GPIO_WritePinOutput(I2C_RELEASE_SCL_GPIO, I2C_RELEASE_SCL_PIN, 0U);
+    i2c_release_bus_delay();
+
+    GPIO_WritePinOutput(I2C_RELEASE_SDA_GPIO, I2C_RELEASE_SDA_PIN, 0U);
+    i2c_release_bus_delay();
+
+    GPIO_WritePinOutput(I2C_RELEASE_SCL_GPIO, I2C_RELEASE_SCL_PIN, 1U);
+    i2c_release_bus_delay();
+
+    GPIO_WritePinOutput(I2C_RELEASE_SDA_GPIO, I2C_RELEASE_SDA_PIN, 1U);
+    i2c_release_bus_delay();
+}
+#if defined(USING_I2S)
+static inline void i2s_Send(I2S_Type *i2s, uint32_t data)
+{
+    i2s->FIFOWR = data;
+}
+
+static void I2S_WriteData(I2S_Type *base)
+{
+    uint32_t intstat;
+    uint32_t data = 0;
+    uint8_t j = 0;
+    uint32_t temp = 0;
+
+    intstat = base->FIFOINTSTAT; /* get FIFO pending interrupt status */
+    if (intstat & I2S_FIFOINTSTAT_TXLVL_MASK)
+    {
+        if (startSai) // if there's valid data...
         {
-            if (pdPASS == xSemaphoreGiveFromISR(g_saiSendSemaphore, &taskToWake))
+            for (j = 0; j < DEMO_SAI_BITWIDTH / 8U; j++)
             {
-                portYIELD_FROM_ISR(taskToWake);
+                temp = (uint32_t)(audioDataBuff[tdWriteNumber][dataSend]);
+                data |= (temp << (8U * j));
+                dataSend++;
+            }
+
+            if (dataSend >= audioBuffLength[tdWriteNumber])
+            {
+                dataSend = 0;
+                dataSendCountInterval += audioBuffLength[tdWriteNumber];
+                tdWriteNumber++;
+                sendCount++;
+                if (sendCount >= recvCount)
+                {
+                    startSai = 0;
+                }
+                if (tdWriteNumber >= AUDIO_DATA_WHOLE_BUFFER_LENGTH)
+                {
+                    tdWriteNumber = 0;
+                }
             }
         }
         else
         {
-            if (pdTRUE != xSemaphoreGive(g_saiSendSemaphore))
-            {
-                /* TODO: Semaphopre give returns error */
-            }
+            data = 0; // set data to silence
         }
-        sendCount++;
-        dataSend += epPacketSize;
+        i2s_Send(base, data); // send the data (or silence)
     }
 }
 
-/* Initialize the structure information for sai. */
-void init(void)
+void I2S_ErrorHandler(I2S_Type *base)
 {
-    sai_config_t config;
-    uint32_t mclkSourceClockHz = 0U;
-    sai_transfer_format_t format;
+    uint32_t intstat;
 
+    intstat = base->FIFOINTSTAT;              /* get FIFO pending interrupt status */
+    if (intstat & I2S_FIFOINTSTAT_TXERR_MASK) /* process tx error */
+    {
+        /* Clear TX error interrupt flag */
+        base->FIFOSTAT = I2S_FIFOSTAT_TXERR(1);
+    }
+}
+
+void I2S_TxIRQHandler(void)
+{
+    I2S_ErrorHandler(DEMO_SAI); //	Accumulate TX errors then, clear status
+    I2S_WriteData(DEMO_SAI);    // read data from I2S, write to USB
+}
+#elif defined(USING_SAI)
+void SAI_TxIRQHandler(void)
+{
+    uint32_t data = 0;
+    uint8_t j = 0;
+    uint32_t temp = 0;
+
+    /* Clear the FIFO error flag */
+    if (SAI_TxGetStatusFlag(DEMO_SAI) & kSAI_FIFOErrorFlag)
+    {
+        SAI_TxClearStatusFlags(DEMO_SAI, kSAI_FIFOErrorFlag);
+    }
+
+    if (SAI_TxGetStatusFlag(DEMO_SAI) & kSAI_FIFOWarningFlag)
+    {
+        if (startSai)
+        {
+            for (j = 0; j < DEMO_SAI_BITWIDTH / 8U; j++)
+            {
+                temp = (uint32_t)(audioDataBuff[tdWriteNumber][dataSend]);
+                data |= (temp << (8U * j));
+                dataSend++;
+            }
+            if (dataSend >= audioBuffLength[tdWriteNumber])
+            {
+                dataSend = 0;
+                dataSendCountInterval += audioBuffLength[tdWriteNumber];
+                tdWriteNumber++;
+                sendCount++;
+                if (sendCount >= recvCount)
+                {
+                    startSai = 0;
+                }
+                if (tdWriteNumber >= AUDIO_DATA_WHOLE_BUFFER_LENGTH)
+                {
+                    tdWriteNumber = 0;
+                }
+            }
+        }
+        else
+        {
+            data = 0;
+        }
+        SAI_WriteData(DEMO_SAI, EXAMPLE_CHANNEL, data);
+    }
+}
+#endif
+
+/* Initialize the structure information for sai. */
+void Init_Board_Sai_Codec(void)
+{
+    usb_echo("Init Audio SAI and CODEC\r\n");
+
+/* Init SAI module */
+#if defined(USING_CODEC_DA7212)
+    BOARD_SAI_TxInit(DEMO_SAI, DEMO_SAI_CLK_FREQ);
+#else
+    BOARD_SAI_TxInit(DEMO_SAI);
+#endif
 #if defined(FSL_FEATURE_SOC_LPI2C_COUNT) && (FSL_FEATURE_SOC_LPI2C_COUNT)
-    lpi2c_master_config_t i2cConfig = {0};
+    BOARD_LPI2C_Init(DEMO_I2C_CLK_FREQ, DEMO_I2C);
 #else
-    i2c_master_config_t i2cConfig = {0};
-#endif
-    uint32_t i2cSourceClock;
-
-    /* Init SAI module */
-    SAI_TxGetDefaultConfig(&config);
-#if !defined(DEMO_CODEC_WM8960)
-    config.masterSlave = kSAI_Slave;
-    config.mclkOutputEnable = false;
-#endif
-    SAI_TxInit(DEMO_SAI, &config);
-
-    /* Configure the audio format */
-    format.bitWidth = kSAI_WordWidth16bits;
-    format.channel = 0U;
-    format.sampleRate_Hz = kSAI_SampleRate16KHz;
-#if !defined(DEMO_CODEC_WM8960)
-    format.masterClockHz = SGTL_ON_BOARD_OSCILLATOR_FREQUENCY; 
-#else
-    format.masterClockHz = OVER_SAMPLE_RATE * format.sampleRate_Hz;
-#endif
-    format.protocol = config.protocol;
-    format.stereo = kSAI_Stereo;
-#if defined(FSL_FEATURE_SAI_FIFO_COUNT) && (FSL_FEATURE_SAI_FIFO_COUNT > 1)
-    format.watermark = FSL_FEATURE_SAI_FIFO_COUNT / 2U;
+    BOARD_I2C_Init(DEMO_I2C_CLK_FREQ, DEMO_I2C);
 #endif
 
-    /* Configure Sgtl5000 I2C */
-    codecHandle.base = DEMO_I2C;
-    codecHandle.i2cHandle = &i2cHandle;
-    i2cSourceClock = CLOCK_GetFreq(DEMO_I2C_CLKSRC);
+    BOARD_Codec_Init(DEMO_I2C);
 
-#if defined(FSL_FEATURE_SOC_LPI2C_COUNT) && (FSL_FEATURE_SOC_LPI2C_COUNT)
-    LPI2C_MasterGetDefaultConfig(&i2cConfig);
-    LPI2C_MasterInit(DEMO_I2C, &i2cConfig, i2cSourceClock);
-    LPI2C_MasterTransferCreateHandle(DEMO_I2C, &i2cHandle, NULL, NULL);
-#else
-    I2C_MasterGetDefaultConfig(&i2cConfig);
-    I2C_MasterInit(DEMO_I2C, &i2cConfig, i2cSourceClock);
+#if defined(USING_I2S)
+    BOARD_I2S_Enable(DEMO_SAI);
+#elif defined(USING_SAI)
+    BOARD_SAI_TransferTxSetFormat(DEMO_SAI);
+    /*  Enable interrupt */
+    EnableIRQ(DEMO_SAI_IRQ);
+    SAI_TxEnableInterrupts(DEMO_SAI, kSAI_FIFOWarningInterruptEnable | kSAI_FIFOErrorInterruptEnable);
+    SAI_TxEnable(DEMO_SAI, true);
 #endif
-
-#if defined(DEMO_CODEC_WM8960)
-    WM8960_Init(&codecHandle, NULL);
-    WM8960_ConfigDataFormat(&codecHandle, format.masterClockHz, format.sampleRate_Hz, format.bitWidth);
-#else
-    /* Use default settings for sgtl5000 */
-    sgtl_config_t codecConfig;
-    codecConfig.bus = kSGTL_BusLeftJustified;
-    codecConfig.master_slave = true;
-    codecConfig.route = kSGTL_RoutePlayback;
-    SGTL_Init(&codecHandle, &codecConfig);
-    /* Configure codec format */
-    SGTL_ConfigDataFormat(&codecHandle, format.masterClockHz, format.sampleRate_Hz, format.bitWidth);
-#endif
-    SAI_TransferTxCreateHandle(DEMO_SAI, &txHandle, callback, NULL);
-    mclkSourceClockHz = CLOCK_GetFreq(DEMO_SAI_CLKSRC);
-    SAI_TransferTxSetFormat(DEMO_SAI, &txHandle, &format, mclkSourceClockHz, format.masterClockHz);
 }
 
 /*!
@@ -393,7 +547,8 @@ usb_status_t USB_DeviceAudioRequest(class_handle_t handle, uint32_t event, void 
             {
                 uint16_t volume = (uint16_t)((uint16_t)s_audioSpeaker.curVolume[1] << 8U);
                 volume |= (uint8_t)(s_audioSpeaker.curVolume[0]);
-                usb_echo("Set Cur Volume : %x\r\n", volume);
+                /* If needs print information while adjusting the volume, please enable the following sentence. */
+                /* usb_echo("Set Cur Volume : %x\r\n", volume); */
             }
             break;
         case USB_DEVICE_AUDIO_SET_CUR_MUTE_CONTROL:
@@ -403,7 +558,8 @@ usb_status_t USB_DeviceAudioRequest(class_handle_t handle, uint32_t event, void 
             }
             else
             {
-                usb_echo("Set Cur Mute : %x\r\n", s_audioSpeaker.curMute);
+                /* If needs print information while adjusting the volume, please enable the following sentence. */
+                /* usb_echo("Set Cur Mute : %x\r\n", s_audioSpeaker.curMute); */
             }
             break;
         case USB_DEVICE_AUDIO_SET_CUR_BASS_CONTROL:
@@ -571,40 +727,56 @@ usb_status_t USB_DeviceAudioRequest(class_handle_t handle, uint32_t event, void 
     return error;
 }
 
-/*!
- * @brief USB Audio data discard algorithm.
- *
- * This function discard the USB Audio data .
- * On the most soc, the USB SOF is about 0.99999, that means every 100000 SOF 
- * will send 1 more audio data, and after more than 40 seconds it will send
- * 64 bytes audio data. Since the SAI frame sampling rate is accurate 16k, so 
- * the USB will receive more data than the SAI sends. After more than 
- * 40 * AUDIO_DATA_DISCARD_BUFFER_LENGTH seconds the audioDataBuff is full and 
- * the USB stops receives data to audioDataBuff but to audioDataDiscardBuff and
- * it will discard AUDIO_DATA_DISCARD_BUFFER_LENGTH audio data every 
- * 40 * AUDIO_DATA_DISCARD_BUFFER_LENGTH seconds. We can change AUDIO_DATA_WHOLE_BUFFER_LENGTH
- * and the AUDIO_DATA_DISCARD_BUFFER_LENGTH to alternate the time and length to
- * discard.
- *
- */
-void USB_AudioDataMatch(void)
+void USB_SplitFeedbackData(uint32_t feedbackData)
 {
-    if (((recvCount - sendCount) > 4) && (startSai == 0))
+    audioFeedBackBuffer[0] = (uint8_t)feedbackData;
+    audioFeedBackBuffer[1] = (uint8_t)(feedbackData >> 8U);
+    audioFeedBackBuffer[2] = (uint8_t)(feedbackData >> 16U);
+}
+
+void USB_AudioDataMatch(uint32_t length)
+{
+    static uint32_t intervalRecvCount = 0;
+    static int32_t sendRecvDiff = 0;
+    static int32_t dataReadCountInterval = 0;
+    static int32_t threshold = AUDIO_DATA_THRESHOLD;
+    static uint32_t feedBackData = 0x40000U;
+
+    intervalRecvCount++;
+    dataReadCountInterval += length;
+    if (intervalRecvCount != 1000)
     {
-        startSai = 1;
+        return;
     }
-    else if(((recvCount - sendCount) >= (AUDIO_DATA_WHOLE_BUFFER_LENGTH - 2)))
+    intervalRecvCount = 0;
+    if (((dataSendCountInterval + prevSendCountInterval) > dataReadCountInterval + 3200) ||
+        ((dataSendCountInterval + prevSendCountInterval) < dataReadCountInterval - 3200))
     {
-        audioBufferIsFull = 1;
+        dataSendCountInterval = dataReadCountInterval;
     }
-    else if ((recvCount - sendCount) < (AUDIO_DATA_WHOLE_BUFFER_LENGTH - AUDIO_DATA_DISCARD_BUFFER_LENGTH))
+
+    sendRecvDiff += dataSendCountInterval - dataReadCountInterval + prevSendCountInterval;
+    dataSendCountInterval = 0;
+    prevSendCountInterval = 0;
+    if ((sendRecvDiff >= (-FS_ISO_OUT_ENDP_PACKET_SIZE)) && (sendRecvDiff <= (FS_ISO_OUT_ENDP_PACKET_SIZE)))
     {
-        audioBufferIsFull = 0;
-        startSai = 0;
+        threshold = AUDIO_DATA_THRESHOLD;
+        feedBackData = 0x40000U;
+        USB_SplitFeedbackData(feedBackData);
     }
-    else
+    if (sendRecvDiff <= -threshold)
     {
+        threshold += AUDIO_DATA_THRESHOLD;
+        feedBackData -= 0x40U;
+        USB_SplitFeedbackData(feedBackData);
     }
+    if (sendRecvDiff >= threshold)
+    {
+        threshold += AUDIO_DATA_THRESHOLD;
+        feedBackData += 0x40U;
+        USB_SplitFeedbackData(feedBackData);
+    }
+    dataReadCountInterval = 0;
 }
 
 /*!
@@ -623,37 +795,36 @@ usb_status_t USB_DeviceAudioCallback(class_handle_t handle, uint32_t event, void
     usb_status_t error = kStatus_USB_Error;
     usb_device_endpoint_callback_message_struct_t *ep_cb_param;
     ep_cb_param = (usb_device_endpoint_callback_message_struct_t *)param;
-    
 
     switch (event)
     {
-        case kUSB_DeviceAudioEventStreamRecvResponse:
-            if ((s_audioSpeaker.attach) &&
-                (ep_cb_param->length == ((USB_SPEED_HIGH == s_audioSpeaker.speed) ? HS_ISO_OUT_ENDP_PACKET_SIZE :
-                                                                                    FS_ISO_OUT_ENDP_PACKET_SIZE)))
+        case kUSB_DeviceAudioEventStreamSendResponse:
+            if ((s_audioSpeaker.attach) && (ep_cb_param->length != (USB_UNINITIALIZED_VAL_32)))
             {
-                if(ep_cb_param->buffer != audioDataDiscardBuff)
+                error = USB_DeviceAudioSend(s_audioSpeaker.audioHandle, USB_AUDIO_FEEDBACK_ENDPOINT,
+                                            audioFeedBackBuffer, ISO_FEEDBACK_ENDP_PACKET_SIZE);
+            }
+            break;
+        case kUSB_DeviceAudioEventStreamRecvResponse:
+            if ((s_audioSpeaker.attach) && (ep_cb_param->length != (USB_UNINITIALIZED_VAL_32)))
+            {
+                recvCount++;
+                if (((recvCount - sendCount) > AUDIO_DATA_WHOLE_BUFFER_LENGTH / 2) && (startSai == 0))
                 {
-                    recvCount++;
+                    startSai = 1;
                 }
-                else
+
+                audioBuffLength[tdReadNumber] = ep_cb_param->length;
+                tdReadNumber++;
+                if (tdReadNumber >= AUDIO_DATA_WHOLE_BUFFER_LENGTH)
                 {
+                    tdReadNumber = 0;
                 }
-                USB_AudioDataMatch();
-                if (!audioBufferIsFull)
-                {
-                    dataRead += epPacketSize;
-                    if (dataRead > (epPacketSize * AUDIO_DATA_WHOLE_BUFFER_LENGTH - epPacketSize))
-                    {
-                        dataRead = 0;
-                    }
+
                 /* request next data to the current buffer */
-                    error = USB_DeviceAudioRecv(handle, USB_AUDIO_STREAM_ENDPOINT, audioDataBuff + dataRead, epPacketSize);
-                }
-                else
-                {
-                    error = USB_DeviceAudioRecv(handle, USB_AUDIO_STREAM_ENDPOINT, audioDataDiscardBuff, epPacketSize);
-                }
+                error = USB_DeviceAudioRecv(handle, USB_AUDIO_STREAM_ENDPOINT, &audioDataBuff[tdReadNumber][0],
+                                            FS_ISO_OUT_ENDP_PACKET_SIZE * 2);
+                USB_AudioDataMatch(ep_cb_param->length);
             }
             break;
 
@@ -691,7 +862,9 @@ usb_status_t USB_DeviceCallback(usb_device_handle handle, uint32_t event, void *
         {
             s_audioSpeaker.attach = 0U;
             error = kStatus_USB_Success;
-#if defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 0U)
+#if (defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 0U)) || \
+    (defined(USB_DEVICE_CONFIG_LPCIP3511HS) && (USB_DEVICE_CONFIG_LPCIP3511HS > 0U))
+            /* Get USB speed to configure the device, including max packet size and interval of the endpoints. */
             if (kStatus_USB_Success == USB_DeviceClassGetSpeed(CONTROLLER_ID, &s_audioSpeaker.speed))
             {
                 USB_DeviceSetSpeed(handle, s_audioSpeaker.speed);
@@ -726,9 +899,10 @@ usb_status_t USB_DeviceCallback(usb_device_handle handle, uint32_t event, void *
                         {
                             epPacketSize = FS_ISO_OUT_ENDP_PACKET_SIZE;
                         }
-                        USB_DeviceAudioRecv(s_audioSpeaker.audioHandle, USB_AUDIO_STREAM_ENDPOINT, audioDataBuff,
-                                            ((USB_SPEED_HIGH == s_audioSpeaker.speed) ? HS_ISO_OUT_ENDP_PACKET_SIZE :
-                                                                                        FS_ISO_OUT_ENDP_PACKET_SIZE));
+                        USB_DeviceAudioRecv(s_audioSpeaker.audioHandle, USB_AUDIO_STREAM_ENDPOINT, &audioDataBuff[0][0],
+                                            FS_ISO_OUT_ENDP_PACKET_SIZE * 2);
+                        USB_DeviceAudioSend(s_audioSpeaker.audioHandle, USB_AUDIO_FEEDBACK_ENDPOINT,
+                                            audioFeedBackBuffer, ISO_FEEDBACK_ENDP_PACKET_SIZE);
                     }
                 }
             }
@@ -790,11 +964,31 @@ void USBHS_IRQHandler(void)
 {
     USB_DeviceEhciIsrFunction(s_audioSpeaker.deviceHandle);
 }
+#if defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 1U)
+#if defined(FSL_FEATURE_SOC_USBNC_COUNT) && (FSL_FEATURE_SOC_USBNC_COUNT > 1U)
+void USB1_IRQHandler(void)
+{
+    USB_DeviceEhciIsrFunction(s_audioSpeaker.deviceHandle);
+}
+#endif
+#endif
 #endif
 #if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0U)
 void USB0_IRQHandler(void)
 {
     USB_DeviceKhciIsrFunction(s_audioSpeaker.deviceHandle);
+}
+#endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+void USB0_IRQHandler(void)
+{
+    USB_DeviceLpcIp3511IsrFunction(s_audioSpeaker.deviceHandle);
+}
+#endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511HS) && (USB_DEVICE_CONFIG_LPCIP3511HS > 0U)
+void USB1_IRQHandler(void)
+{
+    USB_DeviceLpcIp3511IsrFunction(s_audioSpeaker.deviceHandle);
 }
 #endif
 
@@ -812,7 +1006,22 @@ void USB_DeviceApplicationInit(void)
     uint8_t ehciIrq[] = USBHS_IRQS;
     irqNo = ehciIrq[CONTROLLER_ID - kUSB_ControllerEhci0];
 
-    CLOCK_EnableUsbhs0Clock(kCLOCK_UsbSrcPll0, CLOCK_GetFreq(kCLOCK_PllFllSelClk));
+#if defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 1U)
+    if (CONTROLLER_ID == kUSB_ControllerEhci0)
+    {
+        CLOCK_EnableUsbhs0PhyPllClock(USB_HS_PHY_CLK_SRC, USB_HS_PHY_CLK_FREQ);
+        CLOCK_EnableUsbhs0Clock(USB_HS_CLK_SRC, USB_HS_CLK_FREQ);
+    }
+    else
+    {
+        CLOCK_EnableUsbhs1PhyPllClock(USB_HS_PHY_CLK_SRC, USB_HS_PHY_CLK_FREQ);
+        CLOCK_EnableUsbhs1Clock(USB_HS_CLK_SRC, USB_HS_CLK_FREQ);
+    }
+#else
+    CLOCK_EnableUsbhs0PhyPllClock(USB_HS_PHY_CLK_SRC, USB_HS_PHY_CLK_FREQ);
+    CLOCK_EnableUsbhs0Clock(USB_HS_CLK_SRC, USB_HS_CLK_FREQ);
+#endif
+
     USB_EhciPhyInit(CONTROLLER_ID, BOARD_XTAL0_CLK_HZ);
 #endif
 #if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0U)
@@ -821,15 +1030,36 @@ void USB_DeviceApplicationInit(void)
 
     SystemCoreClockUpdate();
 
-#if ((defined FSL_FEATURE_USB_KHCI_IRC48M_MODULE_CLOCK_ENABLED) && (FSL_FEATURE_USB_KHCI_IRC48M_MODULE_CLOCK_ENABLED))
-    CLOCK_EnableUsbfs0Clock(kCLOCK_UsbSrcIrc48M, 48000000U);
-#else
-    CLOCK_EnableUsbfs0Clock(kCLOCK_UsbSrcPll0, CLOCK_GetFreq(kCLOCK_PllFllSelClk));
-#endif /* FSL_FEATURE_USB_KHCI_IRC48M_MODULE_CLOCK_ENABLED */
+    CLOCK_EnableUsbfs0Clock(USB_FS_CLK_SRC, USB_FS_CLK_FREQ);
 #endif
-#if (defined(FSL_FEATURE_SOC_MPU_COUNT) && (FSL_FEATURE_SOC_MPU_COUNT > 0U))
-    MPU_Enable(MPU, 0);
-#endif /* FSL_FEATURE_SOC_MPU_COUNT */
+
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+    uint8_t usbDeviceIP3511Irq[] = USB_IRQS;
+    irqNo = usbDeviceIP3511Irq[CONTROLLER_ID - kUSB_ControllerLpcIp3511Fs0];
+    /* enable USB IP clock */
+    CLOCK_EnableUsbfs0DeviceClock(USB_FS_CLK_SRC, USB_FS_CLK_FREQ);
+#endif
+
+#if defined(USB_DEVICE_CONFIG_LPCIP3511HS) && (USB_DEVICE_CONFIG_LPCIP3511HS > 0U)
+    uint8_t usbDeviceIP3511Irq[] = USBHSD_IRQS;
+    irqNo = usbDeviceIP3511Irq[CONTROLLER_ID - kUSB_ControllerLpcIp3511Hs0];
+    /* enable USB IP clock */
+    CLOCK_EnableUsbhs0DeviceClock(USB_HS_CLK_SRC, USB_HS_CLK_FREQ);
+#endif
+
+#if (((defined(USB_DEVICE_CONFIG_LPCIP3511FS)) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)) || \
+     ((defined(USB_DEVICE_CONFIG_LPCIP3511HS)) && (USB_DEVICE_CONFIG_LPCIP3511HS > 0U)))
+#if defined(FSL_FEATURE_USBHSD_USB_RAM) && (FSL_FEATURE_USBHSD_USB_RAM)
+    for (int i = 0; i < FSL_FEATURE_USBHSD_USB_RAM; i++)
+    {
+        ((uint8_t *)FSL_FEATURE_USBHSD_USB_RAM_BASE_ADDRESS)[i] = 0x00U;
+    }
+#endif
+#endif
+
+#if (defined(FSL_FEATURE_SOC_SYSMPU_COUNT) && (FSL_FEATURE_SOC_SYSMPU_COUNT > 0U))
+    SYSMPU_Enable(SYSMPU, 0);
+#endif /* FSL_FEATURE_SOC_SYSMPU_COUNT */
 
 /*
  * If the SOC has USB KHCI dedicated RAM, the RAM memory needs to be clear after
@@ -845,33 +1075,7 @@ void USB_DeviceApplicationInit(void)
 #endif /* FSL_FEATURE_USB_KHCI_USB_RAM_BASE_ADDRESS */
 #endif /* FSL_FEATURE_USB_KHCI_USB_RAM */
 
-#if defined(FSL_RTOS_FREE_RTOS)
-#if defined(FSL_FEATURE_SOC_LPI2C_COUNT) && (FSL_FEATURE_SOC_LPI2C_COUNT)
-    if (DEMO_I2C == LPI2C0)
-    {
-        NVIC_SetPriority(LPI2C0_IRQn, 2);
-    }
-    else if (DEMO_I2C == LPI2C1)
-    {
-        NVIC_SetPriority(LPI2C1_IRQn, 2);
-    }
-#else
-    if (DEMO_I2C == I2C0)
-    {
-        NVIC_SetPriority(I2C0_IRQn, 2);
-    }
-    else if (DEMO_I2C == I2C1)
-    {
-        NVIC_SetPriority(I2C1_IRQn, 2);
-    }
-#endif
-    if (DEMO_SAI == I2S0)
-    {
-        NVIC_SetPriority(BOARD_I2S_INTERRUPT, 2);
-    }
-#endif
-
-    init();
+    Init_Board_Sai_Codec();
 
     if (kStatus_USB_Success != USB_DeviceClassInit(CONTROLLER_ID, &s_audioConfigList, &s_audioSpeaker.deviceHandle))
     {
@@ -884,9 +1088,13 @@ void USB_DeviceApplicationInit(void)
         s_audioSpeaker.audioHandle = s_audioConfigList.config->classHandle;
     }
 
-    /* Install isr, set priority, and enable IRQ. */
+/* Install isr, set priority, and enable IRQ. */
+#if defined(__GIC_PRIO_BITS)
+    GIC_SetPriority((IRQn_Type)irqNo, USB_DEVICE_INTERRUPT_PRIORITY);
+#else
     NVIC_SetPriority((IRQn_Type)irqNo, USB_DEVICE_INTERRUPT_PRIORITY);
-    NVIC_EnableIRQ((IRQn_Type)irqNo);
+#endif
+    EnableIRQ((IRQn_Type)irqNo);
 
     USB_DeviceRun(s_audioSpeaker.deviceHandle);
 }
@@ -901,6 +1109,12 @@ void USBDeviceTask(void *handle)
 #endif
 #if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0U)
         USB_DeviceKhciTaskFunction(handle);
+#endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+        USB_DeviceLpcIp3511TaskFunction(s_audioSpeaker.deviceHandle);
+#endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511HS) && (USB_DEVICE_CONFIG_LPCIP3511HS > 0U)
+        USB_DeviceLpcIp3511TaskFunction(s_audioSpeaker.deviceHandle);
 #endif
     }
 }
@@ -933,45 +1147,9 @@ void APPTask(void *handle)
         }
     }
 #endif
-    if (g_saiSendSemaphore == NULL)
-    {
-        g_saiSendSemaphore = xSemaphoreCreateCounting(0x01U, 0x00U);
-    }
-    else
-    {
-        vSemaphoreDelete(g_saiSendSemaphore);
-        g_saiSendSemaphore = xSemaphoreCreateCounting(0x01U, 0x00U);
-    }
-    if (NULL == g_saiSendSemaphore)
-    {
-        usb_echo("create semaphore fail\r\n");
-        return;
-    }
 
-    while (1)
+    while (1U)
     {
-        USB_AudioDataMatch();
-        if(startSai)
-        {
-            if(dataSend >= epPacketSize * AUDIO_DATA_WHOLE_BUFFER_LENGTH)
-            {
-                dataSend = 0;
-            }
-            audioTempBuffer = (uint32_t)audioDataBuff + dataSend;
-            xfer.data = (uint8_t *)audioTempBuffer;
-            xfer.dataSize = epPacketSize;
-            
-            SAI_TransferSendNonBlocking(DEMO_SAI, &txHandle, &xfer);
-            if (pdTRUE != xSemaphoreTake(g_saiSendSemaphore, portMAX_DELAY)) /* wait the command */
-            {
-                /* TODO: Semaphore take error */
-                /*
-                vSemaphoreDelete(g_saiSendSemaphore);
-                g_saiSendSemaphore = NULL;
-                return;
-                */
-            }
-        }
     }
 }
 
@@ -983,6 +1161,8 @@ void main(void)
 {
     BOARD_InitPins();
     BOARD_BootClockRUN();
+    BOARD_I2C_ReleaseBus();
+    BOARD_I2C_ConfigurePins();
     BOARD_InitDebugConsole();
 
     if (xTaskCreate(APPTask,                              /* pointer to the task */

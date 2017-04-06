@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -41,6 +41,7 @@
 #define APP_MCGOUTCLK_FREQ 120000000U
 #define LED_INIT() LED_ORANGE_INIT(LOGIC_LED_ON)
 #define LED_TOGGLE() LED_ORANGE_TOGGLE()
+#define CORE_CLK_FREQ CLOCK_GetFreq(kCLOCK_CoreSysClk)
 
 /*******************************************************************************
  * Prototypes
@@ -212,7 +213,7 @@ int main(void)
     APP_ChangeBlpeToPeeExample();
 
     /* Get System clock to blink a LED */
-    sysFreq = CLOCK_GetFreq(kCLOCK_CoreSysClk) / 20U;
+    sysFreq = CORE_CLK_FREQ / 20U;
     /* Enable a LED */
     LED_INIT();
     /* Blink a LED */

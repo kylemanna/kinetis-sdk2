@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -47,9 +47,9 @@
 #include "clock_config.h"
 #include "board.h"
 #include "fsl_common.h"
-#if (defined(FSL_FEATURE_SOC_MPU_COUNT) && (FSL_FEATURE_SOC_MPU_COUNT > 0U))
-#include "fsl_mpu.h"
-#endif /* FSL_FEATURE_SOC_MPU_COUNT */
+#if (defined(FSL_FEATURE_SOC_SYSMPU_COUNT) && (FSL_FEATURE_SOC_SYSMPU_COUNT > 0U))
+#include "fsl_sysmpu.h"
+#endif /* FSL_FEATURE_SOC_SYSMPU_COUNT */
 #if defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 0)
 #include "usb_phy.h"
 #endif
@@ -58,6 +58,9 @@
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
+/* USB clock source and frequency*/
+#define USB_FS_CLK_SRC kCLOCK_UsbSrcPll0
+#define USB_FS_CLK_FREQ CLOCK_GetFreq(kCLOCK_PllFllSelClk)
 
 /*******************************************************************************
  * Prototypes
@@ -73,6 +76,7 @@ static void USB_DeviceApplicationTask(uint32_t handle);
  * Variables
  ******************************************************************************/
 
+USB_DATA_ALIGNMENT uint32_t s_RecvDataBuffer[(APDU_MAX_BUFFER_SIZE + 3) / 4];
 /*! @brief agent instance */
 usb_shim_agent_struct_t g_shimAgent;
 
@@ -103,7 +107,7 @@ weightscale_measurement_struct_t measurement = {
 };
 
 /*! @brief association request data to send */
-static uint8_t g_associationRequestData[ASSOCIATION_REQUEST_LENGTH] = {
+USB_DATA_ALIGNMENT static uint8_t g_associationRequestData[ASSOCIATION_REQUEST_LENGTH] = {
     0xE2U, 0x00U,               /* APDU CHOICE Type (AarqApdu) */
     0x00U, 0x32U,               /* CHOICE.length = 50 */
     0x80U, 0x00U, 0x00U, 0x00U, /* assoc-version */
@@ -123,7 +127,7 @@ static uint8_t g_associationRequestData[ASSOCIATION_REQUEST_LENGTH] = {
 };
 
 /*! @brief remote operation invoke event report configuration data */
-static uint8_t g_roivEventRepostConfigurationData[EVENT_REPORT_CONFIGURATION_LENGTH] = {
+USB_DATA_ALIGNMENT static uint8_t g_roivEventRepostConfigurationData[EVENT_REPORT_CONFIGURATION_LENGTH] = {
     0xE7U, 0x00U, /* APDU CHOICE Type (PrstApdu) */
     0x00U, 0xA2U, /* CHOICE.length = 162 */
     0x00U, 0xA0U, /* OCTET STRING.length = 160 */
@@ -210,7 +214,7 @@ static uint8_t g_roivEventRepostConfigurationData[EVENT_REPORT_CONFIGURATION_LEN
 };
 
 /*! @brief remote operation response | Get with all MDS attributes */
-static uint8_t g_rorsCmipGetData[EVENT_RESPONSE_GET_LENGTH] = {
+USB_DATA_ALIGNMENT static uint8_t g_rorsCmipGetData[EVENT_RESPONSE_GET_LENGTH] = {
     0xE7U, 0x00U, /* APDU CHOICE Type (PrstApdu) */
     0x00U, 0x6EU, /* CHOICE.length = 110 */
     0x00U, 0x6CU, /* OCTET STRING.length = 108 */
@@ -251,7 +255,7 @@ static uint8_t g_rorsCmipGetData[EVENT_RESPONSE_GET_LENGTH] = {
     0x12U, 0x05U, 0x00U, 0x00};
 
 /*! @brief measurements to send */
-static uint8_t g_eventReportData[EVENT_REPORT_DATA_LENGTH] = {
+USB_DATA_ALIGNMENT static uint8_t g_eventReportData[EVENT_REPORT_DATA_LENGTH] = {
     0xE7U, 0x00U,               /* APDU CHOICE Type (PrstApdu) */
     0x00U, 0x5AU,               /* CHOICE.length = 90 */
     0x00U, 0x58U,               /* OCTET STRING.length = 88 */
@@ -317,7 +321,7 @@ void AGENT_MedicalCallback(uint32_t handle, uint8_t eventType, uint8_t *data)
         case AGENT_EVENT_RECV_ROIV_CMIP_GET:
         {
 /* The invokeID is mirrored from request */
-#if (ENDIANNESS == BIG_ENDIAN)
+#if (ENDIANNESS == USB_BIG_ENDIAN)
             g_rorsCmipGetData[7] = *data;
             g_rorsCmipGetData[6] = *((uint8_t *)(data + 1U));
 #else
@@ -458,7 +462,9 @@ static usb_status_t USB_DeviceCallback(usb_device_handle handle, uint32_t event,
         case kUSB_DeviceEventBusReset:
         {
             g_shimAgent.attach = 0U;
-#if defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 0U)
+#if (defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 0U)) || \
+    (defined(USB_DEVICE_CONFIG_LPCIP3511HS) && (USB_DEVICE_CONFIG_LPCIP3511HS > 0U))
+            /* Get USB speed to configure the device, including max packet size and interval of the endpoints. */
             if (kStatus_USB_Success == USB_DeviceClassGetSpeed(CONTROLLER_ID, &g_shimAgent.speed))
             {
                 USB_DeviceSetSpeed(handle, g_shimAgent.speed);
@@ -652,6 +658,26 @@ void USBHS_IRQHandler(void)
 {
     USB_DeviceEhciIsrFunction(g_shimAgent.deviceHandle);
 }
+#if defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 1U)
+#if defined(FSL_FEATURE_SOC_USBNC_COUNT) && (FSL_FEATURE_SOC_USBNC_COUNT > 1U)
+void USB1_IRQHandler(void)
+{
+    USB_DeviceEhciIsrFunction(g_shimAgent.deviceHandle);
+}
+#endif
+#endif
+#endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+void USB0_IRQHandler(void)
+{
+    USB_DeviceLpcIp3511IsrFunction(g_shimAgent.deviceHandle);
+}
+#endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511HS) && (USB_DEVICE_CONFIG_LPCIP3511HS > 0U)
+void USB1_IRQHandler(void)
+{
+    USB_DeviceLpcIp3511IsrFunction(g_shimAgent.deviceHandle);
+}
 #endif
 
 /*!
@@ -667,7 +693,22 @@ static void USB_DeviceApplicationInit(void)
     uint8_t ehciIrq[] = USBHS_IRQS;
     irqNumber = ehciIrq[CONTROLLER_ID - kUSB_ControllerEhci0];
 
-    CLOCK_EnableUsbhs0Clock(kCLOCK_UsbSrcPll0, CLOCK_GetFreq(kCLOCK_PllFllSelClk));
+#if defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 1U)
+    if (CONTROLLER_ID == kUSB_ControllerEhci0)
+    {
+        CLOCK_EnableUsbhs0PhyPllClock(USB_HS_PHY_CLK_SRC, USB_HS_PHY_CLK_FREQ);
+        CLOCK_EnableUsbhs0Clock(USB_HS_CLK_SRC, USB_HS_CLK_FREQ);
+    }
+    else
+    {
+        CLOCK_EnableUsbhs1PhyPllClock(USB_HS_PHY_CLK_SRC, USB_HS_PHY_CLK_FREQ);
+        CLOCK_EnableUsbhs1Clock(USB_HS_CLK_SRC, USB_HS_CLK_FREQ);
+    }
+#else
+    CLOCK_EnableUsbhs0PhyPllClock(USB_HS_PHY_CLK_SRC, USB_HS_PHY_CLK_FREQ);
+    CLOCK_EnableUsbhs0Clock(USB_HS_CLK_SRC, USB_HS_CLK_FREQ);
+#endif
+
     USB_EhciPhyInit(CONTROLLER_ID, BOARD_XTAL0_CLK_HZ);
 #endif
 #if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0U)
@@ -676,15 +717,37 @@ static void USB_DeviceApplicationInit(void)
 
     SystemCoreClockUpdate();
 
-#if ((defined FSL_FEATURE_USB_KHCI_IRC48M_MODULE_CLOCK_ENABLED) && (FSL_FEATURE_USB_KHCI_IRC48M_MODULE_CLOCK_ENABLED))
-    CLOCK_EnableUsbfs0Clock(kCLOCK_UsbSrcIrc48M, 48000000U);
-#else
-    CLOCK_EnableUsbfs0Clock(kCLOCK_UsbSrcPll0, CLOCK_GetFreq(kCLOCK_PllFllSelClk));
-#endif /* FSL_FEATURE_USB_KHCI_IRC48M_MODULE_CLOCK_ENABLED */
+    CLOCK_EnableUsbfs0Clock(USB_FS_CLK_SRC, USB_FS_CLK_FREQ);
 #endif
-#if (defined(FSL_FEATURE_SOC_MPU_COUNT) && (FSL_FEATURE_SOC_MPU_COUNT > 0U))
-    MPU_Enable(MPU, 0);
-#endif /* FSL_FEATURE_SOC_MPU_COUNT */
+
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+    uint8_t usbDeviceIP3511Irq[] = USB_IRQS;
+    irqNumber = usbDeviceIP3511Irq[CONTROLLER_ID - kUSB_ControllerLpcIp3511Fs0];
+
+    /* enable USB IP clock */
+    CLOCK_EnableUsbfs0DeviceClock(USB_FS_CLK_SRC, USB_FS_CLK_FREQ);
+#endif
+
+#if defined(USB_DEVICE_CONFIG_LPCIP3511HS) && (USB_DEVICE_CONFIG_LPCIP3511HS > 0U)
+    uint8_t usbDeviceIP3511Irq[] = USBHSD_IRQS;
+    irqNumber = usbDeviceIP3511Irq[CONTROLLER_ID - kUSB_ControllerLpcIp3511Hs0];
+    /* enable USB IP clock */
+    CLOCK_EnableUsbhs0DeviceClock(USB_HS_CLK_SRC, USB_HS_CLK_FREQ);
+#endif
+
+#if (((defined(USB_DEVICE_CONFIG_LPCIP3511FS)) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)) || \
+     ((defined(USB_DEVICE_CONFIG_LPCIP3511HS)) && (USB_DEVICE_CONFIG_LPCIP3511HS > 0U)))
+#if defined(FSL_FEATURE_USBHSD_USB_RAM) && (FSL_FEATURE_USBHSD_USB_RAM)
+    for (int i = 0; i < FSL_FEATURE_USBHSD_USB_RAM; i++)
+    {
+        ((uint8_t *)FSL_FEATURE_USBHSD_USB_RAM_BASE_ADDRESS)[i] = 0x00U;
+    }
+#endif
+#endif
+
+#if (defined(FSL_FEATURE_SOC_SYSMPU_COUNT) && (FSL_FEATURE_SOC_SYSMPU_COUNT > 0U))
+    SYSMPU_Enable(SYSMPU, 0);
+#endif /* FSL_FEATURE_SOC_SYSMPU_COUNT */
 
 /*
  * If the SOC has USB KHCI dedicated RAM, the RAM memory needs to be clear after
@@ -703,6 +766,7 @@ static void USB_DeviceApplicationInit(void)
     g_shimAgent.speed = USB_SPEED_FULL;
     g_shimAgent.attach = 0U;
     g_shimAgent.deviceHandle = NULL;
+    g_shimAgent.recvDataBuffer = (uint8_t *)(&s_RecvDataBuffer[0]);
 
     if (kStatus_USB_Success != USB_DeviceClassInit(CONTROLLER_ID, &g_agentDeviceConfigList, &g_shimAgent.deviceHandle))
     {
@@ -715,9 +779,13 @@ static void USB_DeviceApplicationInit(void)
         /* Initialize the Agent interface */
         AGENT_Init(g_shimAgent.classHandle);
     }
-    /* Install isr, set priority, and enable IRQ. */
+/* Install isr, set priority, and enable IRQ. */
+#if defined(__GIC_PRIO_BITS)
+    GIC_SetPriority((IRQn_Type)irqNumber, USB_DEVICE_INTERRUPT_PRIORITY);
+#else
     NVIC_SetPriority((IRQn_Type)irqNumber, USB_DEVICE_INTERRUPT_PRIORITY);
-    NVIC_EnableIRQ((IRQn_Type)irqNumber);
+#endif
+    EnableIRQ((IRQn_Type)irqNumber);
 
     USB_DeviceRun(g_shimAgent.deviceHandle);
 }
@@ -732,6 +800,12 @@ void USB_DeviceTask(void *handle)
 #endif
 #if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0U)
         USB_DeviceKhciTaskFunction(handle);
+#endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+        USB_DeviceLpcIp3511TaskFunction(handle);
+#endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511HS) && (USB_DEVICE_CONFIG_LPCIP3511HS > 0U)
+        USB_DeviceLpcIp3511TaskFunction(handle);
 #endif
     }
 }

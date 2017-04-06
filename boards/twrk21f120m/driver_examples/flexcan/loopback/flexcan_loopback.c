@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -39,6 +39,7 @@
  ******************************************************************************/
 #define EXAMPLE_CAN CAN0
 #define EXAMPLE_CAN_CLKSRC kCLOCK_BusClk
+#define EXAMPLE_CAN_CLK_FREQ CLOCK_GetFreq(kCLOCK_BusClk)
 #define EXAMPLE_FLEXCAN_IRQn CAN0_ORed_Message_buffer_IRQn
 #define EXAMPLE_FLEXCAN_IRQHandler CAN0_ORed_Message_buffer_IRQHandler
 #define RX_MESSAGE_BUFFER_NUM (8)
@@ -57,6 +58,17 @@ flexcan_frame_t txFrame, rxFrame;
 /*******************************************************************************
  * Code
  ******************************************************************************/
+
+void EXAMPLE_FLEXCAN_IRQHandler(void)
+{
+    /* If new data arrived. */
+    if (FLEXCAN_GetMbStatusFlags(EXAMPLE_CAN, 1 << RX_MESSAGE_BUFFER_NUM))
+    {
+        FLEXCAN_ClearMbStatusFlags(EXAMPLE_CAN, 1 << RX_MESSAGE_BUFFER_NUM);
+        FLEXCAN_ReadRxMb(EXAMPLE_CAN, RX_MESSAGE_BUFFER_NUM, &rxFrame);
+        rxComplete = true;
+    }
+}
 
 /*!
  * @brief Main function
@@ -84,9 +96,11 @@ int main(void)
      * flexcanConfig.enableDoze = false;
      */
     FLEXCAN_GetDefaultConfig(&flexcanConfig);
+#if (!defined(FSL_FEATURE_FLEXCAN_SUPPORT_ENGINE_CLK_SEL_REMOVE)) || !FSL_FEATURE_FLEXCAN_SUPPORT_ENGINE_CLK_SEL_REMOVE
     flexcanConfig.clkSrc = kFLEXCAN_ClkSrcPeri;
+#endif /* FSL_FEATURE_FLEXCAN_SUPPORT_ENGINE_CLK_SEL_REMOVE */
     flexcanConfig.enableLoopBack = true;
-    FLEXCAN_Init(EXAMPLE_CAN, &flexcanConfig, CLOCK_GetFreq(EXAMPLE_CAN_CLKSRC));
+    FLEXCAN_Init(EXAMPLE_CAN, &flexcanConfig, EXAMPLE_CAN_CLK_FREQ);
 
     /* Setup Rx Message Buffer. */
     mbConfig.format = kFLEXCAN_FrameFormatStandard;
@@ -116,7 +130,7 @@ int main(void)
     PRINTF("tx word1 = 0x%x\r\n", txFrame.dataWord1);
 
     /* Send data through Tx Message Buffer using polling function. */
-    FlEXCAN_TransferSendBlocking(EXAMPLE_CAN, TX_MESSAGE_BUFFER_NUM, &txFrame);
+    FLEXCAN_TransferSendBlocking(EXAMPLE_CAN, TX_MESSAGE_BUFFER_NUM, &txFrame);
 
     /* Waiting for Message receive finish. */
     while (!rxComplete)
@@ -135,16 +149,5 @@ int main(void)
     while (1)
     {
         __WFI();
-    }
-}
-
-void EXAMPLE_FLEXCAN_IRQHandler(void)
-{
-    /* If new data arrived. */
-    if (FLEXCAN_GetMbStatusFlags(EXAMPLE_CAN, 1 << RX_MESSAGE_BUFFER_NUM))
-    {
-        FLEXCAN_ClearMbStatusFlags(EXAMPLE_CAN, 1 << RX_MESSAGE_BUFFER_NUM);
-        FLEXCAN_ReadRxMb(EXAMPLE_CAN, RX_MESSAGE_BUFFER_NUM, &rxFrame);
-        rxComplete = true;
     }
 }

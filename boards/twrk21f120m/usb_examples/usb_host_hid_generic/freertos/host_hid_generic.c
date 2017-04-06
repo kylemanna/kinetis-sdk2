@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -100,7 +100,7 @@ static usb_status_t USB_HostHidGenericPrepareOutData(usb_host_hid_generic_instan
 
 usb_host_hid_generic_instance_t g_HostHidGeneric; /* hid generic instance */
 uint8_t testData[] =
-    "Test string: This is usb host hid generic demo, it only support pid=0x007f and vid=0x15a2 hid device. Host send "
+    "Test string: This is usb host hid generic demo, it only support pid=0x0090 and vid=0x1fc9 hid device. Host send "
     "this test string to device, device reply the data to host then host print the data\r\n";
 
 /*******************************************************************************
@@ -434,7 +434,7 @@ usb_status_t USB_HostHidGenericEvent(usb_device_handle deviceHandle,
                 }
                 USB_HostHelperGetPeripheralInformation(deviceHandle, kUSB_HostGetDevicePID, &pid);
                 USB_HostHelperGetPeripheralInformation(deviceHandle, kUSB_HostGetDeviceVID, &vid);
-                if ((pid == 0x007f) && (vid == 0x15a2))
+                if ((pid == 0x0090) && (vid == 0x1fc9))
                 {
                     if (g_HostHidGeneric.deviceState == kStatus_DEV_Idle)
                     {

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -28,27 +28,50 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ * TEXT BELOW IS USED AS SETTING FOR THE PINS TOOL *****************************
+PinsProfile:
+- !!product 'Pins v2.0'
+- !!processor 'MK21FN1M0Axxx12'
+- !!package 'MK21FN1M0AVMC12'
+- !!mcu_data 'ksdk2_0'
+- !!processor_version '1.0.1'
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR THE PINS TOOL ***
+ */
+
 #include "fsl_common.h"
 #include "fsl_port.h"
 #include "pin_mux.h"
 
-/*******************************************************************************
- * Code
- ******************************************************************************/
+#define PIN7_IDX                         7u   /*!< Pin number for pin 7 in a port */
+#define PIN8_IDX                         8u   /*!< Pin number for pin 8 in a port */
+#define PIN9_IDX                         9u   /*!< Pin number for pin 9 in a port */
 
-void BOARD_InitPins(void)
-{
-    /* Debug uart port mux config */
-    /* Enable uart port clock */
-    CLOCK_EnableClock(kCLOCK_PortD);
-    /* Affects PORTD_PCR8 register */
-    PORT_SetPinMux(PORTD, 8U, kPORT_MuxAlt3);
-    /* Affects PORTD_PCR9 register */
-    PORT_SetPinMux(PORTD, 9U, kPORT_MuxAlt3);
+/*
+ * TEXT BELOW IS USED AS SETTING FOR THE PINS TOOL *****************************
+BOARD_InitPins:
+- options: {coreID: singlecore, enableClock: 'true'}
+- pin_list:
+  - {pin_num: A10, peripheral: UART5, signal: RX, pin_signal: PTD8/I2C0_SCL/UART5_RX/FBa_A16}
+  - {pin_num: A9, peripheral: UART5, signal: TX, pin_signal: PTD9/I2C0_SDA/UART5_TX/FBa_A17}
+  - {pin_num: A1, peripheral: CMT, signal: IRO, pin_signal: PTD7/CMT_IRO/UART0_TX/FTM0_CH7/FTM0_FLT1}
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR THE PINS TOOL ***
+ */
 
-    /* Init CMT pins */
-    /* Ungate the port clock */
-    CLOCK_EnableClock(kCLOCK_PortD);
-    /* Affects PORTD_PCR7 register*/
-    PORT_SetPinMux(PORTD, 7U, kPORT_MuxAlt2);
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : BOARD_InitPins
+ * Description   : Configures pin routing and optionally pin electrical features.
+ *
+ *END**************************************************************************/
+void BOARD_InitPins(void) {
+  CLOCK_EnableClock(kCLOCK_PortD);                           /* Port D Clock Gate Control: Clock enabled */
+
+  PORT_SetPinMux(PORTD, PIN7_IDX, kPORT_MuxAlt2);            /* PORTD7 (pin A1) is configured as CMT_IRO */
+  PORT_SetPinMux(PORTD, PIN8_IDX, kPORT_MuxAlt3);            /* PORTD8 (pin A10) is configured as UART5_RX */
+  PORT_SetPinMux(PORTD, PIN9_IDX, kPORT_MuxAlt3);            /* PORTD9 (pin A9) is configured as UART5_TX */
 }
+
+/*******************************************************************************
+ * EOF
+ ******************************************************************************/

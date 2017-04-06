@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -40,7 +40,7 @@
  ******************************************************************************/
 #define DEMO_ADC16_BASEADDR ADC0
 #define DEMO_ADC16_CHANNEL_GROUP 0U
-#define DEMO_ADC16_USER_CHANNEL 23U /* PTE2, ADC0_SE23 */
+#define DEMO_ADC16_USER_CHANNEL 23U
 #define DEMO_DAC_BASEADDR DAC0
 
 #define DEMO_ADC16_IRQn ADC0_IRQn
@@ -82,6 +82,7 @@ static void DAC_ADC_Init(void)
      */
     DAC_GetDefaultConfig(&dacConfigStruct);
     DAC_Init(DEMO_DAC_BASEADDR, &dacConfigStruct);
+    DAC_Enable(DEMO_DAC_BASEADDR, true); /* Enable output. */
 
     /* Configure the ADC16. */
     /*
@@ -96,6 +97,9 @@ static void DAC_ADC_Init(void)
      * adc16ConfigStruct.enableContinuousConversion = false;
      */
     ADC16_GetDefaultConfig(&adc16ConfigStruct);
+#if defined(BOARD_ADC_USE_ALT_VREF)
+    adc16ConfigStruct.referenceVoltageSource = kADC16_ReferenceVoltageSourceValt;
+#endif    
     ADC16_Init(DEMO_ADC16_BASEADDR, &adc16ConfigStruct);
 
     /* Make sure the software trigger is used. */

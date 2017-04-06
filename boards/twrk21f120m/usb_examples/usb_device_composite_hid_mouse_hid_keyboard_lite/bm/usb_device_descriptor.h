@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -49,7 +49,7 @@
 #define USB_DESCRIPTOR_LENGTH_HID_KEYBOARD_REPORT (63U)
 #define USB_DESCRIPTOR_LENGTH_HID (9U)
 #define USB_DESCRIPTOR_LENGTH_STRING0 (4U)
-#define USB_DESCRIPTOR_LENGTH_STRING1 (58U)
+#define USB_DESCRIPTOR_LENGTH_STRING1 (38U)
 #define USB_DESCRIPTOR_LENGTH_STRING2 (34U)
 #define USB_DESCRIPTOR_LENGTH_STRING3 (34U)
 #define USB_DESCRIPTOR_LENGTH_STRING4 (40U)

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -277,6 +277,11 @@ static usb_status_t USB_DeviceVideoStreamEndpointsInit(usb_device_video_struct_t
     usb_status_t error = kStatus_USB_Error;
 
     /* Check the configuration is valid or not. */
+    if (!videoHandle->configuration)
+    {
+        return error;
+    }
+
     if (videoHandle->configuration > videoHandle->configStruct->classInfomation->configurations)
     {
         return error;
@@ -374,6 +379,7 @@ static usb_status_t USB_DeviceVideoStreamEndpointsDeinit(usb_device_video_struct
         error = USB_DeviceDeinitEndpoint(
             videoHandle->handle, videoHandle->streamInterfaceHandle->endpointList.endpoint[count].endpointAddress);
     }
+    videoHandle->streamInterfaceHandle = NULL;
     return error;
 }
 
@@ -394,6 +400,11 @@ static usb_status_t USB_DeviceVideoControlEndpointsInit(usb_device_video_struct_
     usb_status_t error = kStatus_USB_Error;
 
     /* Check the configuration is valid or not. */
+    if (!videoHandle->configuration)
+    {
+        return error;
+    }
+
     if (videoHandle->configuration > videoHandle->configStruct->classInfomation->configurations)
     {
         return error;
@@ -483,6 +494,7 @@ static usb_status_t USB_DeviceVideoControlEndpointsDeinit(usb_device_video_struc
         error = USB_DeviceDeinitEndpoint(
             videoHandle->handle, videoHandle->controlInterfaceHandle->endpointList.endpoint[count].endpointAddress);
     }
+    videoHandle->controlInterfaceHandle = NULL;
     return error;
 }
 
@@ -1218,7 +1230,7 @@ usb_status_t USB_DeviceVideoEvent(void *handle, uint32_t event, void *param)
 
                 switch (controlRequest->setup->bmRequestType)
                 {
-                    case USB_DEVICE_VIDEO_SET_REQUSET_INTERFACE:
+                    case USB_DEVICE_VIDEO_SET_REQUEST_INTERFACE:
                         if (controlRequest->isSetup)
                         {
                             /* Get the buffer to receive the data sent from the host. */
@@ -1230,7 +1242,7 @@ usb_status_t USB_DeviceVideoEvent(void *handle, uint32_t event, void *param)
                             }
                             break;
                         }
-                    case USB_DEVICE_VIDEO_GET_REQUSET_INTERFACE:
+                    case USB_DEVICE_VIDEO_GET_REQUEST_INTERFACE:
                         if (videoHandle->controlInterfaceNumber == interface_index)
                         {
                             error = USB_DeviceVideoVcRequest(videoHandle, controlRequest);

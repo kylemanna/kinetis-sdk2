@@ -72,8 +72,6 @@
 
 extern uint32_t SystemCoreClock; /* in Kinetis SDK, this contains the system core clock speed */
 
-
-
 /*-----------------------------------------------------------*/
 
 /*
@@ -113,7 +111,7 @@ extern uint32_t SystemCoreClock; /* in Kinetis SDK, this contains the system cor
 		{
 			xExpectedIdleTime = xMaximumPossibleSuppressedTicks;
 		}
-        if (xExpectedIdleTime == 0) return;
+		if (xExpectedIdleTime == 0) return;
 		/* Stop the SysTick momentarily.  The time the SysTick is stopped for
 		is accounted for as best it can be, but using the tickless mode will
 		inevitably result in some tiny drift of the time maintained by the
@@ -272,6 +270,6 @@ __attribute__(( weak )) void vPortSetupTimerInterrupt( void )
 
 	/* Configure SysTick to interrupt at the requested rate. */
 	portNVIC_SYSTICK_LOAD_REG = ( configSYSTICK_CLOCK_HZ / configTICK_RATE_HZ ) - 1UL;
-    portNVIC_SYSTICK_CURRENT_VALUE_REG = 0UL;
+	portNVIC_SYSTICK_CURRENT_VALUE_REG = 0UL;
 	portNVIC_SYSTICK_CTRL_REG = ( portNVIC_SYSTICK_CLK_BIT | portNVIC_SYSTICK_INT_BIT | portNVIC_SYSTICK_ENABLE_BIT );
 }

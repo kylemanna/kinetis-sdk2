@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,14 +12,14 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
@@ -30,14 +30,12 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "fsl_uart.h"
-#include "fsl_gpio.h"
 #include "fsl_debug_console.h"
 #include "ff.h"
 #include "diskio.h"
 #include "board.h"
 
-#include "fsl_mpu.h"
+#include "fsl_sysmpu.h"
 #include "pin_mux.h"
 #include "clock_config.h"
 /*******************************************************************************
@@ -50,12 +48,6 @@
 /*******************************************************************************
  * Prototypes
  ******************************************************************************/
-/*!
- * @brief Delay some time.
- *
- * @param milliseconds Time united in milliseconds.
- */
-void delay(uint32_t milliseconds);
 
 /*******************************************************************************
  * Variables
@@ -69,19 +61,6 @@ static uint8_t g_bufferRead[BUFFER_SIZE];  /* Read buffer */
 /*******************************************************************************
  * Code
  ******************************************************************************/
-/* Delay some time united in milliseconds. */
-void delay(uint32_t milliseconds)
-{
-    uint32_t i, j;
-
-    for (i = 0; i < milliseconds; i++)
-    {
-        for (j = 0; j < 20000U; j++)
-        {
-            __asm("NOP");
-        }
-    }
-}
 
 /*!
  * @brief Main function
@@ -94,30 +73,18 @@ int main(void)
     UINT bytesWritten;
     UINT bytesRead;
     const TCHAR driverNumberBuffer[3U] = {SDDISK + '0', ':', '/'};
-    bool failedFlag = false;
+    volatile bool failedFlag = false;
     char ch = '0';
+    BYTE work[_MAX_SS];
 
     BOARD_InitPins();
     BOARD_BootClockRUN();
     BOARD_InitDebugConsole();
-    MPU_Enable(MPU, false);
+    SYSMPU_Enable(SYSMPU, false);
 
     PRINTF("\r\nFATFS example to demonstrate how to use FATFS with SD card.\r\n");
 
     PRINTF("\r\nPlease insert a card into board.\r\n");
-/* Wait the card to be inserted. */
-#if defined BOARD_SDHC_CD_LOGIC_RISING
-    while (!(GPIO_ReadPinInput(BOARD_SDHC_CD_GPIO_BASE, BOARD_SDHC_CD_GPIO_PIN)))
-    {
-    }
-#else
-    while (GPIO_ReadPinInput(BOARD_SDHC_CD_GPIO_BASE, BOARD_SDHC_CD_GPIO_PIN))
-    {
-    }
-#endif
-    PRINTF("Detected SD card inserted.\r\n");
-    /* Delat some time to make card stable. */
-    delay(1000U);
 
     if (f_mount(&g_fileSystem, driverNumberBuffer, 0U))
     {
@@ -136,7 +103,7 @@ int main(void)
 
 #if _USE_MKFS
     PRINTF("\r\nMake file system......The time may be long if the card capacity is big.\r\n");
-    if (f_mkfs(driverNumberBuffer, 1U, 0U))
+    if (f_mkfs(driverNumberBuffer, FM_ANY, 0U, work, sizeof work))
     {
         PRINTF("Make file system failed.\r\n");
         return -1;

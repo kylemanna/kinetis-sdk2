@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -31,15 +31,19 @@
 #ifndef __USB_UART_H__
 #define __USB_UART_H__
 #include "fsl_device_registers.h"
-#if (BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_UART)
+#if ((BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_UART) || \
+     (BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_IUART))
 #include "fsl_uart.h"
 #elif(BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_LPUART)
 #include "fsl_lpuart.h"
 #elif(BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_LPSCI)
 #include "fsl_lpsci.h"
+#elif(BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_FLEXCOMM)
+#include "fsl_usart.h"
 #endif
 
-#if (BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_UART)
+#if ((BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_UART) || \
+     (BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_IUART))
 #define USB_UART_ParityDisabled kUART_ParityDisabled
 #define USB_UART_ParityEven kUART_ParityEven
 #define USB_UART_ParityOdd kUART_ParityOdd
@@ -51,10 +55,15 @@
 #define USB_UART_ParityDisabled kLPSCI_ParityDisabled
 #define USB_UART_ParityEven kLPSCI_ParityEven
 #define USB_UART_ParityOdd kLPSCI_ParityOdd
+#elif(BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_FLEXCOMM)
+#define USB_UART_ParityDisabled kUSART_ParityDisabled
+#define USB_UART_ParityEven kUSART_ParityEven
+#define USB_UART_ParityOdd kUSART_ParityOdd
 #endif
 
 /*! @brief UART number of bits in a character*/
-#if (BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_UART)
+#if ((BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_UART) || \
+     (BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_IUART))
 #define USB_UART_8BitsPerChar kUART_8BitsPerChar
 #define USB_UART_9BitsPerChar kUART_9BitsPerChar
 #elif(BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_LPUART)
@@ -64,10 +73,14 @@
 #elif(BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_LPSCI)
 #define USB_UART_8BitsPerChar kLPSCI_8BitsPerChar
 #define USB_UART_9BitsPerChar kLPSCI_9BitsPerChar
+#elif(BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_FLEXCOMM)
+#define USB_UART_8BitsPerChar kUSART_8BitsPerChar
+#define USB_UART_9BitsPerChar kUSART_9BitsPerChar
 #endif
 
 /*! @brief UART number of stop bits*/
-#if (BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_UART)
+#if ((BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_UART) || \
+     (BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_IUART))
 #define USB_UART_OneStopBit kUART_OneStopBit
 #define USB_UART_TwoStopBit kUART_TwoStopBit
 #elif(BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_LPUART)
@@ -76,14 +89,20 @@
 #elif(BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_LPSCI)
 #define USB_UART_OneStopBit kLPSCI_OneStopBit
 #define USB_UART_TwoStopBit kLPSCI_TwoStopBit
+#elif(BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_FLEXCOMM)
+#define USB_UART_OneStopBit kUSART_OneStopBit
+#define USB_UART_TwoStopBit kUSART_TwoStopBit
 #endif
 
-#if (BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_UART)
+#if ((BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_UART) || \
+     (BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_IUART))
 typedef uart_handle_t usb_uart_handle_t;
 #elif(BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_LPUART)
 typedef lpuart_handle_t usb_uart_handle_t;
 #elif(BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_LPSCI)
 typedef lpsci_handle_t usb_uart_handle_t;
+#elif(BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_FLEXCOMM)
+typedef usart_handle_t usb_uart_handle_t;
 #endif
 
 typedef struct _usb_xfer
@@ -106,6 +125,21 @@ typedef enum _usb_uart_status
     kStatus_USB_UART_Error = MAKE_STATUS(kStatusGroup_UART, 7),
     kStatus_USB_UART_RxRingBufferOverrun = MAKE_STATUS(kStatusGroup_UART, 8),
     kStatus_USB_UART_RxHardwareOverrun = MAKE_STATUS(kStatusGroup_UART, 9),
+} usb_uart_status_t;
+#elif(BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_IUART)
+/*! @brief Error codes for the UART driver. */
+typedef enum _usb_uart_status
+{
+    kStatus_USB_UART_TxBusy = MAKE_STATUS(kStatusGroup_IUART, 0),
+    kStatus_USB_UART_RxBusy = MAKE_STATUS(kStatusGroup_IUART, 1),
+    kStatus_USB_UART_TxIdle = MAKE_STATUS(kStatusGroup_IUART, 2),
+    kStatus_USB_UART_RxIdle = MAKE_STATUS(kStatusGroup_IUART, 3),
+    kStatus_USB_UART_TxWatermarkTooLarge = MAKE_STATUS(kStatusGroup_IUART, 4),
+    kStatus_USB_UART_RxWatermarkTooLarge = MAKE_STATUS(kStatusGroup_IUART, 5),
+    kStatus_USB_UART_kStatus_UART_FlagCannotClearManually = MAKE_STATUS(kStatusGroup_IUART, 6),
+    kStatus_USB_UART_Error = MAKE_STATUS(kStatusGroup_IUART, 7),
+    kStatus_USB_UART_RxRingBufferOverrun = MAKE_STATUS(kStatusGroup_IUART, 8),
+    kStatus_USB_UART_RxHardwareOverrun = MAKE_STATUS(kStatusGroup_IUART, 9),
 } usb_uart_status_t;
 #elif(BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_LPUART)
 /*! @brief Error codes for the UART driver. */
@@ -139,10 +173,25 @@ typedef enum _usb_uart_status
     kStatus_USB_UART_RxHardwareOverrun = MAKE_STATUS(kStatusGroup_LPSCI, 9),
 
 } usb_uart_status_t;
+#elif(BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_FLEXCOMM)
+/*! @brief Error codes for the UART driver. */
+typedef enum _usb_uart_status
+{
+    kStatus_USB_UART_TxBusy = MAKE_STATUS(kStatusGroup_LPC_USART, 0),
+    kStatus_USB_UART_RxBusy = MAKE_STATUS(kStatusGroup_LPC_USART, 1),
+    kStatus_USB_UART_TxIdle = MAKE_STATUS(kStatusGroup_LPC_USART, 2),
+    kStatus_USB_UART_RxIdle = MAKE_STATUS(kStatusGroup_LPC_USART, 3),
+    kStatus_USB_UART_RxRingBufferOverrun = MAKE_STATUS(kStatusGroup_LPC_USART, 8),
+    kStatus_USB_UART_NoiseError = MAKE_STATUS(kStatusGroup_LPC_USART, 10),
+    kStatus_USB_UART_FramingError = MAKE_STATUS(kStatusGroup_LPC_USART, 11),
+    kStatus_USB_UART_ParityError = MAKE_STATUS(kStatusGroup_LPC_USART, 12),
+    kStatus_USB_UART_BaudrateNotSupport = MAKE_STATUS(kStatusGroup_LPC_USART, 13),
+} usb_uart_status_t;
 #endif
 
 /*! @brief UART receive callback function type */
-#if (BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_UART)
+#if ((BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_UART) || \
+     (BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_IUART))
 typedef UART_Type USB_UartType;
 typedef uart_config_t usb_uartConfiguration;
 typedef void (*usb_uart_rx_callback_t)(USB_UartType *base, usb_uart_handle_t *handle, status_t status, void *userData);
@@ -151,8 +200,12 @@ typedef LPUART_Type USB_UartType;
 typedef lpuart_config_t usb_uartConfiguration;
 typedef void (*usb_uart_rx_callback_t)(USB_UartType *base, usb_uart_handle_t *handle, status_t status, void *userData);
 #elif(BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_LPSCI)
-typedef LPSCI_Type USB_UartType;
+typedef UART0_Type USB_UartType;
 typedef lpsci_config_t usb_uartConfiguration;
+typedef void (*usb_uart_rx_callback_t)(USB_UartType *base, usb_uart_handle_t *handle, status_t status, void *userData);
+#elif(BOARD_DEBUG_UART_TYPE == DEBUG_CONSOLE_DEVICE_TYPE_FLEXCOMM)
+typedef USART_Type USB_UartType;
+typedef usart_config_t usb_uartConfiguration;
 typedef void (*usb_uart_rx_callback_t)(USB_UartType *base, usb_uart_handle_t *handle, status_t status, void *userData);
 #endif
 

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -42,6 +42,8 @@
 #define LPTMR_LED_HANDLER LPTMR0_IRQHandler
 /* Get source clock for LPTMR driver */
 #define LPTMR_SOURCE_CLOCK CLOCK_GetFreq(kCLOCK_LpoClk)
+/* Define LPTMR microseconds counts value */
+#define LPTMR_USEC_COUNT 1000000U
 #define LED_INIT() LED_ORANGE_INIT(LOGIC_LED_ON)
 #define LED_TOGGLE() LED_ORANGE_TOGGLE()
 
@@ -63,6 +65,13 @@ void LPTMR_LED_HANDLER(void)
     LPTMR_ClearStatusFlags(LPTMR0, kLPTMR_TimerCompareFlag);
     lptmrCounter++;
     LED_TOGGLE();
+    /*
+     * Workaround for TWR-KV58: because write buffer is enabled, adding
+     * memory barrier instructions to make sure clearing interrupt flag completed
+     * before go out ISR
+     */
+    __DSB();
+    __ISB();
 }
 
 /*!
@@ -95,8 +104,11 @@ int main(void)
     /* Initialize the LPTMR */
     LPTMR_Init(LPTMR0, &lptmrConfig);
 
-    /* Set timer period */
-    LPTMR_SetTimerPeriod(LPTMR0, USEC_TO_COUNT(1000000U, LPTMR_SOURCE_CLOCK));
+    /*
+     * Set timer period.
+     * Note : the parameter "ticks" of LPTMR_SetTimerPeriod should be equal or greater than 1.
+    */
+    LPTMR_SetTimerPeriod(LPTMR0, USEC_TO_COUNT(LPTMR_USEC_COUNT, LPTMR_SOURCE_CLOCK));
 
     /* Enable timer interrupt */
     LPTMR_EnableInterrupts(LPTMR0, kLPTMR_TimerInterruptEnable);

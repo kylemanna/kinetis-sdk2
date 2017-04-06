@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -39,6 +39,7 @@
  ******************************************************************************/
 #define EXAMPLE_CAN CAN0
 #define EXAMPLE_CAN_CLKSRC kCLOCK_BusClk
+#define EXAMPLE_CAN_CLK_FREQ CLOCK_GetFreq(kCLOCK_BusClk)
 #define RX_MESSAGE_BUFFER_NUM (8)
 #define TX_MESSAGE_BUFFER_NUM (9)
 
@@ -112,9 +113,11 @@ int main(void)
      * flexcanConfig.enableDoze = false;
      */
     FLEXCAN_GetDefaultConfig(&flexcanConfig);
+#if (!defined(FSL_FEATURE_FLEXCAN_SUPPORT_ENGINE_CLK_SEL_REMOVE)) || !FSL_FEATURE_FLEXCAN_SUPPORT_ENGINE_CLK_SEL_REMOVE
     flexcanConfig.clkSrc = kFLEXCAN_ClkSrcPeri;
+#endif /* FSL_FEATURE_FLEXCAN_SUPPORT_ENGINE_CLK_SEL_REMOVE */
     flexcanConfig.enableLoopBack = true;
-    FLEXCAN_Init(EXAMPLE_CAN, &flexcanConfig, CLOCK_GetFreq(EXAMPLE_CAN_CLKSRC));
+    FLEXCAN_Init(EXAMPLE_CAN, &flexcanConfig, EXAMPLE_CAN_CLK_FREQ);
 
     /* Setup Rx Message Buffer. */
     mbConfig.format = kFLEXCAN_FrameFormatStandard;
@@ -160,10 +163,6 @@ int main(void)
     PRINTF("\r\nReceved message from MB%d\r\n", RX_MESSAGE_BUFFER_NUM);
     PRINTF("rx word0 = 0x%x\r\n", rxFrame.dataWord0);
     PRINTF("rx word1 = 0x%x\r\n", rxFrame.dataWord1);
-
-    /* Stop FlexCAN Send & Receive. */
-    FLEXCAN_TransferAbortReceive(EXAMPLE_CAN, &flexcanHandle, RX_MESSAGE_BUFFER_NUM);
-    FLEXCAN_TransferAbortSend(EXAMPLE_CAN, &flexcanHandle, TX_MESSAGE_BUFFER_NUM);
 
     PRINTF("\r\n==FlexCAN loopback example -- Finish.==\r\n");
 

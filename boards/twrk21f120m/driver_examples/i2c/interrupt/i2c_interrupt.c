@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -40,7 +40,9 @@
 #define EXAMPLE_I2C_MASTER_BASEADDR I2C0
 #define EXAMPLE_I2C_SLAVE_BASEADDR I2C1
 #define I2C_MASTER_CLK_SRC I2C0_CLK_SRC
+#define I2C_MASTER_CLK_FREQ CLOCK_GetFreq(I2C0_CLK_SRC)
 #define I2C_SLAVE_CLK_SRC I2C1_CLK_SRC
+#define I2C_SLAVE_CLK_FREQ CLOCK_GetFreq(I2C1_CLK_SRC)
 #define I2C_MASTER_IRQ I2C0_IRQn
 #define I2C_SLAVE_IRQ I2C1_IRQn
 #define I2C_MASTER_IRQHandler I2C0_IRQHandler
@@ -69,6 +71,111 @@ volatile bool g_masterReadBegin = false;
 /*******************************************************************************
  * Code
  ******************************************************************************/
+
+void I2C_MASTER_IRQHandler(void)
+{
+    /* Clear pending flag. */
+    EXAMPLE_I2C_MASTER_BASEADDR->S = kI2C_IntPendingFlag;
+
+    if (g_masterReadBegin)
+    {
+        /* Change direction to read direction and automatically send ACK. */
+        EXAMPLE_I2C_MASTER_BASEADDR->C1 &= ~(I2C_C1_TX_MASK | I2C_C1_TXAK_MASK);
+
+        /* Read dummy to free the bus. */
+        EXAMPLE_I2C_MASTER_BASEADDR->D;
+
+        g_masterReadBegin = false;
+
+        return;
+    }
+
+    /* If tx Index < I2C_DATA_LENGTH, master send->slave receive transfer is ongoing. */
+    if (g_masterTxIndex < I2C_DATA_LENGTH)
+    {
+        EXAMPLE_I2C_MASTER_BASEADDR->D = g_master_buff[g_masterTxIndex];
+        g_masterTxIndex++;
+    }
+
+    /* If rx Index < I2C_DATA_LENGTH, master receive->slave send transfer is ongoing. */
+    if (g_masterRxIndex < I2C_DATA_LENGTH)
+    {
+        /* Send STOP after receiving the last byte. */
+        if (g_masterRxIndex == (I2C_DATA_LENGTH - 1U))
+        {
+            I2C_MasterStop(EXAMPLE_I2C_MASTER_BASEADDR);
+        }
+
+        g_master_buff[g_masterRxIndex] = EXAMPLE_I2C_MASTER_BASEADDR->D;
+        g_masterRxIndex++;
+
+        /* Send NAK at the last byte. */
+        if (g_masterRxIndex == (I2C_DATA_LENGTH - 1U))
+        {
+            EXAMPLE_I2C_MASTER_BASEADDR->C1 |= I2C_C1_TXAK_MASK;
+        }
+    }
+}
+
+void I2C_SLAVE_IRQHandler(void)
+{
+    uint8_t status = I2C_SlaveGetStatusFlags(EXAMPLE_I2C_SLAVE_BASEADDR);
+
+    /* Clear pending flag. */
+    EXAMPLE_I2C_SLAVE_BASEADDR->S = kI2C_IntPendingFlag;
+
+    if (status & kI2C_AddressMatchFlag)
+    {
+        /* Slave transmit, master reading from slave. */
+        if (status & kI2C_TransferDirectionFlag)
+        {
+            /* Change direction to send data. */
+            EXAMPLE_I2C_SLAVE_BASEADDR->C1 |= I2C_C1_TX_MASK;
+
+            /* Start to send data in tx buffer. */
+            g_slaveTxIndex = 0;
+        }
+        else
+        {
+            /* Slave receive, master writing to slave. */
+            EXAMPLE_I2C_SLAVE_BASEADDR->C1 &= ~(I2C_C1_TX_MASK | I2C_C1_TXAK_MASK);
+
+            /* Read dummy to free the bus. */
+            EXAMPLE_I2C_SLAVE_BASEADDR->D;
+
+            return;
+        }
+    }
+
+    if (g_slaveTxIndex == I2C_DATA_LENGTH)
+    {
+        /* Change to RX mode when send out all data in tx buffer. */
+        EXAMPLE_I2C_SLAVE_BASEADDR->C1 &= ~(I2C_C1_TX_MASK | I2C_C1_TXAK_MASK);
+
+        /* Read dummy to release bus. */
+        EXAMPLE_I2C_SLAVE_BASEADDR->D;
+    }
+
+    /* If tx Index < I2C_DATA_LENGTH, master receive->slave send transfer is ongoing. */
+    if (g_slaveTxIndex < I2C_DATA_LENGTH)
+    {
+        EXAMPLE_I2C_SLAVE_BASEADDR->D = g_slave_buff[g_slaveTxIndex];
+        g_slaveTxIndex++;
+    }
+
+    /* If rx Index < I2C_DATA_LENGTH, slave receive->master send transfer is ongoing. */
+    if (g_slaveRxIndex < I2C_DATA_LENGTH)
+    {
+        /* Send NAK at the last byte. */
+        if (g_slaveRxIndex == (I2C_DATA_LENGTH - 1U))
+        {
+            EXAMPLE_I2C_SLAVE_BASEADDR->C1 |= I2C_C1_TXAK_MASK;
+        }
+
+        g_slave_buff[g_slaveRxIndex] = EXAMPLE_I2C_SLAVE_BASEADDR->D;
+        g_slaveRxIndex++;
+    }
+}
 
 /*!
  * @brief Main function
@@ -99,7 +206,6 @@ int main(void)
      * slaveConfig.addressingMode = kI2C_Address7bit;
      * slaveConfig.enableGeneralCall = false;
      * slaveConfig.enableWakeUp = false;
-     * slaveConfig.enableHighDrive = false;
      * slaveConfig.enableBaudRateCtl = false;
      * slaveConfig.enableSlave = true;
      */
@@ -108,7 +214,7 @@ int main(void)
     slaveConfig.addressingMode = kI2C_Address7bit;
     slaveConfig.slaveAddress = I2C_MASTER_SLAVE_ADDR_7BIT;
 
-    I2C_SlaveInit(EXAMPLE_I2C_SLAVE_BASEADDR, &slaveConfig);
+    I2C_SlaveInit(EXAMPLE_I2C_SLAVE_BASEADDR, &slaveConfig, I2C_SLAVE_CLK_FREQ);
 
     for (uint32_t i = 0U; i < I2C_DATA_LENGTH; i++)
     {
@@ -134,7 +240,6 @@ int main(void)
 
     /*
      * masterConfig.baudRate_Bps = 100000U;
-     * masterConfig.enableHighDrive = false;
      * masterConfig.enableStopHold = false;
      * masterConfig.glitchFilterWidth = 0U;
      * masterConfig.enableMaster = true;
@@ -142,7 +247,7 @@ int main(void)
     I2C_MasterGetDefaultConfig(&masterConfig);
     masterConfig.baudRate_Bps = I2C_BAUDRATE;
 
-    sourceClock = CLOCK_GetFreq(I2C_MASTER_CLK_SRC);
+    sourceClock = I2C_MASTER_CLK_FREQ;
 
     I2C_MasterInit(EXAMPLE_I2C_MASTER_BASEADDR, &masterConfig, sourceClock);
 
@@ -257,110 +362,5 @@ int main(void)
     PRINTF("\r\nEnd of I2C example .\r\n");
     while (1)
     {
-    }
-}
-
-void I2C_MASTER_IRQHandler(void)
-{
-    /* Clear pending flag. */
-    EXAMPLE_I2C_MASTER_BASEADDR->S = kI2C_IntPendingFlag;
-
-    if (g_masterReadBegin)
-    {
-        /* Change direction to read direction and automatically send ACK. */
-        EXAMPLE_I2C_MASTER_BASEADDR->C1 &= ~(I2C_C1_TX_MASK | I2C_C1_TXAK_MASK);
-
-        /* Read dummy to free the bus. */
-        EXAMPLE_I2C_MASTER_BASEADDR->D;
-
-        g_masterReadBegin = false;
-
-        return;
-    }
-
-    /* If tx Index < I2C_DATA_LENGTH, master send->slave receive transfer is ongoing. */
-    if (g_masterTxIndex < I2C_DATA_LENGTH)
-    {
-        EXAMPLE_I2C_MASTER_BASEADDR->D = g_master_buff[g_masterTxIndex];
-        g_masterTxIndex++;
-    }
-
-    /* If rx Index < I2C_DATA_LENGTH, master receive->slave send transfer is ongoing. */
-    if (g_masterRxIndex < I2C_DATA_LENGTH)
-    {
-        /* Send STOP after receiving the last byte. */
-        if (g_masterRxIndex == (I2C_DATA_LENGTH - 1U))
-        {
-            I2C_MasterStop(EXAMPLE_I2C_MASTER_BASEADDR);
-        }
-
-        g_master_buff[g_masterRxIndex] = EXAMPLE_I2C_MASTER_BASEADDR->D;
-        g_masterRxIndex++;
-
-        /* Send NAK at the last byte. */
-        if (g_masterRxIndex == (I2C_DATA_LENGTH - 1U))
-        {
-            EXAMPLE_I2C_MASTER_BASEADDR->C1 |= I2C_C1_TXAK_MASK;
-        }
-    }
-}
-
-void I2C_SLAVE_IRQHandler(void)
-{
-    uint8_t status = I2C_SlaveGetStatusFlags(EXAMPLE_I2C_SLAVE_BASEADDR);
-
-    /* Clear pending flag. */
-    EXAMPLE_I2C_SLAVE_BASEADDR->S = kI2C_IntPendingFlag;
-
-    if (status & kI2C_AddressMatchFlag)
-    {
-        /* Slave transmit, master reading from slave. */
-        if (status & kI2C_TransferDirectionFlag)
-        {
-            /* Change direction to send data. */
-            EXAMPLE_I2C_SLAVE_BASEADDR->C1 |= I2C_C1_TX_MASK;
-
-            /* Start to send data in tx buffer. */
-            g_slaveTxIndex = 0;
-        }
-        else
-        {
-            /* Slave receive, master writing to slave. */
-            EXAMPLE_I2C_SLAVE_BASEADDR->C1 &= ~(I2C_C1_TX_MASK | I2C_C1_TXAK_MASK);
-
-            /* Read dummy to free the bus. */
-            EXAMPLE_I2C_SLAVE_BASEADDR->D;
-
-            return;
-        }
-    }
-
-    if (g_slaveTxIndex == I2C_DATA_LENGTH)
-    {
-        /* Change to RX mode when send out all data in tx buffer. */
-        EXAMPLE_I2C_SLAVE_BASEADDR->C1 &= ~(I2C_C1_TX_MASK | I2C_C1_TXAK_MASK);
-
-        /* Read dummy to release bus. */
-        EXAMPLE_I2C_SLAVE_BASEADDR->D;
-    }
-
-    /* If tx Index < I2C_DATA_LENGTH, master receive->slave send transfer is ongoing. */
-    if (g_slaveTxIndex < I2C_DATA_LENGTH)
-    {
-        EXAMPLE_I2C_SLAVE_BASEADDR->D = g_slave_buff[g_slaveTxIndex];
-        g_slaveTxIndex++;
-    }
-
-    /* If rx Index < I2C_DATA_LENGTH, slave receive->master send transfer is ongoing. */
-    if (g_slaveRxIndex < I2C_DATA_LENGTH)
-    {
-        /* Send NAK at the last byte. */
-        if (g_slaveRxIndex == (I2C_DATA_LENGTH - 1U))
-        {
-            EXAMPLE_I2C_SLAVE_BASEADDR->C1 |= I2C_C1_TXAK_MASK;
-        }
-
-        g_slave_buff[g_slaveRxIndex] = EXAMPLE_I2C_SLAVE_BASEADDR->D;
-        g_slaveRxIndex++;
     }
 }

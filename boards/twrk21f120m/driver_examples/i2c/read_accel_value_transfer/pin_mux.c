@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -28,108 +28,99 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ * TEXT BELOW IS USED AS SETTING FOR THE PINS TOOL *****************************
+PinsProfile:
+- !!product 'Pins v2.0'
+- !!processor 'MK21FN1M0Axxx12'
+- !!package 'MK21FN1M0AVMC12'
+- !!mcu_data 'ksdk2_0'
+- !!processor_version '1.0.1'
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR THE PINS TOOL ***
+ */
+
 #include "fsl_common.h"
 #include "fsl_port.h"
-#include "fsl_gpio.h"
 #include "pin_mux.h"
 
+#define PIN8_IDX                         8u   /*!< Pin number for pin 8 in a port */
+#define PIN9_IDX                         9u   /*!< Pin number for pin 9 in a port */
+#define PIN10_IDX                       10u   /*!< Pin number for pin 10 in a port */
+#define PIN11_IDX                       11u   /*!< Pin number for pin 11 in a port */
+
+/*
+ * TEXT BELOW IS USED AS SETTING FOR THE PINS TOOL *****************************
+BOARD_InitPins:
+- options: {coreID: singlecore, enableClock: 'true'}
+- pin_list:
+  - {pin_num: A10, peripheral: UART5, signal: RX, pin_signal: PTD8/I2C0_SCL/UART5_RX/FBa_A16}
+  - {pin_num: A9, peripheral: UART5, signal: TX, pin_signal: PTD9/I2C0_SDA/UART5_TX/FBa_A17}
+  - {pin_num: C6, peripheral: I2C1, signal: SCL, pin_signal: ADC1_SE6b/PTC10/I2C1_SCL/FTM3_CH6/I2S0_RX_FS/FBa_AD5}
+  - {pin_num: C5, peripheral: I2C1, signal: SDA, pin_signal: ADC1_SE7b/PTC11/LLWU_P11/I2C1_SDA/FTM3_CH7/I2S0_RXD1/FBa_RW_b}
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR THE PINS TOOL ***
+ */
+
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : BOARD_InitPins
+ * Description   : Configures pin routing and optionally pin electrical features.
+ *
+ *END**************************************************************************/
+void BOARD_InitPins(void) {
+  CLOCK_EnableClock(kCLOCK_PortC);                           /* Port C Clock Gate Control: Clock enabled */
+  CLOCK_EnableClock(kCLOCK_PortD);                           /* Port D Clock Gate Control: Clock enabled */
+
+  PORT_SetPinMux(PORTC, PIN10_IDX, kPORT_MuxAlt2);           /* PORTC10 (pin C6) is configured as I2C1_SCL */
+  PORT_SetPinMux(PORTC, PIN11_IDX, kPORT_MuxAlt2);           /* PORTC11 (pin C5) is configured as I2C1_SDA */
+  PORT_SetPinMux(PORTD, PIN8_IDX, kPORT_MuxAlt3);            /* PORTD8 (pin A10) is configured as UART5_RX */
+  PORT_SetPinMux(PORTD, PIN9_IDX, kPORT_MuxAlt3);            /* PORTD9 (pin A9) is configured as UART5_TX */
+}
+
+
+#define PIN10_IDX                       10u   /*!< Pin number for pin 10 in a port */
+#define PIN11_IDX                       11u   /*!< Pin number for pin 11 in a port */
+/*
+ * TEXT BELOW IS USED AS SETTING FOR THE PINS TOOL *****************************
+BOARD_I2C_ConfigurePins:
+- options: {coreID: singlecore, enableClock: 'true'}
+- pin_list:
+  - {pin_num: C6, peripheral: I2C1, signal: SCL, pin_signal: ADC1_SE6b/PTC10/I2C1_SCL/FTM3_CH6/I2S0_RX_FS/FBa_AD5, slew_rate: fast, open_drain: enable, drive_strength: low,
+    pull_select: up, pull_enable: enable, passive_filter: disable}
+  - {pin_num: C5, peripheral: I2C1, signal: SDA, pin_signal: ADC1_SE7b/PTC11/LLWU_P11/I2C1_SDA/FTM3_CH7/I2S0_RXD1/FBa_RW_b, slew_rate: fast, open_drain: enable, drive_strength: low,
+    pull_select: up, pull_enable: enable, passive_filter: disable}
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR THE PINS TOOL ***
+ */
+
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : BOARD_I2C_ConfigurePins
+ *
+ *END**************************************************************************/
+void BOARD_I2C_ConfigurePins(void) {
+  CLOCK_EnableClock(kCLOCK_PortC);                           /* Port C Clock Gate Control: Clock enabled */
+
+  const port_pin_config_t portc10_pinC6_config = {
+    kPORT_PullUp,                                            /* Internal pull-up resistor is enabled */
+    kPORT_FastSlewRate,                                      /* Fast slew rate is configured */
+    kPORT_PassiveFilterDisable,                              /* Passive filter is disabled */
+    kPORT_OpenDrainEnable,                                   /* Open drain is enabled */
+    kPORT_LowDriveStrength,                                  /* Low drive strength is configured */
+    kPORT_MuxAlt2,                                           /* Pin is configured as I2C1_SCL */
+    kPORT_UnlockRegister                                     /* Pin Control Register fields [15:0] are not locked */
+  };
+  PORT_SetPinConfig(PORTC, PIN10_IDX, &portc10_pinC6_config); /* PORTC10 (pin C6) is configured as I2C1_SCL */
+  const port_pin_config_t portc11_pinC5_config = {
+    kPORT_PullUp,                                            /* Internal pull-up resistor is enabled */
+    kPORT_FastSlewRate,                                      /* Fast slew rate is configured */
+    kPORT_PassiveFilterDisable,                              /* Passive filter is disabled */
+    kPORT_OpenDrainEnable,                                   /* Open drain is enabled */
+    kPORT_LowDriveStrength,                                  /* Low drive strength is configured */
+    kPORT_MuxAlt2,                                           /* Pin is configured as I2C1_SDA */
+    kPORT_UnlockRegister                                     /* Pin Control Register fields [15:0] are not locked */
+  };
+  PORT_SetPinConfig(PORTC, PIN11_IDX, &portc11_pinC5_config); /* PORTC11 (pin C5) is configured as I2C1_SDA */
+}
+
 /*******************************************************************************
- * Code
+ * EOF
  ******************************************************************************/
-void BOARD_InitPins(void)
-{
-    /* Declare and initialise for pull up configuration */
-    port_pin_config_t pinConfig = {0};
-    pinConfig.pullSelect = kPORT_PullUp;
-    pinConfig.openDrainEnable = kPORT_OpenDrainEnable;
-
-    /* Initialize UART1 pins below */
-    /* Ungate the port clock */
-    CLOCK_EnableClock(kCLOCK_PortD);
-
-    /* Affects PORTD_PCR8 register */
-    PORT_SetPinMux(PORTD, 8U, kPORT_MuxAlt3);
-    /* Affects PORTD_PCR9 register */
-    PORT_SetPinMux(PORTD, 9U, kPORT_MuxAlt3);
-
-    /* Ungate the port clock */
-    CLOCK_EnableClock(kCLOCK_PortC);
-
-    /* Release I2C bus */
-    BOARD_I2C_ReleaseBus();
-
-    /* I2C1 pull up resistor setting */
-    PORT_SetPinConfig(PORTC, 10U, &pinConfig);
-    PORT_SetPinConfig(PORTC, 11U, &pinConfig);
-    /* I2C1 PIN_MUX Configuration */
-    PORT_SetPinMux(PORTC, 10U, kPORT_MuxAlt2);
-    PORT_SetPinMux(PORTC, 11U, kPORT_MuxAlt2);
-}
-
-void BOARD_I2C_ReleaseBus(void)
-{
-    port_pin_config_t i2c_pin_config = {0};
-    gpio_pin_config_t pin_config;
-    uint8_t i = 0;
-    uint8_t j = 0;
-
-    i2c_pin_config.pullSelect = kPORT_PullUp;
-    i2c_pin_config.mux = kPORT_MuxAsGpio;
-
-    pin_config.pinDirection = kGPIO_DigitalOutput;
-    pin_config.outputLogic = 1U;
-
-    PORT_SetPinConfig(PORTC, 10U, &i2c_pin_config);
-    PORT_SetPinConfig(PORTC, 11U, &i2c_pin_config);
-
-    GPIO_PinInit(GPIOC, 10U, &pin_config);
-    GPIO_PinInit(GPIOC, 11U, &pin_config);
-
-    /* Drive SDA low first to simulate a start */
-    GPIO_WritePinOutput(GPIOC, 11U, 0U);
-
-    /* Send 8 pulses on SCL and keep SDA low */
-    for (i = 0; i < 8; i++)
-    {
-        GPIO_WritePinOutput(GPIOC, 10U, 0U);
-        for (j = 0; j < 255; j++)
-        {
-            __asm("nop");
-        }
-        GPIO_WritePinOutput(GPIOC, 10U, 1U);
-        for (j = 0; j < 255; j++)
-        {
-            __asm("nop");
-        }
-    }
-
-    /* Drive SDA high to simulate a nak */
-    GPIO_WritePinOutput(GPIOC, 10U, 0U);
-    GPIO_WritePinOutput(GPIOC, 11U, 1U);
-    for (j = 0; j < 255; j++)
-    {
-        __asm("nop");
-    }
-    GPIO_WritePinOutput(GPIOC, 10U, 1U);
-    for (j = 0; j < 255; j++)
-    {
-        __asm("nop");
-    }
-    GPIO_WritePinOutput(GPIOC, 10U, 0U);
-    for (j = 0; j < 255; j++)
-    {
-        __asm("nop");
-    }
-
-    /* Send stop */
-    GPIO_WritePinOutput(GPIOC, 11U, 0U);
-    for (j = 0; j < 255; j++)
-    {
-        __asm("nop");
-    }
-    GPIO_WritePinOutput(GPIOC, 10U, 1U);
-    for (j = 0; j < 255; j++)
-    {
-        __asm("nop");
-    }
-}

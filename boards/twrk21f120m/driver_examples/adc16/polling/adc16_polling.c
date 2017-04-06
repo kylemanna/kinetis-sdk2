@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -78,6 +78,9 @@ int main(void)
      * adc16ConfigStruct.enableContinuousConversion = false;
      */
     ADC16_GetDefaultConfig(&adc16ConfigStruct);
+#ifdef BOARD_ADC_USE_ALT_VREF
+    adc16ConfigStruct.referenceVoltageSource = kADC16_ReferenceVoltageSourceValt;
+#endif    
     ADC16_Init(DEMO_ADC16_BASE, &adc16ConfigStruct);
     ADC16_EnableHardwareTrigger(DEMO_ADC16_BASE, false); /* Make sure the software trigger is used. */
 #if defined(FSL_FEATURE_ADC16_HAS_CALIBRATION) && FSL_FEATURE_ADC16_HAS_CALIBRATION

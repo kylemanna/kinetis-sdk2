@@ -1,32 +1,32 @@
 /*
-* Copyright (c) 2013 - 2015, Freescale Semiconductor, Inc.
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification,
-* are permitted provided that the following conditions are met:
-*
-* o Redistributions of source code must retain the above copyright notice, this list
-*   of conditions and the following disclaimer.
-*
-* o Redistributions in binary form must reproduce the above copyright notice, this
-*   list of conditions and the following disclaimer in the documentation and/or
-*   other materials provided with the distribution.
-*
-* o Neither the name of Freescale Semiconductor, Inc. nor the names of its
-*   contributors may be used to endorse or promote products derived from this
-*   software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-* ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-* ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ * Copyright (c) 2013 - 2015, Freescale Semiconductor, Inc.
+ * Copyright 2016-2017 NXP
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ * o Redistributions of source code must retain the above copyright notice, this list
+ *   of conditions and the following disclaimer.
+ *
+ * o Redistributions in binary form must reproduce the above copyright notice, this
+ *   list of conditions and the following disclaimer in the documentation and/or
+ *   other materials provided with the distribution.
+ *
+ * o Neither the name of the copyright holder nor the names of its
+ *   contributors may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 /* FreeRTOS kernel includes. */
 #include "FreeRTOS.h"
@@ -41,6 +41,10 @@
 #include "fsl_dspi_freertos.h"
 #include "board.h"
 
+#if ((defined FSL_FEATURE_SOC_INTMUX_COUNT) && (FSL_FEATURE_SOC_INTMUX_COUNT))
+#include "fsl_intmux.h"
+#endif
+
 #include "pin_mux.h"
 #include "clock_config.h"
 /*******************************************************************************
@@ -49,6 +53,12 @@
 #define EXAMPLE_DSPI_MASTER_BASE (SPI0_BASE)
 
 #define EXAMPLE_DSPI_SLAVE_BASE (SPI1_BASE)
+
+#define EXAMPLE_DSPI_MASTER_IRQN (SPI0_IRQn)
+#define EXAMPLE_DSPI_SLAVE_IRQN (SPI1_IRQn)
+
+#define DSPI_MASTER_CLK_SRC (DSPI0_CLK_SRC)
+#define DSPI_MASTER_CLK_FREQ CLOCK_GetFreq((DSPI0_CLK_SRC))
 
 #define SINGLE_BOARD 0
 #define BOARD_TO_BOARD 1
@@ -61,20 +71,6 @@
 #endif
 #define EXAMPLE_DSPI_MASTER_BASEADDR ((SPI_Type *)EXAMPLE_DSPI_MASTER_BASE)
 #define EXAMPLE_DSPI_SLAVE_BASEADDR ((SPI_Type *)EXAMPLE_DSPI_SLAVE_BASE)
-
-#if (EXAMPLE_DSPI_MASTER_BASE == SPI0_BASE)
-#define DSPI_MASTER_CLK_SRC (DSPI0_CLK_SRC)
-#elif(EXAMPLE_DSPI_MASTER_BASE == SPI1_BASE)
-#define DSPI_MASTER_CLK_SRC (DSPI1_CLK_SRC)
-#elif(EXAMPLE_DSPI_MASTER_BASE == SPI2_BASE)
-#define DSPI_MASTER_CLK_SRC (DSPI2_CLK_SRC)
-#elif(EXAMPLE_DSPI_MASTER_BASE == SPI3_BASE)
-#define DSPI_MASTER_CLK_SRC (DSPI3_CLK_SRC)
-#elif(EXAMPLE_DSPI_MASTER_BASE == SPI4_BASE)
-#define DSPI_MASTER_CLK_SRC (DSPI4_CLK_SRC)
-#else
-#error Should define the DSPI_MASTER_CLK_SRC!
-#endif
 
 #define TRANSFER_SIZE (256)         /*! Transfer size */
 #define TRANSFER_BAUDRATE (500000U) /*! Transfer baudrate - 500k */
@@ -95,6 +91,9 @@ SemaphoreHandle_t dspi_sem;
 /* Task priorities. */
 #define slave_task_PRIORITY (configMAX_PRIORITIES - 2)
 #define master_task_PRIORITY (configMAX_PRIORITIES - 1)
+/* Interrupt priorities. */
+#define DSPI_NVIC_PRIO 2
+
 /*******************************************************************************
  * Prototypes
  ******************************************************************************/
@@ -116,6 +115,12 @@ int main(void)
     BOARD_InitPins();
     BOARD_BootClockRUN();
     BOARD_InitDebugConsole();
+
+/* In case the DSPI IRQ is handled by INTMUX, setup INTMUX. */
+#if ((defined FSL_FEATURE_SOC_INTMUX_COUNT) && (FSL_FEATURE_SOC_INTMUX_COUNT))
+    INTMUX_Init(INTMUX0);
+    INTMUX_SetChannelMode(INTMUX0, EXAMPLE_DSPI_INTMUX_CHANNEL, kINTMUX_ChannelLogicOR);
+#endif
 
     PRINTF("FreeRTOS DSPI example start.\r\n");
 #if (EXAMPLE_CONNECT_DSPI == SINGLE_BOARD)
@@ -204,17 +209,20 @@ static void slave_task(void *pvParameters)
     slaveConfig.enableModifiedTimingFormat = false;
     slaveConfig.samplePoint = kDSPI_SckToSin0Clock;
 
-/*  Set dspi slave interrupt priority higher. */
-#if (EXAMPLE_DSPI_SLAVE_BASE == SPI0_BASE)
-    NVIC_SetPriority(SPI0_IRQn, 5);
-#elif(EXAMPLE_DSPI_SLAVE_BASE == SPI1_BASE)
-    NVIC_SetPriority(SPI1_IRQn, 5);
-#elif(EXAMPLE_DSPI_SLAVE_BASE == SPI2_BASE)
-    NVIC_SetPriority(SPI2_IRQn, 5);
-#elif(EXAMPLE_DSPI_SLAVE_BASE == SPI3_BASE)
-    NVIC_SetPriority(SPI3_IRQn, 5);
-#elif(EXAMPLE_DSPI_SLAVE_BASE == SPI4_BASE)
-    NVIC_SetPriority(SPI4_IRQn, 5);
+/* In case the DSPI IRQ is handled by INTMUX, setup both NVIC and INTMUX. */
+#if ((defined FSL_FEATURE_SOC_INTMUX_COUNT) && (FSL_FEATURE_SOC_INTMUX_COUNT))
+    if (EXAMPLE_DSPI_SLAVE_IRQN > FSL_FEATURE_INTERRUPT_IRQ_MAX)
+    {
+        INTMUX_EnableInterrupt(INTMUX0, EXAMPLE_DSPI_INTMUX_CHANNEL, EXAMPLE_DSPI_SLAVE_IRQN);
+        NVIC_SetPriority(INTMUX0_0_IRQn, DSPI_NVIC_PRIO);
+    }
+    else
+    {
+        NVIC_SetPriority(EXAMPLE_DSPI_SLAVE_IRQN, DSPI_NVIC_PRIO);
+    }
+#else
+    /*  Set dspi slave interrupt priority higher. */
+    NVIC_SetPriority(EXAMPLE_DSPI_SLAVE_IRQN, DSPI_NVIC_PRIO);
 #endif
 
     DSPI_SlaveInit(EXAMPLE_DSPI_SLAVE_BASEADDR, &slaveConfig);
@@ -322,19 +330,22 @@ static void master_task(void *pvParameters)
     masterConfig.enableModifiedTimingFormat = false;
     masterConfig.samplePoint = kDSPI_SckToSin0Clock;
 
-#if (EXAMPLE_DSPI_MASTER_BASE == SPI0_BASE)
-    NVIC_SetPriority(SPI0_IRQn, 6);
-#elif(EXAMPLE_DSPI_MASTER_BASE == SPI1_BASE)
-    NVIC_SetPriority(SPI1_IRQn, 6);
-#elif(EXAMPLE_DSPI_MASTER_BASE == SPI2_BASE)
-    NVIC_SetPriority(SPI2_IRQn, 6);
-#elif(EXAMPLE_DSPI_MASTER_BASE == SPI3_BASE)
-    NVIC_SetPriority(SPI3_IRQn, 6);
-#elif(EXAMPLE_DSPI_MASTER_BASE == SPI4_BASE)
-    NVIC_SetPriority(SPI4_IRQn, 6);
+/* In case the DSPI IRQ is handled by INTMUX, setup both NVIC and INTMUX. */
+#if ((defined FSL_FEATURE_SOC_INTMUX_COUNT) && (FSL_FEATURE_SOC_INTMUX_COUNT))
+    if (EXAMPLE_DSPI_MASTER_IRQN > FSL_FEATURE_INTERRUPT_IRQ_MAX)
+    {
+        INTMUX_EnableInterrupt(INTMUX0, EXAMPLE_DSPI_INTMUX_CHANNEL, EXAMPLE_DSPI_MASTER_IRQN);
+        NVIC_SetPriority(INTMUX0_0_IRQn, DSPI_NVIC_PRIO + 1);
+    }
+    else
+    {
+        NVIC_SetPriority(EXAMPLE_DSPI_MASTER_IRQN, DSPI_NVIC_PRIO + 1);
+    }
+#else
+    NVIC_SetPriority(EXAMPLE_DSPI_MASTER_IRQN, DSPI_NVIC_PRIO + 1);
 #endif
 
-    sourceClock = CLOCK_GetFreq(DSPI_MASTER_CLK_SRC);
+    sourceClock = DSPI_MASTER_CLK_FREQ;
     status = DSPI_RTOS_Init(&master_rtos_handle, EXAMPLE_DSPI_MASTER_BASEADDR, &masterConfig, sourceClock);
 
     if (status != kStatus_Success)

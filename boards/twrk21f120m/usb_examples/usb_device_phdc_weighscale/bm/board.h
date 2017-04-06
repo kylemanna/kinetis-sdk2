@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -65,10 +65,6 @@
 #define BOARD_I2C_BASEADDR I2C1
 #define BOARD_ACCEL_I2C_BASEADDR I2C1
 
-/*! @brief The Flextimer instance/channel used for board */
-#define BOARD_FTM_BASEADDR FTM0
-#define BOARD_FTM_CHANNEL 6U
-
 /*! @brief The SDHC instance/channel used for board */
 #define BOARD_SDHC_BASEADDR SDHC
 #define BOARD_SDHC_CD_GPIO_IRQ_HANDLER PORTC_IRQHandler
@@ -115,8 +111,8 @@
 #define BOARD_LED_YELLOW_GPIO_PIN 5U
 
 #define LED_GREEN_INIT(output)                                   \
-    GPIO_PinInit(BOARD_LED_GREEN_GPIO, BOARD_LED_GREEN_GPIO_PIN, \
-                 &(gpio_pin_config_t){kGPIO_DigitalOutput, (output)}) /*!< Enable target LED_GREEN */
+    GPIO_WritePinOutput(BOARD_LED_GREEN_GPIO, BOARD_LED_GREEN_GPIO_PIN, output);\
+    BOARD_LED_GREEN_GPIO->PDDR |= (1U << BOARD_LED_GREEN_GPIO_PIN)  /*!< Enable target LED_GREEN */
 #define LED_GREEN_ON() \
     GPIO_ClearPinsOutput(BOARD_LED_GREEN_GPIO, 1U << BOARD_LED_GREEN_GPIO_PIN) /*!< Turn on target LED_GREEN */
 #define LED_GREEN_OFF() \
@@ -125,8 +121,8 @@
     GPIO_TogglePinsOutput(BOARD_LED_GREEN_GPIO, 1U << BOARD_LED_GREEN_GPIO_PIN) /*!< Toggle on target LED_GREEN */
 
 #define LED_BLUE_INIT(output)                                  \
-    GPIO_PinInit(BOARD_LED_BLUE_GPIO, BOARD_LED_BLUE_GPIO_PIN, \
-                 &(gpio_pin_config_t){kGPIO_DigitalOutput, (output)}) /*!< Enable target LED_BLUE */
+    GPIO_WritePinOutput(BOARD_LED_BLUE_GPIO, BOARD_LED_BLUE_GPIO_PIN, output);\
+    BOARD_LED_BLUE_GPIO->PDDR |= (1U << BOARD_LED_BLUE_GPIO_PIN)  /*!< Enable target LED_BLUE */
 #define LED_BLUE_ON() \
     GPIO_ClearPinsOutput(BOARD_LED_BLUE_GPIO, 1U << BOARD_LED_BLUE_GPIO_PIN) /*!< Turn on target LED_BLUE */
 #define LED_BLUE_OFF() \
@@ -135,8 +131,8 @@
     GPIO_TogglePinsOutput(BOARD_LED_BLUE_GPIO, 1U << BOARD_LED_BLUE_GPIO_PIN) /*!< Toggle on target LED_BLUE */
 
 #define LED_YELLOW_INIT(output)                                    \
-    GPIO_PinInit(BOARD_LED_YELLOW_GPIO, BOARD_LED_YELLOW_GPIO_PIN, \
-                 &(gpio_pin_config_t){kGPIO_DigitalOutput, (output)}) /*!< Enable target LED_YELLOW */
+    GPIO_WritePinOutput(BOARD_LED_YELLOW_GPIO, BOARD_LED_YELLOW_GPIO_PIN, output);\
+    BOARD_LED_YELLOW_GPIO->PDDR |= (1U << BOARD_LED_YELLOW_GPIO_PIN)  /*!< Enable target LED_YELLOW */
 #define LED_YELLOW_ON() \
     GPIO_ClearPinsOutput(BOARD_LED_YELLOW_GPIO, 1U << BOARD_LED_YELLOW_GPIO_PIN) /*!< Turn on target LED_YELLOW */
 #define LED_YELLOW_OFF() \
@@ -145,8 +141,8 @@
     GPIO_TogglePinsOutput(BOARD_LED_YELLOW_GPIO, 1U << BOARD_LED_YELLOW_GPIO_PIN) /*!< Toggle on target LED_YELLOW */
 
 #define LED_ORANGE_INIT(output)                                    \
-    GPIO_PinInit(BOARD_LED_ORANGE_GPIO, BOARD_LED_ORANGE_GPIO_PIN, \
-                 &(gpio_pin_config_t){kGPIO_DigitalOutput, (output)}) /*!< Enable target LED_ORANGE */
+    GPIO_WritePinOutput(BOARD_LED_ORANGE_GPIO, BOARD_LED_ORANGE_GPIO_PIN, output);\
+    BOARD_LED_ORANGE_GPIO->PDDR |= (1U << BOARD_LED_ORANGE_GPIO_PIN)  /*!< Enable target LED_ORANGE */
 #define LED_ORANGE_ON() \
     GPIO_ClearPinsOutput(BOARD_LED_ORANGE_GPIO, 1U << BOARD_LED_ORANGE_GPIO_PIN) /*!< Turn on target LED_ORANGE */
 #define LED_ORANGE_OFF() \
@@ -161,6 +157,7 @@
 #define BOARD_SMARTCARD_CLOCK_MODULE (0u) /* FTM0 */
 #define BOARD_SMARTCARD_CLOCK_MODULE_CHANNEL (0u)
 #define BOARD_SMARTCARD_CLOCK_MODULE_SOURCE_CLK (kCLOCK_BusClk)
+#define BOARD_SMARTCARD_CLOCK_MODULE_CLK_FREQ CLOCK_GetFreq((kCLOCK_BusClk))
 #define BOARD_SMARTCARD_CLOCK_VALUE (5000000u)
 #define BOARD_SMARTCARD_CONTROL_PORT (3u) /* PORTD */
 #define BOARD_SMARTCARD_CONTROL_PIN (10u)
@@ -178,6 +175,7 @@
 /* SDHC base address, clock and card detection pin */
 #define BOARD_SDHC_BASEADDR SDHC
 #define BOARD_SDHC_CLKSRC kCLOCK_CoreSysClk
+#define BOARD_SDHC_CLK_FREQ CLOCK_GetFreq(kCLOCK_CoreSysClk)
 #define BOARD_SDHC_IRQ SDHC_IRQn
 #define BOARD_SDHC_CD_GPIO_BASE GPIOC
 #define BOARD_SDHC_CD_GPIO_PIN 18U
@@ -186,11 +184,6 @@
 #define BOARD_SDHC_CD_PORT_IRQ_HANDLER PORTC_IRQHandler
 
 #define BOARD_ACCEL_I2C_BASEADDR I2C1
-
-/* @brief FreeRTOS tickless timer configuration. */
-#define vPortLptmrIsr LPTMR0_IRQHandler /*!< Timer IRQ handler. */
-#define TICKLESS_LPTMR_BASE_PTR LPTMR0  /*!< Tickless timer base address. */
-#define TICKLESS_LPTMR_IRQn LPTMR0_IRQn /*!< Tickless timer IRQ number. */
 
 #if defined(__cplusplus)
 extern "C" {

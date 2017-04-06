@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -45,9 +45,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#if (defined(FSL_FEATURE_SOC_MPU_COUNT) && (FSL_FEATURE_SOC_MPU_COUNT > 0U))
-#include "fsl_mpu.h"
-#endif /* FSL_FEATURE_SOC_MPU_COUNT */
+#if (defined(FSL_FEATURE_SOC_SYSMPU_COUNT) && (FSL_FEATURE_SOC_SYSMPU_COUNT > 0U))
+#include "fsl_sysmpu.h"
+#endif /* FSL_FEATURE_SOC_SYSMPU_COUNT */
 #if defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 0)
 #include "usb_phy.h"
 #endif
@@ -57,6 +57,9 @@
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
+/* USB clock source and frequency*/
+#define USB_FS_CLK_SRC kCLOCK_UsbSrcPll0
+#define USB_FS_CLK_FREQ CLOCK_GetFreq(kCLOCK_PllFllSelClk)
 /*******************************************************************************
   * Prototypes
   ******************************************************************************/
@@ -64,7 +67,26 @@ void BOARD_InitHardware(void);
 /*******************************************************************************
  * Variables
  ******************************************************************************/
+USB_DATA_ALIGNMENT usb_device_inquiry_data_fromat_struct_t g_InquiryInfo = {
+    (USB_DEVICE_MSC_UFI_PERIPHERAL_QUALIFIER << USB_DEVICE_MSC_UFI_PERIPHERAL_QUALIFIER_SHIFT) |
+        USB_DEVICE_MSC_UFI_PERIPHERAL_DEVICE_TYPE,
+    (uint8_t)(USB_DEVICE_MSC_UFI_REMOVABLE_MEDIUM_BIT << USB_DEVICE_MSC_UFI_REMOVABLE_MEDIUM_BIT_SHIFT),
+    USB_DEVICE_MSC_UFI_VERSIONS,
+    0x02,
+    USB_DEVICE_MSC_UFI_ADDITIONAL_LENGTH,
+    {0x00, 0x00, 0x00},
+    {'N', 'X', 'P', ' ', 'S', 'E', 'M', 'I'},
+    {'N', 'X', 'P', ' ', 'M', 'A', 'S', 'S', ' ', 'S', 'T', 'O', 'R', 'A', 'G', 'E'},
+    {'0', '0', '0', '1'}};
+USB_DATA_ALIGNMENT usb_device_mode_parameters_header_struct_t g_ModeParametersHeader = {
+    /*refer to ufi spec mode parameter header*/
+    0x0000, /*!< Mode Data Length*/
+    0x00,   /*!<Default medium type (current mounted medium type)*/
+    0x00,   /*!MODE SENSE command, a Write Protected bit of zero indicates the medium is write enabled*/
+    {0x00, 0x00, 0x00, 0x00} /*!<This bit should be set to zero*/
+};
 /* Data structure of msc device, store the information ,such as class handle */
+USB_DATA_ALIGNMENT static uint8_t s_StorageDisk[DISK_SIZE_NORMAL];
 usb_msc_struct_t g_msc;
 /*******************************************************************************
  * Code
@@ -83,6 +105,7 @@ usb_status_t USB_DeviceMscCallback(class_handle_t handle, uint32_t event, void *
     usb_status_t error = kStatus_USB_Error;
     usb_device_lba_information_struct_t *lbaInformationStructure;
     usb_device_lba_app_struct_t *lbaData;
+    usb_device_ufi_app_struct_t *ufi;
 
     switch (event)
     {
@@ -95,12 +118,12 @@ usb_status_t USB_DeviceMscCallback(class_handle_t handle, uint32_t event, void *
         case kUSB_DeviceMscEventWriteRequest:
             lbaData = (usb_device_lba_app_struct_t *)param;
             /*offset is the write start address get from write command, refer to class driver*/
-            lbaData->buffer = g_msc.storageDisk + lbaData->offset;
+            lbaData->buffer = g_msc.storageDisk + lbaData->offset * LENGTH_OF_EACH_LBA;
             break;
         case kUSB_DeviceMscEventReadRequest:
             lbaData = (usb_device_lba_app_struct_t *)param;
             /*offset is the read start address get from read command, refer to class driver*/
-            lbaData->buffer = g_msc.storageDisk + lbaData->offset;
+            lbaData->buffer = g_msc.storageDisk + lbaData->offset * LENGTH_OF_EACH_LBA;
             break;
         case kUSB_DeviceMscEventGetLbaInformation:
             lbaInformationStructure = (usb_device_lba_information_struct_t *)param;
@@ -109,6 +132,25 @@ usb_status_t USB_DeviceMscCallback(class_handle_t handle, uint32_t event, void *
             lbaInformationStructure->logicalUnitNumberSupported = LOGICAL_UNIT_SUPPORTED;
             lbaInformationStructure->bulkInBufferSize = DISK_SIZE_NORMAL;
             lbaInformationStructure->bulkOutBufferSize = DISK_SIZE_NORMAL;
+            break;
+        case kUSB_DeviceMscEventTestUnitReady:
+            /*change the test unit ready command's sense data if need, be careful to modify*/
+            ufi = (usb_device_ufi_app_struct_t *)param;
+            break;
+        case kUSB_DeviceMscEventInquiry:
+            ufi = (usb_device_ufi_app_struct_t *)param;
+            ufi->size = sizeof(usb_device_inquiry_data_fromat_struct_t);
+            ufi->buffer = (uint8_t *)&g_InquiryInfo;
+            break;
+        case kUSB_DeviceMscEventModeSense:
+            ufi = (usb_device_ufi_app_struct_t *)param;
+            ufi->size = sizeof(usb_device_mode_parameters_header_struct_t);
+            ufi->buffer = (uint8_t *)&g_ModeParametersHeader;
+            break;
+        case kUSB_DeviceMscEventModeSelect:
+            break;
+        case kUSB_DeviceMscEventModeSelectResponse:
+            ufi = (usb_device_ufi_app_struct_t *)param;
             break;
         case kUSB_DeviceMscEventFormatComplete:
             break;
@@ -139,7 +181,9 @@ usb_status_t USB_DeviceCallback(usb_device_handle handle, uint32_t event, void *
         {
             g_msc.attach = 0;
             error = kStatus_USB_Success;
-#if defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 0)
+#if (defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 0U)) || \
+    (defined(USB_DEVICE_CONFIG_LPCIP3511HS) && (USB_DEVICE_CONFIG_LPCIP3511HS > 0U))
+            /* Get USB speed to configure the device, including max packet size and interval of the endpoints. */
             if (kStatus_USB_Success == USB_DeviceClassGetSpeed(CONTROLLER_ID, &g_msc.speed))
             {
                 USB_DeviceSetSpeed(handle, g_msc.speed);
@@ -215,7 +259,7 @@ usb_status_t USB_DeviceCallback(usb_device_handle handle, uint32_t event, void *
 usb_device_class_config_struct_t msc_config[1] = {{
     USB_DeviceMscCallback, 0, &g_UsbDeviceMscConfig,
 }};
-/* USB device class configuraion information */
+/* USB device class configuration information */
 usb_device_class_config_list_struct_t msc_config_list = {
     msc_config, USB_DeviceCallback, 1,
 };
@@ -231,6 +275,14 @@ void USBHS_IRQHandler(void)
 {
     USB_DeviceEhciIsrFunction(g_msc.deviceHandle);
 }
+#if defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 1U)
+#if defined(FSL_FEATURE_SOC_USBNC_COUNT) && (FSL_FEATURE_SOC_USBNC_COUNT > 1U)
+void USB1_IRQHandler(void)
+{
+    USB_DeviceEhciIsrFunction(g_msc.deviceHandle);
+}
+#endif
+#endif
 #endif
 #if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0)
 void USB0_IRQHandler(void)
@@ -238,9 +290,21 @@ void USB0_IRQHandler(void)
     USB_DeviceKhciIsrFunction(g_msc.deviceHandle);
 }
 #endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+void USB0_IRQHandler(void)
+{
+    USB_DeviceLpcIp3511IsrFunction(g_msc.deviceHandle);
+}
+#endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511HS) && (USB_DEVICE_CONFIG_LPCIP3511HS > 0U)
+void USB1_IRQHandler(void)
+{
+    USB_DeviceLpcIp3511IsrFunction(g_msc.deviceHandle);
+}
+#endif
 
 /*!
- * @brief device callback function.
+ * @brief device application init function.
  *
  * This function init the usb stack and sdhc driver.
  *
@@ -248,29 +312,66 @@ void USB0_IRQHandler(void)
  */
 void USB_DeviceApplicationInit(void)
 {
-    uint8_t irq_no;
+    uint8_t irqNumber;
 #if defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 0)
     uint8_t ehci_irq[] = USBHS_IRQS;
-    irq_no = ehci_irq[CONTROLLER_ID - kUSB_ControllerEhci0];
+    irqNumber = ehci_irq[CONTROLLER_ID - kUSB_ControllerEhci0];
 
-    CLOCK_EnableUsbhs0Clock(kCLOCK_UsbSrcPll0, CLOCK_GetFreq(kCLOCK_PllFllSelClk));
+#if defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 1U)
+    if (CONTROLLER_ID == kUSB_ControllerEhci0)
+    {
+        CLOCK_EnableUsbhs0PhyPllClock(USB_HS_PHY_CLK_SRC, USB_HS_PHY_CLK_FREQ);
+        CLOCK_EnableUsbhs0Clock(USB_HS_CLK_SRC, USB_HS_CLK_FREQ);
+    }
+    else
+    {
+        CLOCK_EnableUsbhs1PhyPllClock(USB_HS_PHY_CLK_SRC, USB_HS_PHY_CLK_FREQ);
+        CLOCK_EnableUsbhs1Clock(USB_HS_CLK_SRC, USB_HS_CLK_FREQ);
+    }
+#else
+    CLOCK_EnableUsbhs0PhyPllClock(USB_HS_PHY_CLK_SRC, USB_HS_PHY_CLK_FREQ);
+    CLOCK_EnableUsbhs0Clock(USB_HS_CLK_SRC, USB_HS_CLK_FREQ);
+#endif
+
     USB_EhciPhyInit(CONTROLLER_ID, BOARD_XTAL0_CLK_HZ);
 #endif
 #if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0)
     uint8_t khci_irq[] = USB_IRQS;
-    irq_no = khci_irq[CONTROLLER_ID - kUSB_ControllerKhci0];
+    irqNumber = khci_irq[CONTROLLER_ID - kUSB_ControllerKhci0];
 
     SystemCoreClockUpdate();
 
-#if ((defined FSL_FEATURE_USB_KHCI_IRC48M_MODULE_CLOCK_ENABLED) && (FSL_FEATURE_USB_KHCI_IRC48M_MODULE_CLOCK_ENABLED))
-    CLOCK_EnableUsbfs0Clock(kCLOCK_UsbSrcIrc48M, 48000000U);
-#else
-    CLOCK_EnableUsbfs0Clock(kCLOCK_UsbSrcPll0, CLOCK_GetFreq(kCLOCK_PllFllSelClk));
-#endif /* FSL_FEATURE_USB_KHCI_IRC48M_MODULE_CLOCK_ENABLED */
+    CLOCK_EnableUsbfs0Clock(USB_FS_CLK_SRC, USB_FS_CLK_FREQ);
 #endif
-#if (defined(FSL_FEATURE_SOC_MPU_COUNT) && (FSL_FEATURE_SOC_MPU_COUNT > 0U))
-    MPU_Enable(MPU, 0);
-#endif /* FSL_FEATURE_SOC_MPU_COUNT */
+
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+    uint8_t usbDeviceIP3511Irq[] = USB_IRQS;
+    irqNumber = usbDeviceIP3511Irq[CONTROLLER_ID - kUSB_ControllerLpcIp3511Fs0];
+
+    /* enable USB IP clock */
+    CLOCK_EnableUsbfs0DeviceClock(USB_FS_CLK_SRC, USB_FS_CLK_FREQ);
+#endif
+
+#if defined(USB_DEVICE_CONFIG_LPCIP3511HS) && (USB_DEVICE_CONFIG_LPCIP3511HS > 0U)
+    uint8_t usbDeviceIP3511Irq[] = USBHSD_IRQS;
+    irqNumber = usbDeviceIP3511Irq[CONTROLLER_ID - kUSB_ControllerLpcIp3511Hs0];
+    /* enable USB IP clock */
+    CLOCK_EnableUsbhs0DeviceClock(USB_HS_CLK_SRC, USB_HS_CLK_FREQ);
+#endif
+
+#if (((defined(USB_DEVICE_CONFIG_LPCIP3511FS)) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)) || \
+     ((defined(USB_DEVICE_CONFIG_LPCIP3511HS)) && (USB_DEVICE_CONFIG_LPCIP3511HS > 0U)))
+#if defined(FSL_FEATURE_USBHSD_USB_RAM) && (FSL_FEATURE_USBHSD_USB_RAM)
+    for (int i = 0; i < FSL_FEATURE_USBHSD_USB_RAM; i++)
+    {
+        ((uint8_t *)FSL_FEATURE_USBHSD_USB_RAM_BASE_ADDRESS)[i] = 0x00U;
+    }
+#endif
+#endif
+
+#if (defined(FSL_FEATURE_SOC_SYSMPU_COUNT) && (FSL_FEATURE_SOC_SYSMPU_COUNT > 0U))
+    SYSMPU_Enable(SYSMPU, 0);
+#endif /* FSL_FEATURE_SOC_SYSMPU_COUNT */
 
 /*
  * If the SOC has USB KHCI dedicated RAM, the RAM memory needs to be clear after
@@ -290,6 +391,7 @@ void USB_DeviceApplicationInit(void)
     g_msc.attach = 0;
     g_msc.mscHandle = (class_handle_t)NULL;
     g_msc.deviceHandle = NULL;
+    g_msc.storageDisk = &s_StorageDisk[0];
 
     if (kStatus_USB_Success != USB_DeviceClassInit(CONTROLLER_ID, &msc_config_list, &g_msc.deviceHandle))
     {
@@ -301,8 +403,12 @@ void USB_DeviceApplicationInit(void)
         g_msc.mscHandle = msc_config_list.config->classHandle;
     }
 
-    NVIC_SetPriority((IRQn_Type)irq_no, USB_DEVICE_INTERRUPT_PRIORITY);
-    NVIC_EnableIRQ((IRQn_Type)irq_no);
+#if defined(__GIC_PRIO_BITS)
+    GIC_SetPriority((IRQn_Type)irqNumber, USB_DEVICE_INTERRUPT_PRIORITY);
+#else
+    NVIC_SetPriority((IRQn_Type)irqNumber, USB_DEVICE_INTERRUPT_PRIORITY);
+#endif
+    EnableIRQ((IRQn_Type)irqNumber);
 
     USB_DeviceRun(g_msc.deviceHandle);
 }
@@ -317,6 +423,12 @@ void USB_DeviceTask(void *handle)
 #endif
 #if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0)
         USB_DeviceKhciTaskFunction(handle);
+#endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511FS) && (USB_DEVICE_CONFIG_LPCIP3511FS > 0U)
+        USB_DeviceLpcIp3511TaskFunction(handle);
+#endif
+#if defined(USB_DEVICE_CONFIG_LPCIP3511HS) && (USB_DEVICE_CONFIG_LPCIP3511HS > 0U)
+        USB_DeviceLpcIp3511TaskFunction(handle);
 #endif
     }
 }

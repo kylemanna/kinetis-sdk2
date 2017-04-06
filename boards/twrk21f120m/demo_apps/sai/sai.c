@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -38,22 +38,35 @@
 #include "fsl_sgtl5000.h"
 #include "pin_mux.h"
 #include "clock_config.h"
+#include "fsl_gpio.h"
+#include "fsl_port.h"
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
 #define DEMO_SAI I2S0
 #define DEMO_I2C I2C1
 #define DEMO_SAI_CLKSRC kCLOCK_CoreSysClk
+#define DEMO_SAI_CLK_FREQ CLOCK_GetFreq(kCLOCK_CoreSysClk)
 #define DEMO_I2C_CLKSRC kCLOCK_BusClk
+#define DEMO_I2C_CLK_FREQ CLOCK_GetFreq(kCLOCK_BusClk)
 #define EXAMPLE_DMA DMA0
 #define EXAMPLE_CHANNEL (0U)
-#define EXAMPLE_SAI_TX_SOURCE (13U)
+#define EXAMPLE_SAI_TX_SOURCE kDmaRequestMux0I2S0Tx
+
+#define I2C_RELEASE_SDA_PORT PORTC
+#define I2C_RELEASE_SCL_PORT PORTC
+#define I2C_RELEASE_SDA_GPIO GPIOC
+#define I2C_RELEASE_SDA_PIN 11U
+#define I2C_RELEASE_SCL_GPIO GPIOC
+#define I2C_RELEASE_SCL_PIN 10U
+#define I2C_RELEASE_BUS_COUNT 100U
 #define OVER_SAMPLE_RATE (384U)
 #define BUFFER_SIZE (1024)
 #define BUFFER_NUM (2)
 /*******************************************************************************
  * Prototypes
  ******************************************************************************/
+void BOARD_I2C_ReleaseBus(void);
 static void callback(I2S_Type *base, sai_edma_handle_t *handle, status_t status, void *userData);
 
 /*******************************************************************************
@@ -66,6 +79,8 @@ static float32_t ffData[2 * BUFFER_SIZE];
 static float32_t ffResult[BUFFER_SIZE];
 #if defined(DEMO_CODEC_WM8960)
 wm8960_handle_t codecHandle = {0};
+#elif defined (DEMO_CODEC_DA7212)
+da7212_handle_t codecHandle = {0};
 #else
 sgtl_handle_t codecHandle = {0};
 #endif
@@ -81,6 +96,66 @@ volatile uint32_t userIndex = 0;
 /*******************************************************************************
  * Code
  ******************************************************************************/
+
+static void i2c_release_bus_delay(void)
+{
+    uint32_t i = 0;
+    for (i = 0; i < I2C_RELEASE_BUS_COUNT; i++)
+    {
+        __NOP();
+    }
+}
+
+void BOARD_I2C_ReleaseBus(void)
+{
+    uint8_t i = 0;
+    gpio_pin_config_t pin_config;
+    port_pin_config_t i2c_pin_config = {0};
+
+    /* Config pin mux as gpio */
+    i2c_pin_config.pullSelect = kPORT_PullUp;
+    i2c_pin_config.mux = kPORT_MuxAsGpio;
+
+    pin_config.pinDirection = kGPIO_DigitalOutput;
+    pin_config.outputLogic = 1U;
+    CLOCK_EnableClock(kCLOCK_PortC);
+    PORT_SetPinConfig(I2C_RELEASE_SCL_PORT, I2C_RELEASE_SCL_PIN, &i2c_pin_config);
+    PORT_SetPinConfig(I2C_RELEASE_SCL_PORT, I2C_RELEASE_SDA_PIN, &i2c_pin_config);
+
+    GPIO_PinInit(I2C_RELEASE_SCL_GPIO, I2C_RELEASE_SCL_PIN, &pin_config);
+    GPIO_PinInit(I2C_RELEASE_SDA_GPIO, I2C_RELEASE_SDA_PIN, &pin_config);
+
+    /* Drive SDA low first to simulate a start */
+    GPIO_WritePinOutput(I2C_RELEASE_SDA_GPIO, I2C_RELEASE_SDA_PIN, 0U);
+    i2c_release_bus_delay();
+
+    /* Send 9 pulses on SCL and keep SDA low */
+    for (i = 0; i < 9; i++)
+    {
+        GPIO_WritePinOutput(I2C_RELEASE_SCL_GPIO, I2C_RELEASE_SCL_PIN, 0U);
+        i2c_release_bus_delay();
+
+        GPIO_WritePinOutput(I2C_RELEASE_SDA_GPIO, I2C_RELEASE_SDA_PIN, 1U);
+        i2c_release_bus_delay();
+
+        GPIO_WritePinOutput(I2C_RELEASE_SCL_GPIO, I2C_RELEASE_SCL_PIN, 1U);
+        i2c_release_bus_delay();
+        i2c_release_bus_delay();
+    }
+
+    /* Send stop */
+    GPIO_WritePinOutput(I2C_RELEASE_SCL_GPIO, I2C_RELEASE_SCL_PIN, 0U);
+    i2c_release_bus_delay();
+
+    GPIO_WritePinOutput(I2C_RELEASE_SDA_GPIO, I2C_RELEASE_SDA_PIN, 0U);
+    i2c_release_bus_delay();
+
+    GPIO_WritePinOutput(I2C_RELEASE_SCL_GPIO, I2C_RELEASE_SCL_PIN, 1U);
+    i2c_release_bus_delay();
+
+    GPIO_WritePinOutput(I2C_RELEASE_SDA_GPIO, I2C_RELEASE_SDA_PIN, 1U);
+    i2c_release_bus_delay();
+}
 static void callback(I2S_Type *base, sai_edma_handle_t *handle, status_t status, void *userData)
 {
     isFinished = true;
@@ -272,6 +347,8 @@ int main(void)
 
     BOARD_InitPins();
     BOARD_BootClockRUN();
+    BOARD_I2C_ReleaseBus();
+    BOARD_I2C_ConfigurePins();
     BOARD_InitDebugConsole();
 
     PRINTF("SAI example started!\n\r");
@@ -296,7 +373,7 @@ int main(void)
     EDMA_CreateHandle(&dmaHandle, EXAMPLE_DMA, EXAMPLE_CHANNEL);
 
     DMAMUX_Init(DMAMUX0);
-    DMAMUX_SetSource(DMAMUX0, EXAMPLE_CHANNEL, EXAMPLE_SAI_TX_SOURCE);
+    DMAMUX_SetSource(DMAMUX0, EXAMPLE_CHANNEL, (uint8_t)EXAMPLE_SAI_TX_SOURCE);
     DMAMUX_EnableChannel(DMAMUX0, EXAMPLE_CHANNEL);
 
     /* Init SAI module */
@@ -314,10 +391,11 @@ int main(void)
     format.bitWidth = kSAI_WordWidth16bits;
     format.channel = 0U;
     format.sampleRate_Hz = kSAI_SampleRate16KHz;
-#if defined(FSL_FEATURE_SAI_HAS_MCLKDIV_REGISTER) && (FSL_FEATURE_SAI_HAS_MCLKDIV_REGISTER)
+#if (defined FSL_FEATURE_SAI_HAS_MCLKDIV_REGISTER && FSL_FEATURE_SAI_HAS_MCLKDIV_REGISTER) || \
+    (defined FSL_FEATURE_PCC_HAS_SAI_DIVIDER && FSL_FEATURE_PCC_HAS_SAI_DIVIDER)
     format.masterClockHz = OVER_SAMPLE_RATE * format.sampleRate_Hz;
 #else
-    format.masterClockHz = CLOCK_GetFreq(DEMO_SAI_CLKSRC);
+    format.masterClockHz = DEMO_SAI_CLK_FREQ;
 #endif
     format.protocol = config.protocol;
     format.stereo = kSAI_Stereo;
@@ -328,7 +406,7 @@ int main(void)
     /* Configure Sgtl5000 I2C */
     codecHandle.base = DEMO_I2C;
     codecHandle.i2cHandle = &i2cHandle;
-    i2cSourceClock = CLOCK_GetFreq(DEMO_I2C_CLKSRC);
+    i2cSourceClock = DEMO_I2C_CLK_FREQ;
 
 #if defined(FSL_FEATURE_SOC_LPI2C_COUNT) && (FSL_FEATURE_SOC_LPI2C_COUNT)
     /*
@@ -347,7 +425,6 @@ int main(void)
 #else
     /*
      * i2cConfig.baudRate_Bps = 100000U;
-     * i2cConfig.enableHighDrive = false;
      * i2cConfig.enableStopHold = false;
      * i2cConfig.glitchFilterWidth = 0U;
      * i2cConfig.enableMaster = true;
@@ -360,6 +437,10 @@ int main(void)
 #if defined(DEMO_CODEC_WM8960)
     WM8960_Init(&codecHandle, NULL);
     WM8960_ConfigDataFormat(&codecHandle, format.masterClockHz, format.sampleRate_Hz, format.bitWidth);
+#elif defined (DEMO_CODEC_DA7212)
+    DA7212_Init(&codecHandle, NULL);
+    DA7212_ConfigAudioFormat(&codecHandle, format.sampleRate_Hz, format.masterClockHz, format.bitWidth);
+    DA7212_ChangeOutput(&codecHandle, kDA7212_Output_HP);
 #else
     /* Use default settings for sgtl5000 */
     SGTL_Init(&codecHandle, NULL);
@@ -369,7 +450,7 @@ int main(void)
 
     SAI_TransferTxCreateHandleEDMA(DEMO_SAI, &txHandle, callback, NULL, &dmaHandle);
 
-    mclkSourceClockHz = CLOCK_GetFreq(DEMO_SAI_CLKSRC);
+    mclkSourceClockHz = DEMO_SAI_CLK_FREQ;
     SAI_TransferTxSetFormatEDMA(DEMO_SAI, &txHandle, &format, mclkSourceClockHz, format.masterClockHz);
 
     /* First copy the buffer full */
@@ -391,7 +472,7 @@ int main(void)
         }
 
         /* Copy data to buffer */
-        memcpy(audioBuff + userIndex * BUFFER_SIZE, &music[(i + 2) * BUFFER_SIZE], BUFFER_SIZE);
+        memcpy(audioBuff + userIndex * BUFFER_SIZE, &music[((i + 2) * BUFFER_SIZE)%DATA_LEN], BUFFER_SIZE);
         userIndex = (userIndex + 1) % BUFFER_NUM;
 
         if (doFFT == '2')
@@ -408,6 +489,7 @@ int main(void)
 
 #if defined(DEMO_CODEC_WM8960)
     WM8960_Deinit(&codecHandle);
+#elif defined (DEMO_CODEC_DA7212)
 #else
     SGTL_Deinit(&codecHandle);
 #endif

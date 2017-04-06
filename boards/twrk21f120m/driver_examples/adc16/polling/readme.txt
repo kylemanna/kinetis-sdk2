@@ -16,16 +16,16 @@ the ADC16's performance.
 
 Toolchain supported
 ===================
-- IAR embedded Workbench 7.50.1
-- Keil MDK 5.17
-- GCC ARM Embedded 2015-4.9-q3
-- Kinetis Development Studio IDE 3.0.0
-- Atollic TrueSTUDIO 5.4.0
+- IAR embedded Workbench 7.80.4
+- Keil MDK 5.21a
+- GCC ARM Embedded 2016-5.4-q3
+- Kinetis Development Studio IDE 3.2.0
+- MCUXpresso0.8
 
 Hardware requirements
 =====================
 - Mini/Micro USB cable
-- TWR-K21F120 board
+- TWR-K21F120M board
 - Personal Computer
 
 Board settings
@@ -48,6 +48,7 @@ Prepare the Demo
 Running the demo
 ================
 When the demo runs successfully, the log would be seen on the OpenSDA terminal like:
+
 ADC16 polling Example.
 ADC16_DoAutoCalibration() Done.
 Press any key to get user channel's ADC value ...
@@ -57,8 +58,6 @@ ADC Value: 1355
 ADC Value: 1625
 ADC Value: 1575
 ADC Value: 1471
-
 Customization options
 =====================
-
 

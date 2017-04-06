@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -47,8 +47,10 @@
   * Variables
   ******************************************************************************/
 usb_uart_buffer_struct_t g_EmptyBuffer[USB_HOST_CDC_BUFFER_NUM];
+usb_uart_buffer_struct_t g_EmptySendBuffer[USB_HOST_CDC_BUFFER_NUM];
 
 usb_uart_buffer_struct_t *g_EmptyQueue;
+usb_uart_buffer_struct_t *g_EmptySendQueue;
 
 usb_uart_buffer_struct_t *g_CurrentUartRecvNode;
 
@@ -84,6 +86,28 @@ uint32_t g_UartActive;
  * Code
  ******************************************************************************/
 /*!
+ * @brief host cdc enter critical.
+ *
+ * This function is used to enter critical disable interrupt .
+ *
+ */
+static void USB_BmEnterCritical(uint8_t *sr)
+{
+    *sr = DisableGlobalIRQ();
+    __ASM("CPSID I");
+}
+/*!
+ * @brief host cdc exit critical.
+ *
+ * This function is used to exit critical ,enable interrupt .
+ *
+ */
+static void USB_BmExitCritical(uint8_t sr)
+{
+    EnableGlobalIRQ(sr);
+}
+
+/*!
  * @brief host cdc free buffer to queue.
  *
  * This function is used to get a buffer from memory queue .
@@ -93,15 +117,16 @@ uint32_t g_UartActive;
 usb_uart_buffer_struct_t *getNodeFromQueue(usb_uart_buffer_struct_t **queue)
 {
     usb_uart_buffer_struct_t *p;
+    uint8_t usbOsaCurrentSr;
 
-    USB_BmEnterCritical();
+    USB_BmEnterCritical(&usbOsaCurrentSr);
     p = *queue;
 
     if (p)
     {
         *queue = p->next;
     }
-    USB_BmExitCritical();
+    USB_BmExitCritical(usbOsaCurrentSr);
     return p;
 }
 /*!
@@ -114,14 +139,16 @@ usb_uart_buffer_struct_t *getNodeFromQueue(usb_uart_buffer_struct_t **queue)
  */
 void freeNodeToQueue(usb_uart_buffer_struct_t **queue, usb_uart_buffer_struct_t *p)
 {
-    USB_BmEnterCritical();
+    uint8_t usbOsaCurrentSr;
+
+    USB_BmEnterCritical(&usbOsaCurrentSr);
     if (p)
     {
         p->next = *queue;
         *queue = p;
         p->dataLength = 0;
     }
-    USB_BmExitCritical();
+    USB_BmExitCritical(usbOsaCurrentSr);
 }
 /*!
  * @brief host cdc insert buffer to queue.
@@ -134,8 +161,9 @@ void freeNodeToQueue(usb_uart_buffer_struct_t **queue, usb_uart_buffer_struct_t 
 void insertNodeToQueue(usb_uart_buffer_struct_t **queue, usb_uart_buffer_struct_t *p)
 {
     usb_uart_buffer_struct_t *q;
+    uint8_t usbOsaCurrentSr;
 
-    USB_BmEnterCritical();
+    USB_BmEnterCritical(&usbOsaCurrentSr);
 
     q = *queue;
     if (q)
@@ -151,7 +179,7 @@ void insertNodeToQueue(usb_uart_buffer_struct_t **queue, usb_uart_buffer_struct_
         *queue = p;
     }
     p->next = NULL;
-    USB_BmExitCritical();
+    USB_BmExitCritical(usbOsaCurrentSr);
 }
 /*!
  * @brief host cdc data transfer callback.
@@ -167,10 +195,14 @@ void USB_HostCdcDataInCallback(void *param, uint8_t *data, uint32_t dataLength, 
 {
     cdc_instance_struct_t *cdcInstance = (cdc_instance_struct_t *)param;
 
-    if ((g_CurrentUsbRecvNode) && (dataLength))
+    usb_uart_buffer_struct_t *p;
+    p = (usb_uart_buffer_struct_t *)data;
+
+    if ((p) && (dataLength))
     {
-        g_CurrentUsbRecvNode->dataLength = dataLength;
-        insertNodeToQueue(&g_UartSendQueue, g_CurrentUsbRecvNode);
+        p->dataLength = dataLength;
+        insertNodeToQueue(&g_UartSendQueue, p);
+
         if (cdcInstance->bulkInMaxPacketSize == dataLength)
         {
             /*host will send zero length packet after recvive one maxpacketsize */
@@ -193,13 +225,15 @@ void USB_HostCdcDataOutCallback(void *param, uint8_t *data, uint32_t dataLength,
 {
     freeNodeToQueue(&g_EmptyQueue, g_UsbSendNode);
 
-    g_CurrentUsbRecvNode = getNodeFromQueue(&g_EmptyQueue);
+    g_CurrentUsbRecvNode = getNodeFromQueue(&g_EmptySendQueue);
     if (g_CurrentUsbRecvNode)
     {
+        g_CurrentUsbRecvNode->next = NULL;
         g_CurrentUsbRecvNode->dataLength = USB_HOST_SEND_RECV_PER_TIME;
         USB_HostCdcDataRecv(g_cdc.classHandle, (uint8_t *)&g_CurrentUsbRecvNode->buffer[0],
                             g_CurrentUsbRecvNode->dataLength, USB_HostCdcDataInCallback, &g_cdc);
     }
+
     g_UsbSendNode = getNodeFromQueue(&g_UsbSendQueue);
     if (g_UsbSendNode)
     {
@@ -247,11 +281,16 @@ void UART_UserCallback(USB_UartType *base, usb_uart_handle_t *handle, status_t s
                 }
             }
         }
+        else
+        {
+            /*if code run to here, it means buffer has been run out once, some data has been lost*/
+            g_CurrentUartRecvNode = getNodeFromQueue(&g_EmptyQueue);
+        }
         USB_UartReceiveDataIRQ((USB_UartType *)BOARD_DEBUG_UART_BASEADDR, &g_UartHandle, &g_xfer, NULL);
     }
     else if ((usb_uart_status_t)status == kStatus_USB_UART_TxIdle)
     {
-        freeNodeToQueue(&g_EmptyQueue, g_UartSendNode);
+        freeNodeToQueue(&g_EmptySendQueue, g_UartSendNode);
         g_UartSendNode = getNodeFromQueue(&g_UartSendQueue);
         if (g_UartSendNode)
         {
@@ -293,7 +332,9 @@ void BOARD_UART_IRQ_HANDLER(void)
  */
 void USB_HostCdcInitBuffer(void)
 {
-    USB_BmEnterCritical();
+    uint8_t usbOsaCurrentSr;
+
+    USB_BmEnterCritical(&usbOsaCurrentSr);
     g_EmptyQueue = &g_EmptyBuffer[0];
     usb_uart_buffer_struct_t *p;
     p = g_EmptyQueue;
@@ -306,7 +347,21 @@ void USB_HostCdcInitBuffer(void)
     p->next = NULL;
     g_CurrentUartRecvNode = g_EmptyQueue;
     g_EmptyQueue = g_EmptyQueue->next;
-    USB_BmExitCritical();
+    USB_BmExitCritical(usbOsaCurrentSr);
+
+    USB_BmEnterCritical(&usbOsaCurrentSr);
+    g_EmptySendQueue = &g_EmptySendBuffer[0];
+    p = g_EmptySendQueue;
+    for (int m = 1; m < (sizeof(g_EmptySendBuffer) / sizeof(usb_uart_buffer_struct_t)); m++)
+    {
+        p->next = &g_EmptySendBuffer[m];
+        p->dataLength = 0;
+        p = p->next;
+    }
+    p->next = NULL;
+
+    USB_BmExitCritical(usbOsaCurrentSr);
+
     g_UsbSendQueue = NULL;
     g_UartSendQueue = NULL;
     g_UsbSendBusy = 0;
@@ -401,6 +456,7 @@ void USB_HostCdcControlCallback(void *param, uint8_t *data, uint32_t dataLength,
  */
 void USB_HosCdcTask(void *param)
 {
+    uint8_t usbOsaCurrentSr;
     usb_status_t status = kStatus_USB_Success;
     cdc_instance_struct_t *cdcInstance = (cdc_instance_struct_t *)param;
     /* device state changes */
@@ -465,13 +521,13 @@ void USB_HosCdcTask(void *param)
                 {
                     g_UartActive = 0;
 
-                    USB_BmEnterCritical();
+                    USB_BmEnterCritical(&usbOsaCurrentSr);
                     if ((g_CurrentUartRecvNode) && (g_CurrentUartRecvNode->dataLength))
                     {
                         insertNodeToQueue(&g_UsbSendQueue, g_CurrentUartRecvNode);
                         g_CurrentUartRecvNode = getNodeFromQueue(&g_EmptyQueue);
                     }
-                    USB_BmExitCritical();
+                    USB_BmExitCritical(usbOsaCurrentSr);
                 }
             }
             break;

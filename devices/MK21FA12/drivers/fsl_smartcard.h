@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2015-2016, Freescale Semiconductor, Inc.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -38,16 +38,15 @@
  * @{
  */
 
-/*! @file */
-
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
 
 /*! @name Driver version */
 /*@{*/
-/*! @brief Smart card driver version 2.1.0. */
-#define FSL_SMARTCARD_DRIVER_VERSION (MAKE_VERSION(2, 1, 0))
+/*! @brief Smart card driver version 2.2.0.
+ */
+#define FSL_SMARTCARD_DRIVER_VERSION (MAKE_VERSION(2, 2, 0))
 /*@}*/
 
 /*! @brief Smart card global define which specify number of clock cycles until initial 'TS' character has to be received
@@ -66,15 +65,18 @@
 /*! @brief Smart card Error codes. */
 typedef enum _smartcard_status
 {
-    kStatus_SMARTCARD_Success = MAKE_STATUS(kStatusGroup_SMARTCARD, 0), /*!< Transfer ends successfully */
-    kStatus_SMARTCARD_TxBusy = MAKE_STATUS(kStatusGroup_SMARTCARD, 1), /*!< Transmit in progress */
-    kStatus_SMARTCARD_RxBusy = MAKE_STATUS(kStatusGroup_SMARTCARD, 2), /*!< Receiving in progress */
+    kStatus_SMARTCARD_Success = MAKE_STATUS(kStatusGroup_SMARTCARD, 0),              /*!< Transfer ends successfully */
+    kStatus_SMARTCARD_TxBusy = MAKE_STATUS(kStatusGroup_SMARTCARD, 1),               /*!< Transmit in progress */
+    kStatus_SMARTCARD_RxBusy = MAKE_STATUS(kStatusGroup_SMARTCARD, 2),               /*!< Receiving in progress */
     kStatus_SMARTCARD_NoTransferInProgress = MAKE_STATUS(kStatusGroup_SMARTCARD, 3), /*!< No transfer in progress */
-    kStatus_SMARTCARD_Timeout = MAKE_STATUS(kStatusGroup_SMARTCARD, 4), /*!< Transfer ends with time-out */
-    kStatus_SMARTCARD_Initialized = MAKE_STATUS(kStatusGroup_SMARTCARD, 5), /*!< Smart card driver is already initialized */
-    kStatus_SMARTCARD_PhyInitialized = MAKE_STATUS(kStatusGroup_SMARTCARD, 6), /*!< Smart card PHY drive is already  initialized */
+    kStatus_SMARTCARD_Timeout = MAKE_STATUS(kStatusGroup_SMARTCARD, 4),              /*!< Transfer ends with time-out */
+    kStatus_SMARTCARD_Initialized =
+        MAKE_STATUS(kStatusGroup_SMARTCARD, 5), /*!< Smart card driver is already initialized */
+    kStatus_SMARTCARD_PhyInitialized =
+        MAKE_STATUS(kStatusGroup_SMARTCARD, 6), /*!< Smart card PHY drive is already  initialized */
     kStatus_SMARTCARD_CardNotActivated = MAKE_STATUS(kStatusGroup_SMARTCARD, 7), /*!< Smart card is not activated */
-    kStatus_SMARTCARD_InvalidInput = MAKE_STATUS(kStatusGroup_SMARTCARD, 8), /*!< Function called with invalid input arguments */
+    kStatus_SMARTCARD_InvalidInput =
+        MAKE_STATUS(kStatusGroup_SMARTCARD, 8), /*!< Function called with invalid input arguments */
     kStatus_SMARTCARD_OtherError = MAKE_STATUS(kStatusGroup_SMARTCARD, 9) /*!< Some other error occur */
 } smartcard_status_t;
 
@@ -177,8 +179,8 @@ typedef void (*smartcard_interface_callback_t)(void *smartcardContext, void *par
 /*! @brief Smart card transfer interrupt callback function type */
 typedef void (*smartcard_transfer_callback_t)(void *smartcardContext, void *param);
 
-/*! @brief Time Delay function used to passive waiting using RTOS [ms] */
-typedef void (*smartcard_time_delay_t)(uint32_t miliseconds);
+/*! @brief Time Delay function used to passive waiting using RTOS [us] */
+typedef void (*smartcard_time_delay_t)(uint32_t us);
 
 /*! @brief Defines card-specific parameters for Smart card driver */
 typedef struct _smartcard_card_params
@@ -208,7 +210,7 @@ typedef struct _smartcard_card_params
                                                  kSMARTCARD_InverseConvention for inverse convention */
 } smartcard_card_params_t;
 
-/*! @brief Smart card Defines the state of the EMV timers in the Smart card driver */
+/*! @brief Smart card defines the state of the EMV timers in the Smart card driver */
 typedef struct _smartcard_timers_state
 {
     volatile bool adtExpired;           /*!< Indicates whether ADT timer expired */
@@ -264,6 +266,7 @@ typedef struct _smartcard_context
     volatile size_t xSize;           /*!< The number of bytes to be transferred. */
     volatile bool xIsBusy;           /*!< True if there is an active transfer. */
     uint8_t txFifoEntryCount;        /*!< Number of data word entries in transmit FIFO. */
+    uint8_t rxFifoThreshold;         /*!< The max value of the receiver FIFO threshold. */
     /* Smart card Interface part */
     smartcard_interface_callback_t interfaceCallback; /*!< Callback to invoke after interface IC raised interrupt.*/
     smartcard_transfer_callback_t transferCallback;   /*!< Callback to invoke after transfer event occur.*/
@@ -286,7 +289,7 @@ typedef struct _smartcard_context
     uint8_t statusBytes[2]; /*!< Used to store Status bytes SW1, SW2 of the last executed card command response */
     /* Configuration part */
     smartcard_interface_config_t interfaceConfig; /*!< Smart card interface configuration structure */
-
+    bool abortTransfer; /*!< Used to abort transfer. */
 } smartcard_context_t;
 
 /*! @}*/

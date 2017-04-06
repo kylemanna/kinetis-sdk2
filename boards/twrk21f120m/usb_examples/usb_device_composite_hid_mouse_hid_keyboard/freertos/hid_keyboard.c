@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -56,6 +56,7 @@ static usb_status_t USB_DeviceHidKeyboardAction(void);
  * Variables
  ******************************************************************************/
 
+USB_DATA_ALIGNMENT static uint8_t s_KeyboardBuffer[USB_HID_KEYBOARD_REPORT_LENGTH];
 static usb_device_composite_struct_t *s_UsbDeviceComposite;
 static usb_device_hid_keyboard_struct_t s_UsbDeviceHidKeyboard;
 
@@ -149,5 +150,6 @@ usb_status_t USB_DeviceHidKeyboardSetInterface(class_handle_t handle, uint8_t in
 usb_status_t USB_DeviceHidKeyboardInit(usb_device_composite_struct_t *deviceComposite)
 {
     s_UsbDeviceComposite = deviceComposite;
+    s_UsbDeviceHidKeyboard.buffer = s_KeyboardBuffer;
     return kStatus_USB_Success;
 }

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -38,6 +38,7 @@
  ******************************************************************************/
 #define DEMO_UART UART5
 #define DEMO_UART_CLKSRC kCLOCK_BusClk
+#define DEMO_UART_CLK_FREQ CLOCK_GetFreq(kCLOCK_BusClk)
 #define ECHO_BUFFER_LENGTH 8
 
 /*******************************************************************************
@@ -110,7 +111,7 @@ int main(void)
     config.enableTx = true;
     config.enableRx = true;
 
-    UART_Init(DEMO_UART, &config, CLOCK_GetFreq(DEMO_UART_CLKSRC));
+    UART_Init(DEMO_UART, &config, DEMO_UART_CLK_FREQ);
     UART_TransferCreateHandle(DEMO_UART, &g_uartHandle, UART_UserCallback, NULL);
 
     /* Send g_tipString out. */

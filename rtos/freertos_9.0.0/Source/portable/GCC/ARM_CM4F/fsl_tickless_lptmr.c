@@ -70,7 +70,7 @@
 #include "task.h"
 #include "fsl_tickless_generic.h"
 
-#if configUSE_TICKLESS_IDLE
+#if configUSE_TICKLESS_IDLE == 1
 #include "fsl_lptmr.h"
 #endif
 
@@ -103,65 +103,53 @@ extern uint32_t SystemCoreClock; /* in Kinetis SDK, this contains the system cor
 #endif /* configUSE_TICKLESS_IDLE */
 
 /*
- * Compensate for the CPU cycles that pass while the SysTick is stopped (low
- * power functionality only.
- */
-#if configUSE_TICKLESS_IDLE == 1
-	static uint32_t ulStoppedTimerCompensation = 0;
-#endif /* configUSE_TICKLESS_IDLE */
-
-/*
  * The number of LPTIMER increments that make up one tick period.
  */
 #if configUSE_TICKLESS_IDLE == 1
-    static uint32_t ulLPTimerCountsForOneTick = 0;
+	static uint32_t ulLPTimerCountsForOneTick = 0;
 #endif /* configUSE_TICKLESS_IDLE */
 
 /*
  * The flag of LPTIMER is occurs or not.
  */
 #if configUSE_TICKLESS_IDLE == 1
-    static volatile bool ulLPTimerInterruptFired = false;
+	static volatile bool ulLPTimerInterruptFired = false;
 #endif /* configUSE_TICKLESS_IDLE */
 
 #if configUSE_TICKLESS_IDLE == 1
 
-    void vPortLptmrIsr(void)
-    {
-      ulLPTimerInterruptFired = true;
-      LPTMR_ClearStatusFlags(vPortGetLptrmBase(), kLPTMR_TimerCompareFlag);
+	void vPortLptmrIsr(void)
+	{
+	  ulLPTimerInterruptFired = true;
+	  LPTMR_ClearStatusFlags(vPortGetLptrmBase(), kLPTMR_TimerCompareFlag);
 
-    }
+	}
 
 void vPortSuppressTicksAndSleep( TickType_t xExpectedIdleTime )
-    {
-        uint32_t ulReloadValue, ulCompleteTickPeriods;
-        TickType_t xModifiableIdleTime;
-        LPTMR_Type *pxLptmrBase;
+	{
+		uint32_t ulReloadValue, ulCompleteTickPeriods;
+		TickType_t xModifiableIdleTime;
+		LPTMR_Type *pxLptmrBase;
 
-        pxLptmrBase = vPortGetLptrmBase();
-        if (pxLptmrBase == 0) return;
-        /* Make sure the SysTick reload value does not overflow the counter. */
-        if( xExpectedIdleTime > xMaximumPossibleSuppressedTicks )
-        {
-            xExpectedIdleTime = xMaximumPossibleSuppressedTicks;
-        }
-        if (xExpectedIdleTime == 0) return;
-        /* Calculate the reload value required to wait xExpectedIdleTime
-        tick periods.  -1 is used because this code will execute part way
-        through one of the tick periods. */
-        ulReloadValue = LPTMR_GetCurrentTimerCount(pxLptmrBase) + ( ulLPTimerCountsForOneTick * ( xExpectedIdleTime - 1UL ) );
-        if( ulReloadValue > ulStoppedTimerCompensation )
-        {
-            ulReloadValue -= ulStoppedTimerCompensation;
-        }
+		pxLptmrBase = vPortGetLptrmBase();
+		if (pxLptmrBase == 0) return;
+		/* Make sure the SysTick reload value does not overflow the counter. */
+		if( xExpectedIdleTime > xMaximumPossibleSuppressedTicks )
+		{
+			xExpectedIdleTime = xMaximumPossibleSuppressedTicks;
+		}
+		if (xExpectedIdleTime == 0) return;
+		/* Calculate the reload value required to wait xExpectedIdleTime
+		tick periods.  -1 is used because this code will execute part way
+		through one of the tick periods. */
+		ulReloadValue = LPTMR_GetCurrentTimerCount(pxLptmrBase) + ( ulLPTimerCountsForOneTick * ( xExpectedIdleTime - 1UL ) );
 
 		/* Stop the LPTMR and systick momentarily.  The time the LPTMR and systick is stopped for
 		is accounted for as best it can be, but using the tickless mode will
 		inevitably result in some tiny drift of the time maintained by the
 		kernel with respect to calendar time. */
-        LPTMR_StopTimer(pxLptmrBase);
-        portNVIC_SYSTICK_CTRL_REG &= ~portNVIC_SYSTICK_ENABLE_BIT;
+		LPTMR_StopTimer(pxLptmrBase);
+		portNVIC_SYSTICK_CTRL_REG &= ~portNVIC_SYSTICK_ENABLE_BIT;
 
 		/* Enter a critical section but don't use the taskENTER_CRITICAL()
 		method as that will mask interrupts that should exit sleep mode. */
@@ -191,10 +179,10 @@ void vPortSuppressTicksAndSleep( TickType_t xExpectedIdleTime )
 		else
 		{
 			/* Set the new reload value. */
-            LPTMR_SetTimerPeriod(pxLptmrBase, ulReloadValue);
+			LPTMR_SetTimerPeriod(pxLptmrBase, ulReloadValue);
 
-            /* Enable LPTMR. */
-            LPTMR_StartTimer(pxLptmrBase);
+			/* Enable LPTMR. */
+			LPTMR_StartTimer(pxLptmrBase);
 
 
 			/* Sleep until something happens.  configPRE_SLEEP_PROCESSING() can
@@ -212,14 +200,14 @@ void vPortSuppressTicksAndSleep( TickType_t xExpectedIdleTime )
 			}
 			configPOST_SLEEP_PROCESSING( xExpectedIdleTime );
 
-            ulLPTimerInterruptFired = false;
+			ulLPTimerInterruptFired = false;
 
 			/* Re-enable interrupts - see comments above the cpsid instruction()
 			above. */
 			__asm volatile( "cpsie i" );
-            __NOP();
-            if( ulLPTimerInterruptFired )
-            {
+			__NOP();
+			if( ulLPTimerInterruptFired )
+			{
 
 
 				/* The tick interrupt handler will already have pended the tick
@@ -228,7 +216,7 @@ void vPortSuppressTicksAndSleep( TickType_t xExpectedIdleTime )
 				maintained by the tick is stepped forward by one less than the
 				time spent waiting. */
 				ulCompleteTickPeriods = xExpectedIdleTime - 1UL;
-                ulLPTimerInterruptFired = false;
+				ulLPTimerInterruptFired = false;
 			}
 			else
 			{
@@ -236,15 +224,16 @@ void vPortSuppressTicksAndSleep( TickType_t xExpectedIdleTime )
 				Work out how long the sleep lasted rounded to complete tick
 				periods (not the ulReload value which accounted for part
 				ticks). */
-                ulCompleteTickPeriods = LPTMR_GetCurrentTimerCount(pxLptmrBase);
+				ulCompleteTickPeriods = LPTMR_GetCurrentTimerCount(pxLptmrBase)/ulLPTimerCountsForOneTick;
 
-            }
 
-            /* Stop LPTMR when CPU waked up then set portNVIC_SYSTICK_LOAD_REG back to its standard
-            value.  The critical section is used to ensure the tick interrupt
-            can only execute once in the case that the reload register is near
-            zero. */
-            LPTMR_StopTimer(pxLptmrBase);
+			}
+
+			/* Stop LPTMR when CPU waked up then set portNVIC_SYSTICK_LOAD_REG back to its standard
+			value.  The critical section is used to ensure the tick interrupt
+			can only execute once in the case that the reload register is near
+			zero. */
+			LPTMR_StopTimer(pxLptmrBase);
 			portENTER_CRITICAL();
 			{
 				portNVIC_SYSTICK_CTRL_REG |= portNVIC_SYSTICK_ENABLE_BIT;
@@ -264,18 +253,17 @@ void vPortSuppressTicksAndSleep( TickType_t xExpectedIdleTime )
 void vPortSetupTimerInterrupt( void )
 {
 	/* Calculate the constants required to configure the tick interrupt. */
-    #if( configUSE_TICKLESS_IDLE == 1 )
+	#if( configUSE_TICKLESS_IDLE == 1 )
 	{
 		ulTimerCountsForOneTick = ( configSYSTICK_CLOCK_HZ / configTICK_RATE_HZ );
-        ulStoppedTimerCompensation = 0;
-        ulLPTimerCountsForOneTick = configSYSTICK_CLOCK_HZ / configLPTMR_RATE_HZ;
-        xMaximumPossibleSuppressedTicks = portMAX_16_BIT_NUMBER / ulLPTimerCountsForOneTick;
-        NVIC_EnableIRQ(vPortGetLptmrIrqn());
+		ulLPTimerCountsForOneTick = ( configLPTMR_CLOCK_HZ / configTICK_RATE_HZ );
+		xMaximumPossibleSuppressedTicks = portMAX_16_BIT_NUMBER / ulLPTimerCountsForOneTick;
+		NVIC_EnableIRQ(vPortGetLptmrIrqn());
 	}
 	#endif /* configUSE_TICKLESS_IDLE */
 
 	/* Configure SysTick to interrupt at the requested rate. */
 	portNVIC_SYSTICK_LOAD_REG = ( configSYSTICK_CLOCK_HZ / configTICK_RATE_HZ ) - 1UL;
-    portNVIC_SYSTICK_CURRENT_VALUE_REG = 0UL;
+	portNVIC_SYSTICK_CURRENT_VALUE_REG = 0UL;
 	portNVIC_SYSTICK_CTRL_REG = ( portNVIC_SYSTICK_CLK_BIT | portNVIC_SYSTICK_INT_BIT | portNVIC_SYSTICK_ENABLE_BIT );
 }

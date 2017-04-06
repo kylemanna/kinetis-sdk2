@@ -7,11 +7,11 @@ and time.
 
 Toolchain supported
 ===================
-- IAR embedded Workbench 7.50.1
-- Keil MDK 5.17
-- GCC ARM Embedded 2015-4.9-q3
-- Kinetis Development Studio IDE 3.0.0
-- Atollic TrueSTUDIO 5.4.0
+- IAR embedded Workbench 7.80.4
+- Keil MDK 5.21a
+- GCC ARM Embedded 2016-5.4-q3
+- Kinetis Development Studio IDE 3.2.0
+- MCUXpresso0.8
 
 Hardware requirements
 =====================
@@ -46,14 +46,13 @@ Current datetime: 2014-12-25 19:00:00
 Please input the number of second to wait for alarm
 The second must be positive value
 Alarm will occur at: 2014-12-25 19:01:11
+
 Alarm occurs !!!! Current datetime: 2014-12-25 19:01:12
 Please input the number of second to wait for alarm
 The second must be positive value
 ...............................................
 ...............................................
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 Customization options
 =====================
-
 

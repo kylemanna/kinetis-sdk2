@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -101,11 +101,11 @@ typedef struct _usb_shim_agent_struct
     uint8_t numberTransferBulkOut;            /*!< the number of transfer that follow Meta-data Message Preamble */
     uint8_t numberTransferBulkIn;             /*!< the number of transfer that follow Meta-data Message Preamble */
 #endif
-    uint16_t endpointsHaveData;                   /*!< Which endpoints on the device have data */
-    usb_shim_rx_data_struct_t bulkOutData;        /*!< Receive data information */
-    usb_shim_tx_data_struct_t bulkInData;         /*!< Send data information */
-    usb_shim_tx_data_struct_t interruptInData;    /*!< Send data information */
-    uint8_t recvDataBuffer[APDU_MAX_BUFFER_SIZE]; /*!< Receive data buffer */
+    uint16_t endpointsHaveData;                /*!< Which endpoints on the device have data */
+    usb_shim_rx_data_struct_t bulkOutData;     /*!< Receive data information */
+    usb_shim_tx_data_struct_t bulkInData;      /*!< Send data information */
+    usb_shim_tx_data_struct_t interruptInData; /*!< Send data information */
+    uint8_t *recvDataBuffer;                   /*!< Receive data buffer */
 } usb_shim_agent_struct_t;
 
 /*******************************************************************************

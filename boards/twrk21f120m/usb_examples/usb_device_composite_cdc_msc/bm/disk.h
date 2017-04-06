@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -47,7 +47,7 @@
 #define LENGTH_OF_EACH_LBA (512)
 /* total number of logical blocks present */
 #define TOTAL_LOGICAL_ADDRESS_BLOCKS_NORMAL (48)
-/* Net Disk Size , default disk is 48*512, that is 24kByte, however , the disk reconnised by that PC only has 4k Byte,
+/* Net Disk Size , default disk is 48*512, that is 24kByte, however , the disk recognized by that PC only has 4k Byte,
  * This is caused by that the file system also need memory*/
 #define DISK_SIZE_NORMAL (TOTAL_LOGICAL_ADDRESS_BLOCKS_NORMAL * LENGTH_OF_EACH_LBA)
 
@@ -57,7 +57,7 @@ typedef struct _usb_msc_struct
 {
     usb_device_handle deviceHandle;
     class_handle_t mscHandle;
-    uint8_t storageDisk[DISK_SIZE_NORMAL];
+    uint8_t *storageDisk;
     uint8_t diskLock;
     uint8_t readWriteError;
     uint8_t currentConfiguration;

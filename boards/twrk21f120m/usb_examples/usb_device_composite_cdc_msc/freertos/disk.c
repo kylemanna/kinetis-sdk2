@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -54,8 +54,27 @@
 /*******************************************************************************
 * Variables
 ******************************************************************************/
+USB_DATA_ALIGNMENT static uint8_t s_StorageDisk[DISK_SIZE_NORMAL];
 static usb_device_composite_struct_t *g_deviceComposite;
 
+USB_DATA_ALIGNMENT usb_device_inquiry_data_fromat_struct_t g_InquiryInfo = {
+    (USB_DEVICE_MSC_UFI_PERIPHERAL_QUALIFIER << USB_DEVICE_MSC_UFI_PERIPHERAL_QUALIFIER_SHIFT) |
+        USB_DEVICE_MSC_UFI_PERIPHERAL_DEVICE_TYPE,
+    (uint8_t)(USB_DEVICE_MSC_UFI_REMOVABLE_MEDIUM_BIT << USB_DEVICE_MSC_UFI_REMOVABLE_MEDIUM_BIT_SHIFT),
+    USB_DEVICE_MSC_UFI_VERSIONS,
+    0x02,
+    USB_DEVICE_MSC_UFI_ADDITIONAL_LENGTH,
+    {0x00, 0x00, 0x00},
+    {'N', 'X', 'P', ' ', 'S', 'E', 'M', 'I'},
+    {'N', 'X', 'P', ' ', 'M', 'A', 'S', 'S', ' ', 'S', 'T', 'O', 'R', 'A', 'G', 'E'},
+    {'0', '0', '0', '1'}};
+USB_DATA_ALIGNMENT usb_device_mode_parameters_header_struct_t g_ModeParametersHeader = {
+    /*refer to ufi spec mode parameter header*/
+    0x0000, /*!< Mode Data Length*/
+    0x00,   /*!<Default medium type (current mounted medium type)*/
+    0x00,   /*!MODE SENSE command, a Write Protected bit of zero indicates the medium is write enabled*/
+    {0x00, 0x00, 0x00, 0x00} /*!<This bit should be set to zero*/
+};
 /*******************************************************************************
 * Code
 ******************************************************************************/
@@ -73,6 +92,7 @@ usb_status_t USB_DeviceMscCallback(class_handle_t handle, uint32_t event, void *
     usb_status_t error = kStatus_USB_Error;
     usb_device_lba_information_struct_t *lbaInformationStructure;
     usb_device_lba_app_struct_t *lbaData;
+    usb_device_ufi_app_struct_t *ufi;
 
     switch (event)
     {
@@ -85,12 +105,12 @@ usb_status_t USB_DeviceMscCallback(class_handle_t handle, uint32_t event, void *
         case kUSB_DeviceMscEventWriteRequest:
             lbaData = (usb_device_lba_app_struct_t *)param;
             /*offset is the write start address get from write command, refer to class driver*/
-            lbaData->buffer = g_deviceComposite->mscDisk.storageDisk + lbaData->offset;
+            lbaData->buffer = g_deviceComposite->mscDisk.storageDisk + lbaData->offset * LENGTH_OF_EACH_LBA;
             break;
         case kUSB_DeviceMscEventReadRequest:
             lbaData = (usb_device_lba_app_struct_t *)param;
             /*offset is the read start address get from read command, refer to class driver*/
-            lbaData->buffer = g_deviceComposite->mscDisk.storageDisk + lbaData->offset;
+            lbaData->buffer = g_deviceComposite->mscDisk.storageDisk + lbaData->offset * LENGTH_OF_EACH_LBA;
             break;
         case kUSB_DeviceMscEventGetLbaInformation:
             lbaInformationStructure = (usb_device_lba_information_struct_t *)param;
@@ -99,6 +119,25 @@ usb_status_t USB_DeviceMscCallback(class_handle_t handle, uint32_t event, void *
             lbaInformationStructure->logicalUnitNumberSupported = LOGICAL_UNIT_SUPPORTED;
             lbaInformationStructure->bulkInBufferSize = DISK_SIZE_NORMAL;
             lbaInformationStructure->bulkOutBufferSize = DISK_SIZE_NORMAL;
+            break;
+        case kUSB_DeviceMscEventTestUnitReady:
+            /*change the test unit ready command's sense data if need, be careful to modify*/
+            ufi = (usb_device_ufi_app_struct_t *)param;
+            break;
+        case kUSB_DeviceMscEventInquiry:
+            ufi = (usb_device_ufi_app_struct_t *)param;
+            ufi->size = sizeof(usb_device_inquiry_data_fromat_struct_t);
+            ufi->buffer = (uint8_t *)&g_InquiryInfo;
+            break;
+        case kUSB_DeviceMscEventModeSense:
+            ufi = (usb_device_ufi_app_struct_t *)param;
+            ufi->size = sizeof(usb_device_mode_parameters_header_struct_t);
+            ufi->buffer = (uint8_t *)&g_ModeParametersHeader;
+            break;
+        case kUSB_DeviceMscEventModeSelect:
+            break;
+        case kUSB_DeviceMscEventModeSelectResponse:
+            ufi = (usb_device_ufi_app_struct_t *)param;
             break;
         case kUSB_DeviceMscEventFormatComplete:
             break;
@@ -135,6 +174,7 @@ usb_status_t USB_DeviceMscDiskSetConfigure(class_handle_t handle, uint8_t config
 usb_status_t USB_DeviceMscDiskInit(usb_device_composite_struct_t *deviceComposite)
 {
     g_deviceComposite = deviceComposite;
+    g_deviceComposite->mscDisk.storageDisk = s_StorageDisk;
     g_deviceComposite->mscDisk.storageDisk[0] = 0x01;
     return kStatus_USB_Success;
 }

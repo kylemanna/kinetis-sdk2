@@ -304,8 +304,8 @@ typedef struct tskTaskControlBlock
 	StackType_t			*pxStack;			/*< Points to the start of the stack. */
 	char				pcTaskName[ configMAX_TASK_NAME_LEN ];/*< Descriptive name given to the task when created.  Facilitates debugging only. */ /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
 
-	#if ( portSTACK_GROWTH > 0 )
-		StackType_t		*pxEndOfStack;		/*< Points to the end of the stack on architectures where the stack grows up from low memory. */
+	#if ( ( portSTACK_GROWTH > 0 ) || ( configRECORD_STACK_HIGH_ADDRESS == 1 ) )
+		StackType_t		*pxEndOfStack;		/*< Points to the highest valid address for the stack. */
 	#endif
 
 	#if ( portCRITICAL_NESTING_IN_TCB == 1 )
@@ -809,6 +809,13 @@ UBaseType_t x;
 
 		/* Check the alignment of the calculated top of stack is correct. */
 		configASSERT( ( ( ( portPOINTER_SIZE_TYPE ) pxTopOfStack & ( portPOINTER_SIZE_TYPE ) portBYTE_ALIGNMENT_MASK ) == 0UL ) );
+		#if( configRECORD_STACK_HIGH_ADDRESS == 1 )
+		{
+			/* Also record the stack's high address, which may assist
+			debugging. */
+			pxNewTCB->pxEndOfStack = pxTopOfStack;
+		}
+		#endif /* configRECORD_STACK_HIGH_ADDRESS */
 	}
 	#else /* portSTACK_GROWTH */
 	{
@@ -4803,5 +4810,16 @@ const TickType_t xConstTickCount = xTickCount;
 
 #ifdef FREERTOS_MODULE_TEST
 	#include "tasks_test_access_functions.h"
+#endif
+
+#if (configINCLUDE_FREERTOS_TASK_C_ADDITIONS_H == 1)
+	#include "freertos_tasks_c_additions.h"
+
+	#ifdef FREERTOS_TASKS_C_ADDITIONS_INIT
+	static void freertos_tasks_c_additions_init( void )
+	{
+		FREERTOS_TASKS_C_ADDITIONS_INIT();
+	}
+	#endif
 #endif
 

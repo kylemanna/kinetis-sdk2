@@ -1,32 +1,32 @@
 /*
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification,
-* are permitted provided that the following conditions are met:
-*
-* o Redistributions of source code must retain the above copyright notice, this list
-*   of conditions and the following disclaimer.
-*
-* o Redistributions in binary form must reproduce the above copyright notice, this
-*   list of conditions and the following disclaimer in the documentation and/or
-*   other materials provided with the distribution.
-*
-* o Neither the name of Freescale Semiconductor, Inc. nor the names of its
-*   contributors may be used to endorse or promote products derived from this
-*   software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-* ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-* ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ * Copyright (c) 2015, Freescale Semiconductor, Inc.
+ * Copyright 2016-2017 NXP
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ * o Redistributions of source code must retain the above copyright notice, this list
+ *   of conditions and the following disclaimer.
+ *
+ * o Redistributions in binary form must reproduce the above copyright notice, this
+ *   list of conditions and the following disclaimer in the documentation and/or
+ *   other materials provided with the distribution.
+ *
+ * o Neither the name of the copyright holder nor the names of its
+ *   contributors may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 #include "fsl_device_registers.h"
 #include "fsl_debug_console.h"
@@ -42,19 +42,26 @@
  * Definitions
  ******************************************************************************/
 #define EXAMPLE_DSPI_MASTER_BASEADDR SPI0
-#define EXAMPLE_DSPI_MASTER_DMA_MUX_BASEADDR DMAMUX
-#define EXAMPLE_DSPI_MASTER_DMA_BASEADDR DMA0
-#define EXAMPLE_DSPI_MASTER_DMA_RX_REQUEST_SOURCE 14U
-#define EXAMPLE_DSPI_MASTER_DMA_TX_REQUEST_SOURCE 15U
+#define EXAMPLE_DSPI_MASTER_DMA_MUX_BASE DMAMUX_BASE
+#define EXAMPLE_DSPI_MASTER_DMA_BASE DMA_BASE
+#define EXAMPLE_DSPI_MASTER_DMA_RX_REQUEST_SOURCE kDmaRequestMux0SPI0Rx
+#define EXAMPLE_DSPI_MASTER_DMA_TX_REQUEST_SOURCE kDmaRequestMux0SPI0Tx
 #define DSPI_MASTER_CLK_SRC DSPI0_CLK_SRC
+#define DSPI_MASTER_CLK_FREQ CLOCK_GetFreq(DSPI0_CLK_SRC)
 #define EXAMPLE_DSPI_MASTER_PCS_FOR_INIT kDSPI_Pcs0
 #define EXAMPLE_DSPI_MASTER_PCS_FOR_TRANSFER kDSPI_MasterPcs0
 
 #define EXAMPLE_DSPI_SLAVE_BASEADDR SPI1
-#define EXAMPLE_DSPI_SLAVE_DMA_MUX_BASEADDR DMAMUX
-#define EXAMPLE_DSPI_SLAVE_DMA_BASEADDR DMA0
-#define EXAMPLE_DSPI_SLAVE_DMA_RX_REQUEST_SOURCE 16U
-#define EXAMPLE_DSPI_SLAVE_DMA_TX_REQUEST_SOURCE 17U
+#define EXAMPLE_DSPI_SLAVE_DMA_MUX_BASE DMAMUX_BASE
+#define EXAMPLE_DSPI_SLAVE_DMA_BASE DMA_BASE
+/* SPI1 has not separated dma request source*/
+#define EXAMPLE_DSPI_SLAVE_DMA_RX_REQUEST_SOURCE kDmaRequestMux0SPI1
+#define EXAMPLE_DSPI_MASTER_DMA_MUX_BASEADDR ((DMAMUX_Type *)(EXAMPLE_DSPI_MASTER_DMA_MUX_BASE))
+#define EXAMPLE_DSPI_MASTER_DMA_BASEADDR ((DMA_Type *)(EXAMPLE_DSPI_MASTER_DMA_BASE))
+
+#define EXAMPLE_DSPI_SLAVE_DMA_MUX_BASEADDR ((DMAMUX_Type *)(EXAMPLE_DSPI_SLAVE_DMA_MUX_BASE))
+#define EXAMPLE_DSPI_SLAVE_DMA_BASEADDR ((DMA_Type *)(EXAMPLE_DSPI_SLAVE_DMA_BASE))
+
 #define TRANSFER_SIZE 256U        /*! Transfer dataSize */
 #define TRANSFER_BAUDRATE 500000U /*! Transfer baudrate - 500k */
 
@@ -133,8 +140,17 @@ int main(void)
     masterIntermediaryChannel = 1U;
     masterTxChannel = 2U;
 
-    slaveRxChannel = 3U;
-    slaveTxChannel = 4U;
+    /* Request DMA channels for TX & RX. */
+    if ((dma_request_source_t)EXAMPLE_DSPI_SLAVE_DMA_RX_REQUEST_SOURCE < 0x200)
+    {
+        slaveRxChannel = 3U;
+        slaveTxChannel = 4U;
+    }
+    else
+    {
+        slaveRxChannel = 16U;
+        slaveTxChannel = 17U;
+    }
 
     /* DMA MUX init */
     DMAMUX_Init(EXAMPLE_DSPI_MASTER_DMA_MUX_BASEADDR);
@@ -204,7 +220,7 @@ int main(void)
     masterConfig.enableModifiedTimingFormat = false;
     masterConfig.samplePoint = kDSPI_SckToSin0Clock;
 
-    srcClock_Hz = CLOCK_GetFreq(DSPI_MASTER_CLK_SRC);
+    srcClock_Hz = DSPI_MASTER_CLK_FREQ;
     DSPI_MasterInit(EXAMPLE_DSPI_MASTER_BASEADDR, &masterConfig, srcClock_Hz);
 
     /*Slave config*/

@@ -160,6 +160,74 @@ SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -mapcs")
 
 SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -std=gnu99")
 
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -mcpu=cortex-m4")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -mfloat-abi=hard")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -mfpu=fpv4-sp-d16")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -mthumb")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -MMD")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -MP")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-common")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ffunction-sections")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fdata-sections")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ffreestanding")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-builtin")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -mapcs")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-rtti")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-exceptions")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Os")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mcpu=cortex-m4")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mfloat-abi=hard")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mfpu=fpv4-sp-d16")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mthumb")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -MMD")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -MP")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-common")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ffunction-sections")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fdata-sections")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ffreestanding")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-builtin")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mapcs")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-rtti")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-exceptions")
+
 SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -mcpu=cortex-m4")
 
 SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -Wall")
@@ -169,6 +237,8 @@ SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -mfloat-ab
 SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -mfpu=fpv4-sp-d16")
 
 SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} --specs=nano.specs")
+
+SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} --specs=nosys.specs")
 
 SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -fno-common")
 
@@ -200,6 +270,10 @@ SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -Xlinker")
 
 SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} muldefs")
 
+SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -Xlinker")
+
+SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} --defsym=__usb_ram_size__=0x800")
+
 SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -g")
 
 SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -mcpu=cortex-m4")
@@ -211,6 +285,8 @@ SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -mfloat-abi=ha
 SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -mfpu=fpv4-sp-d16")
 
 SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} --specs=nano.specs")
+
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} --specs=nosys.specs")
 
 SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fno-common")
 
@@ -242,67 +318,49 @@ SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -Xlinker")
 
 SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} muldefs")
 
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -Xlinker")
+
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} --defsym=__usb_ram_size__=0x800")
+
 include_directories(${ProjDirPath}/..)
 
-include_directories(${ProjDirPath}/../../../../../../devices/MK21FA12/utilities)
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.6.3)
 
-include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.0.0)
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.6.3/osa)
 
-include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.0.0/osa)
-
-include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.0.0/include)
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.6.3/include)
 
 include_directories(${ProjDirPath}/../../../../../../CMSIS/Include)
 
 include_directories(${ProjDirPath}/../../../..)
 
-include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host)
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.6.3/host)
 
 include_directories(${ProjDirPath}/../../../../../../devices/MK21FA12/drivers)
 
-include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/class)
-
-include_directories(${ProjDirPath}/../../../../../../devices/MK21FA12)
-
-include_directories(${ProjDirPath}/..)
+include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.6.3/host/class)
 
 include_directories(${ProjDirPath}/../../../../../../devices/MK21FA12/utilities)
-
-include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.0.0)
-
-include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.0.0/osa)
-
-include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.0.0/include)
-
-include_directories(${ProjDirPath}/../../../../../../CMSIS/Include)
-
-include_directories(${ProjDirPath}/../../../..)
-
-include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host)
-
-include_directories(${ProjDirPath}/../../../../../../devices/MK21FA12/drivers)
-
-include_directories(${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/class)
 
 include_directories(${ProjDirPath}/../../../../../../devices/MK21FA12)
 
 add_executable(host_audio_speaker_bm.elf 
 "${ProjDirPath}/../../../../../../devices/MK21FA12/gcc/startup_MK21FA12.S"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/usb_host_khci.c"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/usb_host_khci.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.6.3/host/usb_host_khci.c"
+"${ProjDirPath}/../../../../../../middleware/usb_1.6.3/host/usb_host_khci.h"
 "${ProjDirPath}/../../../../../../devices/MK21FA12/drivers/fsl_uart.h"
 "${ProjDirPath}/../../../../../../devices/MK21FA12/drivers/fsl_uart.c"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/osa/usb_osa.h"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/osa/usb_osa_bm.h"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/osa/usb_osa_bm.c"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/class/usb_host_audio.c"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/class/usb_host_audio.h"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/class/usb_host_hid.c"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/class/usb_host_hid.h"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/class/usb_host_hub.c"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/class/usb_host_hub.h"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/class/usb_host_hub_app.c"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/class/usb_host_hub_app.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.6.3/osa/usb_osa.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.6.3/osa/usb_osa_bm.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.6.3/osa/usb_osa_bm.c"
+"${ProjDirPath}/../../../../../../middleware/usb_1.6.3/host/class/usb_host_audio.c"
+"${ProjDirPath}/../../../../../../middleware/usb_1.6.3/host/class/usb_host_audio.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.6.3/host/class/usb_host_hid.c"
+"${ProjDirPath}/../../../../../../middleware/usb_1.6.3/host/class/usb_host_hid.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.6.3/host/class/usb_host_hub.c"
+"${ProjDirPath}/../../../../../../middleware/usb_1.6.3/host/class/usb_host_hub.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.6.3/host/class/usb_host_hub_app.c"
+"${ProjDirPath}/../../../../../../middleware/usb_1.6.3/host/class/usb_host_hub_app.h"
 "${ProjDirPath}/../app.c"
 "${ProjDirPath}/../audio_speaker.c"
 "${ProjDirPath}/../audio_speaker.h"
@@ -314,22 +372,25 @@ add_executable(host_audio_speaker_bm.elf
 "${ProjDirPath}/../../../../../../devices/MK21FA12/system_MK21FA12.h"
 "${ProjDirPath}/../../../../../../devices/MK21FA12/utilities/fsl_debug_console.c"
 "${ProjDirPath}/../../../../../../devices/MK21FA12/utilities/fsl_debug_console.h"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/include/usb.h"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/usb_host.h"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/usb_host_hci.c"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/usb_host_hci.h"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/usb_host_devices.c"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/usb_host_devices.h"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/usb_host_framework.h"
-"${ProjDirPath}/../../../../../../middleware/usb_1.0.0/host/usb_host_framework.c"
+"${ProjDirPath}/../../../../../../middleware/usb_1.6.3/include/usb.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.6.3/include/usb_misc.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.6.3/include/usb_spec.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.6.3/host/usb_host.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.6.3/host/usb_host_hci.c"
+"${ProjDirPath}/../../../../../../middleware/usb_1.6.3/host/usb_host_hci.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.6.3/host/usb_host_devices.c"
+"${ProjDirPath}/../../../../../../middleware/usb_1.6.3/host/usb_host_devices.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.6.3/host/usb_host_framework.h"
+"${ProjDirPath}/../../../../../../middleware/usb_1.6.3/host/usb_host_framework.c"
 "${ProjDirPath}/../../../../../../devices/MK21FA12/drivers/fsl_port.h"
+"${ProjDirPath}/../../../../../../devices/MK21FA12/drivers/fsl_sim.h"
 "${ProjDirPath}/../../../../../../devices/MK21FA12/drivers/fsl_sim.c"
 "${ProjDirPath}/../../../../../../devices/MK21FA12/drivers/fsl_clock.h"
 "${ProjDirPath}/../../../../../../devices/MK21FA12/drivers/fsl_clock.c"
 "${ProjDirPath}/../../../../../../devices/MK21FA12/drivers/fsl_gpio.h"
 "${ProjDirPath}/../../../../../../devices/MK21FA12/drivers/fsl_gpio.c"
-"${ProjDirPath}/../../../../../../devices/MK21FA12/drivers/fsl_mpu.h"
-"${ProjDirPath}/../../../../../../devices/MK21FA12/drivers/fsl_mpu.c"
+"${ProjDirPath}/../../../../../../devices/MK21FA12/drivers/fsl_sysmpu.h"
+"${ProjDirPath}/../../../../../../devices/MK21FA12/drivers/fsl_sysmpu.c"
 "${ProjDirPath}/../../../../../../devices/MK21FA12/drivers/fsl_common.h"
 "${ProjDirPath}/../../../../../../devices/MK21FA12/drivers/fsl_common.c"
 "${ProjDirPath}/../board.c"
@@ -340,6 +401,8 @@ add_executable(host_audio_speaker_bm.elf
 "${ProjDirPath}/../pin_mux.h"
 "${ProjDirPath}/../../../../../../devices/MK21FA12/drivers/fsl_smc.h"
 "${ProjDirPath}/../../../../../../devices/MK21FA12/drivers/fsl_smc.c"
+"${ProjDirPath}/../../../../../../devices/MK21FA12/drivers/fsl_flash.c"
+"${ProjDirPath}/../../../../../../devices/MK21FA12/drivers/fsl_flash.h"
 )
 
 

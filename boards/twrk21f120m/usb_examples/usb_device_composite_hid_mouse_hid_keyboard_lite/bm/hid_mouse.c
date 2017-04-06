@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -58,6 +58,7 @@ static usb_status_t USB_DeviceHidMouseInterruptIn(usb_device_handle deviceHandle
  * Variables
  ******************************************************************************/
 
+USB_DATA_ALIGNMENT static uint8_t s_MouseBuffer[USB_HID_MOUSE_REPORT_LENGTH];
 static usb_device_composite_struct_t *s_UsbDeviceComposite;
 static usb_device_hid_mouse_struct_t s_UsbDeviceHidMouse;
 
@@ -224,5 +225,6 @@ usb_status_t USB_DeviceHidMouseEndpointStall(usb_device_handle handle, uint8_t e
 usb_status_t USB_DeviceHidMouseInit(usb_device_composite_struct_t *deviceComposite)
 {
     s_UsbDeviceComposite = deviceComposite;
+    s_UsbDeviceHidMouse.buffer = s_MouseBuffer;
     return kStatus_USB_Success;
 }

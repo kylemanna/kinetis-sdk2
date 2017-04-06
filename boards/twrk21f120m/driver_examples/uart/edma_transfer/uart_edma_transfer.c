@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -30,7 +30,6 @@
 
 #include "board.h"
 #include "fsl_uart_edma.h"
-#include "fsl_dma_manager.h"
 
 #include "pin_mux.h"
 #include "clock_config.h"
@@ -39,8 +38,11 @@
  ******************************************************************************/
 #define DEMO_UART UART2
 #define DEMO_UART_CLKSRC kCLOCK_BusClk
+#define DEMO_UART_CLK_FREQ CLOCK_GetFreq(kCLOCK_BusClk)
 #define UART_TX_DMA_CHANNEL 0U
 #define UART_RX_DMA_CHANNEL 1U
+#define EXAMPLE_UART_DMAMUX_BASEADDR DMAMUX0
+#define EXAMPLE_UART_DMA_BASEADDR DMA0
 #define UART_TX_DMA_REQUEST kDmaRequestMux0UART2Tx
 #define UART_RX_DMA_REQUEST kDmaRequestMux0UART2Rx
 #define ECHO_BUFFER_LENGTH 8
@@ -59,7 +61,7 @@ void UART_UserCallback(UART_Type *base, uart_edma_handle_t *handle, status_t sta
 uart_edma_handle_t g_uartEdmaHandle;
 edma_handle_t g_uartTxEdmaHandle;
 edma_handle_t g_uartRxEdmaHandle;
-uint8_t g_tipString[] = "UART DMA example\r\nSend back received data\r\nEcho every 8 characters\r\n";
+uint8_t g_tipString[] = "UART EDMA example\r\nSend back received data\r\nEcho every 8 characters\r\n";
 uint8_t g_txBuffer[ECHO_BUFFER_LENGTH] = {0};
 uint8_t g_rxBuffer[ECHO_BUFFER_LENGTH] = {0};
 volatile bool rxBufferEmpty = true;
@@ -95,6 +97,7 @@ void UART_UserCallback(UART_Type *base, uart_edma_handle_t *handle, status_t sta
 int main(void)
 {
     uart_config_t uartConfig;
+    edma_config_t config;
     uart_transfer_t xfer;
     uart_transfer_t sendXfer;
     uart_transfer_t receiveXfer;
@@ -117,18 +120,25 @@ int main(void)
     uartConfig.enableTx = true;
     uartConfig.enableRx = true;
 
-    UART_Init(DEMO_UART, &uartConfig, CLOCK_GetFreq(DEMO_UART_CLKSRC));
+    UART_Init(DEMO_UART, &uartConfig, DEMO_UART_CLK_FREQ);
 
-    /* Configure DMA. */
-    DMAMGR_Init();
+    /* Init DMAMUX */
+    DMAMUX_Init(EXAMPLE_UART_DMAMUX_BASEADDR);
+    /* Set channel for UART */
+    DMAMUX_SetSource(EXAMPLE_UART_DMAMUX_BASEADDR, UART_TX_DMA_CHANNEL, UART_TX_DMA_REQUEST);
+    DMAMUX_SetSource(EXAMPLE_UART_DMAMUX_BASEADDR, UART_RX_DMA_CHANNEL, UART_RX_DMA_REQUEST);
+    DMAMUX_EnableChannel(EXAMPLE_UART_DMAMUX_BASEADDR, UART_TX_DMA_CHANNEL);
+    DMAMUX_EnableChannel(EXAMPLE_UART_DMAMUX_BASEADDR, UART_RX_DMA_CHANNEL);
 
-    /* Request dma channels from DMA manager. */
-    DMAMGR_RequestChannel(UART_TX_DMA_REQUEST, UART_TX_DMA_CHANNEL, &g_uartTxEdmaHandle);
-    DMAMGR_RequestChannel(UART_RX_DMA_REQUEST, UART_RX_DMA_CHANNEL, &g_uartRxEdmaHandle);
-
+    /* Init the EDMA module */
+    EDMA_GetDefaultConfig(&config);
+    EDMA_Init(EXAMPLE_UART_DMA_BASEADDR, &config);
+    EDMA_CreateHandle(&g_uartTxEdmaHandle, EXAMPLE_UART_DMA_BASEADDR, UART_TX_DMA_CHANNEL);
+    EDMA_CreateHandle(&g_uartRxEdmaHandle, EXAMPLE_UART_DMA_BASEADDR, UART_RX_DMA_CHANNEL);
+    
     /* Create UART DMA handle. */
     UART_TransferCreateHandleEDMA(DEMO_UART, &g_uartEdmaHandle, UART_UserCallback, NULL, &g_uartTxEdmaHandle,
-                          &g_uartRxEdmaHandle);
+                                  &g_uartRxEdmaHandle);
 
     /* Send g_tipString out. */
     xfer.data = g_tipString;

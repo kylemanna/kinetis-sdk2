@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2015 - 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -61,7 +61,7 @@ Packet or in the additional parameters supplied as data for some commands*/
 encountered blank medium or format-defined end-of-data indication while reading or
 a write-once device encountered a non-blank medium while writing*/
 #define USB_DEVICE_MSC_UFI_BLANK_CHECK 0x08U
-/*! @brief This sense key is available for reporting vendor specific conditions*/
+/*! @brief This sense key is available for reporting vendor-specific conditions*/
 #define USB_DEVICE_MSC_UFI_VENDOR_SPECIFIC_ERROR 0x09U
 /*! @brief Indicates that the UFI device has aborted the command
 The host may be able to recover by trying the command again*/

@@ -180,7 +180,7 @@ int main(void)
                 "Rx",
                 /* The size (in words) of the stack that should be created
                 for the task. */
-                configMINIMAL_STACK_SIZE,
+                configMINIMAL_STACK_SIZE + 166,
                 /* A parameter that can be passed into the task.  Not used
                 in this simple demo. */
                 NULL,
@@ -194,11 +194,12 @@ int main(void)
 
     /* Create the queue send task in exactly the same way.  Again, this is
     described in the comments at the top of the file. */
-    xTaskCreate(prvQueueSendTask, "TX", configMINIMAL_STACK_SIZE, NULL, mainQUEUE_SEND_TASK_PRIORITY, NULL);
+    xTaskCreate(prvQueueSendTask, "TX", configMINIMAL_STACK_SIZE + 166, NULL, mainQUEUE_SEND_TASK_PRIORITY, NULL);
 
     /* Create the task that is synchronised with an interrupt using the
     xEventSemaphore semaphore. */
-    xTaskCreate(prvEventSemaphoreTask, "Sem", configMINIMAL_STACK_SIZE, NULL, mainEVENT_SEMAPHORE_TASK_PRIORITY, NULL);
+    xTaskCreate(prvEventSemaphoreTask, "Sem", configMINIMAL_STACK_SIZE + 166, NULL, mainEVENT_SEMAPHORE_TASK_PRIORITY,
+                NULL);
 
     /* Create the software timer as described in the comments at the top of
     this file. */

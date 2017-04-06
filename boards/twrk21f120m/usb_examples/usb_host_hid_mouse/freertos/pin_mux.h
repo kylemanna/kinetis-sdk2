@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * All rights reserved.
+ * Copyright (c) 2016, Freescale Semiconductor, Inc.
+ * Copyright 2016-2017 NXP
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -12,7 +12,7 @@
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
  *
- * o Neither the name of Freescale Semiconductor, Inc. nor the names of its
+ * o Neither the name of the copyright holder nor the names of its
  *   contributors may be used to endorse or promote products derived from this
  *   software without specific prior written permission.
  *
@@ -31,20 +31,69 @@
 #ifndef _PIN_MUX_H_
 #define _PIN_MUX_H_
 
-#include "board.h"
-#include "fsl_common.h"
+
+/*******************************************************************************
+ * Definitions
+ ******************************************************************************/
+
+/*! @brief Direction type  */
+typedef enum _pin_mux_direction
+{
+  kPIN_MUX_DirectionInput = 0U,         /* Input direction */
+  kPIN_MUX_DirectionOutput = 1U,        /* Output direction */
+  kPIN_MUX_DirectionInputOrOutput = 2U  /* Input or output direction */
+} pin_mux_direction_t;
+
+/*!
+ * @addtogroup pin_mux
+ * @{
+ */
+
+/*******************************************************************************
+ * API
+ ******************************************************************************/
 
 #if defined(__cplusplus)
 extern "C" {
-#endif /* __cplusplus*/
-       /*!
-        * @brief configure all pins for this demo/example
-        *
-        */
+#endif
+
+/* PORTD8 (coord A10), J14[A43]/U2[3]/UART5_RX */
+#define BOARD_DEBUG_UART_RX_PERIPHERAL                                     UART5   /*!< Device name: UART5 */
+#define BOARD_DEBUG_UART_RX_SIGNAL                                            RX   /*!< UART5 signal: RX */
+#define BOARD_DEBUG_UART_RX_PIN_NAME                                    UART5_RX   /*!< Pin name */
+#define BOARD_DEBUG_UART_RX_LABEL                      "J14[A43]/U2[3]/UART5_RX"   /*!< Label */
+#define BOARD_DEBUG_UART_RX_NAME                                 "DEBUG_UART_RX"   /*!< Identifier name */
+
+/* PORTD9 (coord A9), J14[A44]/UART5_TX */
+#define BOARD_DEBUG_UART_TX_PERIPHERAL                                     UART5   /*!< Device name: UART5 */
+#define BOARD_DEBUG_UART_TX_SIGNAL                                            TX   /*!< UART5 signal: TX */
+#define BOARD_DEBUG_UART_TX_PIN_NAME                                    UART5_TX   /*!< Pin name */
+#define BOARD_DEBUG_UART_TX_LABEL                            "J14[A44]/UART5_TX"   /*!< Label */
+#define BOARD_DEBUG_UART_TX_NAME                                 "DEBUG_UART_TX"   /*!< Identifier name */
+
+/* PORTC9 (coord D6), J14[A74]/U205[1]/J22[2]/K21_USB_ENA */
+#define BOARD_USB_ENABLE_GPIO                                              GPIOC   /*!< GPIO device name: GPIOC */
+#define BOARD_USB_ENABLE_PORT                                              PORTC   /*!< PORT device name: PORTC */
+#define BOARD_USB_ENABLE_GPIO_PIN                                             9U   /*!< PORTC pin index: 9 */
+#define BOARD_USB_ENABLE_PIN_NAME                                           PTC9   /*!< Pin name */
+#define BOARD_USB_ENABLE_LABEL             "J14[A74]/U205[1]/J22[2]/K21_USB_ENA"   /*!< Label */
+#define BOARD_USB_ENABLE_NAME                                       "USB_ENABLE"   /*!< Identifier name */
+
+/*!
+ * @brief Configures pin routing and optionally pin electrical features.
+ *
+ */
 void BOARD_InitPins(void);
 
 #if defined(__cplusplus)
 }
-#endif /* __cplusplus*/
+#endif
 
+/*!
+ * @}
+ */
 #endif /* _PIN_MUX_H_ */
+
+/*******************************************************************************
+ * EOF
+ ******************************************************************************/
